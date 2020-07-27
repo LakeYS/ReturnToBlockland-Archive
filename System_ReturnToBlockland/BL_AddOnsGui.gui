@@ -147,7 +147,7 @@ new GuiControl(AddOnsGui) {
          extent = "91 38";
          minExtent = "8 2";
          visible = "1";
-         command = "canvas.popDialog(AddOnsGui);RTBMM_OpenDirect();RTBMM_getModsView();";
+         command = "canvas.popDialog(AddOnsGui);RTBMM_OpenModManager();RTBMM_ModsView_Init();";
          text = "RTB Add-Ons";
          groupNum = "-1";
          buttonType = "PushButton";

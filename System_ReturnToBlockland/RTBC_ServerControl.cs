@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_ServerControl.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBC_ServerControl.cs $
 //#
-//#      $Id: RTBC_ServerControl.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_ServerControl.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -18,6 +18,12 @@
 //#############################################################################
 //Register that this module has been loaded
 $RTB::RTBC_ServerControl = 1;
+
+//*********************************************************
+//* Variable Declarations
+//*********************************************************
+$RTB::CServerControl::SO::Cats = 0;
+$RTB::CServerControl::SO::Options = 0;
 
 //*********************************************************
 //* Initialisation of required objects
@@ -31,6 +37,7 @@ if(!$RTB::CServerControl::AppliedMaps)
    $RTB::CServerControl::AppliedMaps = 1;
 }
 
+//- RTBSC_ToggleSC (Toggles the server control window)
 function RTBSC_ToggleSC(%val)
 {
    if(!%val)
@@ -39,12 +46,77 @@ function RTBSC_ToggleSC(%val)
    if(RTB_ServerControl.isAwake())
       canvas.popDialog(RTB_ServerControl);
    else
-   {
-      if($IamAdmin !$= 2 || $RTB::CServerControl::Cache::ServerHasRTB !$= 1)
-         return;
-         
       canvas.pushDialog(RTB_ServerControl);
+}
+
+//*********************************************************
+//* Settings Registration
+//*********************************************************
+//- RTBSC_cacheServerOption (Creates a manifest of options for the server to reference - what a mess!)
+function RTBSC_cacheServerOption(%optionName,%type,%style,%description,%category)
+{
+   if($RTB::CServerControl::Cache::DownloadedServerOptions)
+      return;
+      
+   if($RTB::CServerControl::SO::Options[%category] $= "")
+   {
+      $RTB::CServerControl::SO::Cat[$RTB::CServerControl::SO::Cats] = %category;
+      $RTB::CServerControl::SO::Cats++;
+      
+      $RTB::CServerControl::SO::Options[%category] = 0;
    }
+   $RTB::CServerControl::SO::CatOption[%category,$RTB::CServerControl::SO::Options[%category]] = %optionName TAB %type TAB %style TAB %description TAB $RTB::CServerControl::SO::Options;
+   $RTB::CServerControl::SO::Option[$RTB::CServerControl::SO::Options] = %optionName TAB %type TAB %style TAB %description;
+   $RTB::CServerControl::SO::Options++;
+   $RTB::CServerControl::SO::Options[%category]++;
+}
+
+//*********************************************************
+//* Server Options Definitions (Must match on server)
+//*********************************************************
+RTBSC_cacheServerOption("Server Name","string 150","100 7 200 18","The Server Name is what is displayed to people who are browsing for servers to join.","Main Settings");
+RTBSC_cacheServerOption("Welcome Message","string 255","100 7 200 18","The Welcome Message is what is sent to users when they join the server. %1 is replaced with the player's name.","Main Settings");
+RTBSC_cacheServerOption("Max Players","playerlist 1 64","100 7 84 16","The Max Players is the max ammount of people allowed in the server. This includes the Server Host and the Admin. You can set this to less than the current number of players in the server.","Main Settings");
+RTBSC_cacheServerOption("Server Password","string 30","100 7 200 18","The Server Password prevents people without the password from joining the server.","Main Settings");
+RTBSC_cacheServerOption("Admin Password","string 30","100 7 200 18","The Admin Password allows people to enter a password to become Admin.","Main Settings");
+RTBSC_cacheServerOption("Super Admin Password","string 30","130 7 170 18","The Super Admin Password allows people to enter a password to become a Super Admin.","Main Settings");
+RTBSC_cacheServerOption("E-Tard Filer","bool","80 0 140 30","The E-Tard Filter prevents people from saying words in the e-tard word list.","Chat Settings");
+RTBSC_cacheServerOption("E-Tard Words","string 255","80 7 220 18","Words should be separated by commas. A space before and after means it must be a whole word, not a part of a bigger one.","Chat Settings");
+RTBSC_cacheServerOption("Max Bricks per Second","int 0 999","200 7 100 18","The Max Bricks per Second is how many bricks users are allowed to place per second. For fast macroing, this should be set to 0.","Gameplay Settings");
+RTBSC_cacheServerOption("Falling Damage","bool","200 0 140 30","Falling Damage means falling from large heights will kill players.","Gameplay Settings");
+RTBSC_cacheServerOption("\"Too Far\" Distance for Building","int 0 9999","200 7 100 18","The Too Far distance is how close people have to be to their ghost brick to plant it.","Gameplay Settings");
+RTBSC_cacheServerOption("Wrench Events Admin Only","bool","200 0 140 30"," Wrench Events can be made Admin Only by using this setting.","Gameplay Settings");
+RTBSC_cacheServerOption("Bricks lose ownership after (minutes)","int -1 99999","200 7 100 18","This will make bricks lose their ownership if the owner is gone for more than the number of minutes in the box. This means any player will be able to build on or destroy those bricks. -1 disables this.","Gameplay Settings");
+RTBSC_cacheServerOption("Total Player Vehicles","int 0 1000","200 7 100 18","The total number of Player-based Vehicles or Bots that can be in the server at one time.","Vehicle Limits");
+RTBSC_cacheServerOption("Total Physics Vehicles","int 0 1000","200 7 100 18","The total number of Physics-based Vehicles that can be in the server at one time.","Vehicle Limits");
+RTBSC_cacheServerOption("Total Player Vehicles per Player","int 0 1000","200 7 100 18","The total number of Player-based Vehicles or Bots that a single player can have at one time.","Vehicle Limits");
+RTBSC_cacheServerOption("Total Physics Vehicles per Player","int 0 1000","200 7 100 18","The total number of Physics-based Vehicles that a single player can have at one time.","Vehicle Limits");
+RTBSC_cacheServerOption("Schedule Event Quota","int 0 1000","200 7 100 18","The total number of schedules that can be used at once per player.","Event Quotas");
+RTBSC_cacheServerOption("Miscellaneous Event Quota","int 0 1000","200 7 100 18","You know, I honestly don't know what this one does.","Event Quotas");
+RTBSC_cacheServerOption("Projectile Event Quota","int 5 1000","200 7 100 18","The total number of projectiles that can exist as a result of events per player.","Event Quotas");
+RTBSC_cacheServerOption("Item Event Quota","int 5 1000","200 7 100 18","The total number of spawned items that can exist as a result of events per player.","Event Quotas");
+RTBSC_cacheServerOption("Effects Event Quota","int 0 1000","200 7 100 18","The total number of lights/emitters that can exist as a result of events per player.","Event Quotas");
+
+//*********************************************************
+//* Prefs Registration
+//*********************************************************
+//- RTBSC_cacheServerPref (Creates a manifest of prefs for the server to reference)
+function RTBSC_cacheServerPref(%id,%prefName,%category,%type,%requiresRestart)
+{
+   if($RTB::CServerControl::Cache::DownloadedServerPrefs)
+      return;
+      
+   if($RTB::CServerControl::Cache::SP::Prefs[%category] $= "")
+   {
+      $RTB::CServerControl::Cache::SP::Cat[$RTB::CServerControl::Cache::SP::Cats] = %category;
+      $RTB::CServerControl::Cache::SP::Cats++;
+      
+      $RTB::CServerControl::Cache::SP::Prefs[%category] = 0;
+   }
+   $RTB::CServerControl::Cache::SP::CatPref[%category,$RTB::CServerControl::Cache::SP::Prefs[%category]] = %id TAB %prefName TAB %type TAB %requiresRestart;
+   $RTB::CServerControl::Cache::SP::Pref[$RTB::CServerControl::Cache::SP::Prefs] = %id TAB %prefName TAB %type TAB %requiresRestart;
+   $RTB::CServerControl::Cache::SP::Prefs++;
+   $RTB::CServerControl::Cache::SP::Prefs[%category]++;
 }
 
 //*********************************************************
@@ -52,6 +124,13 @@ function RTBSC_ToggleSC(%val)
 //*********************************************************
 package RTBC_ServerControl
 {
+   function disconnectedCleanup()
+   {
+     RTBSC_SO_Swatch.clear();
+     deleteVariables("$RTB::CServerControl::Cache*");
+     Parent::disconnectedCleanup();
+   }
+    
    function adminGui::onWake(%this)
    {
       Parent::onWake(%this);
@@ -81,9 +160,9 @@ package RTBC_ServerControl
       adminGui.getObject(0).add(%btn);
    }
    
-   function handleClientJoin(%a,%b,%c,%d,%e,%f,%g,%h,%i,%k,%l)
+   function NewPlayerListGui::update(%this,%client,%name,%blid,%isAdmin,%isSuperAdmin,%score)
    {
-      Parent::handleClientJoin(%a,%b,%c,%d,%e,%f,%g,%h,%i,%k,%l);
+      Parent::update(%this,%client,%name,%blid,%isAdmin,%isSuperAdmin,%score);
       
       if($RTB::CServerControl::Cache::currentTab $= 2)
          RTBSC_Pane2::onView(RTBSC_Pane2);
@@ -107,11 +186,13 @@ function RTB_ServerControl::onWake(%this)
    {
       RTB_ServerControl.setTab(1);
       %activePane = "RTBSC_Pane1";
+      return;
    }
    %call = %activePane@"::onView("@%activePane.getID()@");";
    eval(%call);
 }
 
+//- RTB_ServerControl::setTab (Sets the tab for the server control window)
 function RTB_ServerControl::setTab(%this,%id)
 {
    for(%i=5;%i<%this.getObject(0).getCount();%i++)
@@ -130,140 +211,317 @@ function RTB_ServerControl::setTab(%this,%id)
 //*********************************************************
 //* Server Options (SO) Pane 1
 //*********************************************************
+//- RTBSC_Pane1::onView (Callback for viewing Pane 1)
 function RTBSC_Pane1::onView(%this)
 {
-   RTBSC_SO_MaxPlayers.clear();
-   for(%i=1;%i<33;%i++)
-   {
-      if(%i > 1)
-         %s = "s";
-      RTBSC_SO_MaxPlayers.add(%i@" Player"@%s,%i);
-   }
-   RTBSC_SO_MaxPlayers.setSelected(12);
+   RTBSC_applySettingsToControls();
+   
    commandtoserver('RTB_getServerOptions');
    RTBSC_SO_Tip.setText("Click a Setting Name to view some information about it.");
 }
 
-function RTBSC_Pane1::getSettingTip(%this,%id)
+//- RTBSC_Pane1::render (Draws the list of items)
+function RTBSC_Pane1::render()
 {
-   %settingTip0 = "The Server Name is what is displayed to people who are browsing for servers to join.";
-   %settingTip1 = "The Welcome Message is what is sent to users when they join the server.\n\n%1 is replaced with the player's name.";
-   %settingTip2 = "The Max Players is the max ammount of people allowed in the server.\n\nThis includes the Server Host and the Admin.\n\nYou can set this to less than the current number of players in the server.";
-   %settingTip3 = "The Server Password prevents people without the password from joining the server.";
-   %settingTip4 = "The Admin Password allows people to enter a password to become Admin.";
-   %settingTip5 = "The Super Admin Password allows people to enter a password to become a Super Admin.";
-   %settingTip6 = "The E-Tard Filter prevents people from saying words that are in the box to the right.\n\nWords should be separated by commas. A space before and after means it must be a whole word, not a part of a bigger one.";
-   %settingTip7 = "The Flood Protection stops people from spamming the same messages over and over again.";
-   %settingTip8 = "The Max Bricks per Second is how many bricks users are allowed to place per second.\n\nFor fast macroing, this should be set to 0.";
-   %settingTip9 = "Falling Damage means falling from large heights will kill players.";
-   %settingTip10 = "The Too Far distance is how close people have to be to their ghost brick to plant it.";
-   %settingTip11 = " Wrench Events can be made Admin Only by using this setting.";
-   %settingTip12 = "This will make bricks lose their ownership if the owner is gone for more than the number of minutes in the box. This means any player will be able to build on or destroy those bricks.\n\n-1 disables this.";
+   %ctrl = RTBSC_SO_Swatch.getID();
+   %ctrl.clear();
+   %y = 1;
    
-   %settingTip13 = "The total number of Player-based Vehicles or Bots that can be in the server at one time.";
-   %settingTip14 = "The total number of Physics-based Vehicles that can be in the server at one time.";
-   %settingTip15 = "The total number of Player-based Vehicles or Bots that a single player can have at one time.";
-   %settingTip16 = "The total number of Physics-based Vehicles that a single player can have at one time.";
-   
-   %settingTip17 = "The total number of schedules that can be used at once per player.";
-   %settingTip18 = "You know, I honestly don't know what this one does.";
-   %settingTip19 = "The total number of projectiles that can exist as a result of events per player.";
-   %settingTip20 = "The total number of spawned items that can exist as a result of events per player.";
-   %settingTip21 = "The total number of lights/emitters that can exist as a result of events per player.";
-   
-   if(%settingTip[%id] !$= "")
+   for(%i=0;%i<$RTB::CServerControl::SO::Cats;%i++)
    {
-      RTBSC_SO_Tip.setText(%settingTip[%id]);
+      %category = $RTB::CServerControl::SO::Cat[%i];
+
+      %header = new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "2 "@%y;
+         extent = "330 30";
+         minExtent = "8 2";
+         visible = "1";
+         color = "0 0 0 50";
+         
+         new GuiTextCtrl() {
+            profile = "RTBMM_MainText";
+            horizSizing = "right";
+            vertSizing = "center";
+            position = "5 6";
+            extent = "200 18";
+            minExtent = "8 2";
+            visible = "1";
+            text = "\c1"@%category;
+            maxLength = "255";
+         };
+      };
+      %ctrl.add(%header);
+      %ctrl.resize(0,1,316,%y+31);
+      %y+=31;
+      
+      for(%k=0;%k<$RTB::CServerControl::SO::Options[%category];%k++)
+      {
+         %option = $RTB::CServerControl::SO::CatOption[%category,%k];
+         
+         if(%k%2 $= 0)
+            %color = "0 0 0 10";
+         else
+            %color = "0 0 0 0";
+            
+         %ctrlRow = new GuiSwatchCtrl() {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "2 "@%y;
+            extent = "353 29";
+            minExtent = "8 2";
+            visible = "1";
+            color = %color;
+            
+            new GuiTextCtrl() {
+               profile = "GuiTextProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "5 5";
+               extent = "66 18";
+               minExtent = "8 2";
+               visible = "1";
+               text = "\c2"@getField(%option,0)@":";
+               maxLength = "255";
+            };
+         };
+         %ctrl.add(%ctrlRow);
+         
+         %type = getField(%option,1);
+         %style = getField(%option,2);
+         %settingTip = new GuiBitmapButtonCtrl()
+         {
+            position = "2 "@%y;
+            extent = getWord(%style,0)-10@" 29";
+            bitmap = "base/client/ui/button1";
+            text = " ";
+            mColor = "0 0 0 0";
+            command = "RTBSC_displaySettingTip("@getField(%option,4)@");";
+         };
+         %ctrl.add(%settingTip);
+         
+         %inputName = "RTBSC_SO_Opt"@getField(%option,4);
+         if(firstWord(%type) $= "string")
+         {
+            %input = new GuiTextEditCtrl(%inputName) {
+               profile = "RTBMM_TextEditProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = getWords(%style,0,1);
+               extent = getWords(%style,2,3);
+               minExtent = "8 2";
+               visible = "1";
+               maxLength = getWord(%type,1);
+               historySize = "0";
+               password = "0";
+               tabComplete = "0";
+               sinkAllKeyEvents = "0";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "int")
+         {
+            %input = new GuiTextEditCtrl(%inputName) {
+               profile = "RTBMM_TextEditProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = getWords(%style,0,1);
+               extent = getWords(%style,2,3);
+               minExtent = "8 2";
+               visible = "1";
+               maxLength = "50";
+               historySize = "0";
+               password = "0";
+               tabComplete = "0";
+               sinkAllKeyEvents = "0";
+               fieldMin = getWord(%type,1);
+               fieldMax = getWord(%type,2);
+               command = "RTBSC_PF_ValidateInt($ThisControl);";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "bool")
+         {
+            %input = new GuiCheckboxCtrl(%inputName) {
+               profile = "RTBMM_CheckboxProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = getWords(%style,0,1);
+               extent = getWords(%style,2,3);
+               minExtent = "8 2";
+               visible = "1";
+               text = " ";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "playerlist")
+         {
+            %input = new GuiPopupMenuCtrl(%inputName) {
+               profile = "RTBMM_PopupProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = getWords(%style,0,1);
+               extent = getWords(%style,2,3);
+               minExtent = "8 2";
+               visible = "1";
+               text = " ";
+            };
+            %ctrlRow.add(%input);
+            
+            for(%l=getWord(%type,1);%l<=getWord(%type,2);%l++)
+            {
+               %s = "s";
+               if(%l $= 1)
+                  %s = "";
+               %input.add(%l@" Player"@%s,%l);
+            }
+         }
+         %ctrl.resize(0,1,316,%y+30);
+         %y+=30;
+      }
    }
 }
 
-function clientCmdRTB_getServerOptions(%msString,%csString,%gsString,%vlString,%eqString)
+//- RTBSC_displaySettingTip (Allows user to click a setting and view details on it)
+function RTBSC_displaySettingTip(%id)
 {
-   RTBSC_SO_ServerName.setValue(getField(%msString,0));
-   RTBSC_SO_WelcomeMessage.setValue(getField(%msString,1));
-   RTBSC_SO_MaxPlayers.setSelected(getField(%msString,2));
-   RTBSC_SO_ServerPassword.setValue(getField(%msString,3));
-   RTBSC_SO_AdminPassword.setValue(getField(%msString,4));
-   RTBSC_SO_SuperAdminPassword.setValue(getField(%msString,5));
-   
-   RTBSC_SO_EtardFilter.setValue(getField(%csString,0));
-   RTBSC_SO_EtardList.setValue(getField(%csString,1));
-   RTBSC_SO_FloodProtection.setValue(getField(%csString,2));
-
-   RTBSC_SO_MaxBPerS.setValue(getField(%gsString,0));
-   RTBSC_SO_FallDamage.setValue(getField(%gsString,1));
-   RTBSC_SO_TooFar.setValue(getField(%gsString,2));
-   RTBSC_SO_WrenchEventsAdminOnly.setValue(getField(%gsString,3));
-   RTBSC_SO_PublicDomain.setValue(getField(%gsString,4));
-   
-   RTBSC_SO_TotalPlayerVehicles.setValue(getField(%vlString,0));
-   RTBSC_SO_TotalPhysicsVehicles.setValue(getField(%vlString,1));
-   RTBSC_SO_TotalPlayerVehiclesPerPlayer.setValue(getField(%vlString,2));
-   RTBSC_SO_TotalPhysicsVehiclesPerPlayer.setValue(getField(%vlString,3));
-   
-   RTBSC_SO_EventSchedules.setValue(getField(%eqString,0));
-   RTBSC_SO_EventMiscellaneous.setValue(getField(%eqString,1));
-   RTBSC_SO_EventProjectiles.setValue(getField(%eqString,2));
-   RTBSC_SO_EventItems.setValue(getField(%eqString,3));
-   RTBSC_SO_EventLightsAndEmitters.setValue(getField(%eqString,4));
+   RTBSC_SO_Tip.setText(getField($RTB::CServerControl::SO::Option[%id],3));
 }
 
+//- clientCmdRTB_getServerOptions (Response from server when requesting settings)
+function clientCmdRTB_getServerOptions(%options,%v1,%v2,%v3,%v4,%v5,%v6,%v7,%v8,%v9,%v10,%v11,%v12,%v13,%v14,%v15,%v16)
+{
+   for(%i=0;%i<getWordCount(%options);%i++)
+   {
+      if(getWord(%options,%i) $= "D")
+      {
+         $RTB::CServerControl::Cache::DownloadedServerOptions = 1;
+         continue;
+      }
+      
+      %oldSetting = $RTB::CServerControl::SO::Value[getWord(%options,%i)];
+      %value = %v[%i+1];
+      %value = strReplace(%value,"\c0","\\c0");
+      %value = strReplace(%value,"\c1","\\c1");
+      %value = strReplace(%value,"\c2","\\c2");
+      %value = strReplace(%value,"\c3","\\c3");
+      %value = strReplace(%value,"\c4","\\c4");
+      %value = strReplace(%value,"\c5","\\c5");
+      %value = strReplace(%value,"\c6","\\c6");
+      %value = strReplace(%value,"\c7","\\c7");
+      %value = strReplace(%value,"\c8","\\c8");
+      %value = strReplace(%value,"\c9","\\c9");
+      %value = strReplace(%value,"\n","\\n");
+      $RTB::CServerControl::SO::Value[getWord(%options,%i)] = %value;
+      %ctrl = "RTBSC_SO_Opt"@getWord(%options,%i);
+      
+      if(RTB_ServerControl.isAwake() && $RTB::CServerControl::Cache::currentTab $= 1)
+      {
+         if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
+            %oldValue = %ctrl.getSelected();
+         else
+            %oldValue = %ctrl.getValue();
+            
+         if(%oldSetting !$= %oldValue && $RTB::CServerControl::Cache::DownloadedServerOptions)
+         {
+            MessageBoxYesNo("Uh Oh!","Another user has changed some settings that you have changed but not saved. Would you like to replace your changes with the new values?","RTBSC_applySettingsToControls();");
+         }
+         else
+         {
+            if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
+               %ctrl.setSelected(%value);
+            else
+               %ctrl.setValue(%value);
+         }
+      }
+   }
+}
+
+//- RTBSC_applySettingsToControls (Applies all the cached server options to their controls)
+function RTBSC_applySettingsToControls()
+{
+   for(%i=0;%i<$RTB::CServerControl::SO::Options;%i++)
+   {
+      %option = $RTB::CServerControl::SO::Option[%i];
+      %ctrl = "RTBSC_SO_Opt"@%i;
+
+      if(!isObject(%ctrl))
+         continue;
+         
+      %value = $RTB::CServerControl::SO::Value[%i];
+      
+      if(firstWord(getField(%option,1)) $= "playerlist")
+         %ctrl.setSelected(%value);
+      else
+         %ctrl.setValue(%value);
+   }
+}
+
+//- RTBSC_Pane1::saveOptions (Save all the changes and send to the server)
 function RTBSC_Pane1::saveOptions(%this)
 {
-   %title = RTBSC_SO_ServerName.getValue();
-   %welcome = RTBSC_SO_WelcomeMessage.getValue();
-   %maxplayers = RTBSC_SO_MaxPlayers.getSelected();
-   %serverpass = RTBSC_SO_ServerPassword.getValue();
-   %adminpass = RTBSC_SO_AdminPassword.getValue();
-   %sadminpass = RTBSC_SO_SuperAdminPassword.getValue();
-   %msString = %title TAB %welcome TAB %maxplayers TAB %serverpass TAB %adminpass TAB %sadminpass;
-   
-   %etardFilter = RTBSC_SO_EtardFilter.getValue();
-   %etardList = RTBSC_SO_EtardList.getValue();
-   %floodProtect = RTBSC_SO_FloodProtection.getValue();
-   %csString = %etardFilter TAB %etardList TAB %floodProtect;
-   
-   %maxBpS = RTBSC_SO_MaxBPerS.getValue();
-   %fallDamage = RTBSC_SO_FallDamage.getValue();
-   %toofar = RTBSC_SO_TooFar.getValue();
-   %wrenchadminonly = RTBSC_SO_WrenchEventsAdminOnly.getValue();
-   %pdomain = RTBSC_SO_PublicDomain.getValue();
-   %gsString = %maxBpS TAB %fallDamage TAB %toofar TAB %wrenchadminonly TAB %pdomain;
-   
-   %totalPlayerVehicles = RTBSC_SO_TotalPlayerVehicles.getValue();
-   %totalPhysicsVehicles = RTBSC_SO_TotalPhysicsVehicles.getValue();
-   %totalPlayerVehiclesPerPlayer = RTBSC_SO_TotalPlayerVehiclesPerPlayer.getValue();
-   %totalPhysicsVehiclesPerPlayer = RTBSC_SO_TotalPhysicsVehiclesPerPlayer.getValue();
-   %vlString = %totalPlayerVehicles TAB %totalPhysicsVehicles TAB %totalPlayerVehiclesPerPlayer TAB %totalPhysicsVehiclesPerPlayer;
-   
-   %eventSchedules = RTBSC_SO_EventSchedules.getValue();
-   %eventMiscellaneous = RTBSC_SO_EventMiscellaneous.getValue();
-   %eventProjectiles = RTBSC_SO_EventProjectiles.getValue();
-   %eventItems = RTBSC_SO_EventItems.getValue();
-   %eventLightsAndEmitters = RTBSC_SO_EventLightsAndEmitters.getValue();
-   %eqString = %eventSchedules TAB %eventMiscellaneous TAB %eventProjectiles TAB %eventItems TAB %eventLightsAndEmitters;
-   
-   //Arg validation.
-   if(strLen(%title) <= 0)
-      %error = "You need to enter a Server Name.";
-   else if(%maxBpS < 0)
-      %error = "The max bricks per second must be more than -1.";
-   else if(%toofar < 0)
-      %error = "The Too Far limit must be more than 0.";
-   else if(%pdomain < -1)
-      %error = "The Ownership Timeout must be greater than -1. (-1 disables it)";
-      
-   if(%error !$= "")
+   for(%i=0;%i<$RTB::CServerControl::SO::Options;%i++)
    {
-      MessageBoxOK("Whoops","You made a mistake:\n\n"@%error);
+      %option = $RTB::CServerControl::SO::Option[%i];
+      %ctrl = "RTBSC_SO_Opt"@%i;
+      if(firstWord(getField(%option,1)) $= "playerlist")
+         %value = %ctrl.getSelected();
+      else
+         %value = %ctrl.getValue();
+         
+      if($RTB::CServerControl::SO::Value[%i] !$= %value)
+      {
+         %changes = %changes@%i@" ";
+      }
+   }
+   
+   if(getWordCount(%changes) >= 1 && strLen(%changes) >= 2)
+   {
+      %changes = getSubStr(%changes,0,strLen(%changes)-1);
+      
+      for(%i=0;%i<getWordCount(%changes);%i++)
+      {
+         %option = $RTB::CServerControl::SO::Option[getWord(%changes,%i)];
+         %ctrl = "RTBSC_SO_Opt"@getWord(%changes,%i);
+         if(firstWord(getField(%option,1)) $= "playerlist")
+            %value = %ctrl.getSelected();
+         else
+            %value = %ctrl.getValue();
+         %seq = %i%16;
+         
+         %var[%seq] = %value;
+         %options = %options@getWord(%changes,%i)@" ";
+         
+         if(%i%16 $= 15 || %i $= getWordCount(%changes)-1)
+         {
+            if(%numSent > 0)
+               %options = %options@"N ";
+            if(%i $= getWordCount(%changes)-1)
+               %options = %options@"D ";
+            %numSent++;
+            commandtoserver('RTB_setServerOptions',$RTB::Options::NotifyOfSettings,getSubStr(%options,0,strLen(%options)-1),%var0,%var1,%var2,%var3,%var4,%var5,%var6,%var7,%var8,%var9,%var10,%var11,%var12,%var13,%var14,%var,%var15);
+            %options = "";
+            for(%j=0;%j<16;%j++)
+            {
+               %var[%j] = "";
+            }
+         }
+      }
+   }
+   else
+   {
+      MessageBoxOK("Ooops","You have not made any changes to save.");
       return;
    }
-   commandtoserver('RTB_setServerOptions',%msString,%csString,%gsString,%vlString,%eqString,$RTB::Options::NotifyOfSettings);
 }
 
 //*********************************************************
 //* Auto Admin (AA) Pane 2
 //*********************************************************
+//- RTBSC_Pane2::onView (Callback for viewing Pane 2)
 function RTBSC_Pane2::onView(%this)
 {
 	commandtoserver('RTB_getAutoAdminList');
@@ -285,11 +543,13 @@ function RTBSC_Pane2::onView(%this)
 	}
 }
 
+//- RTBSC_AA_AdminList::onSelect
 function RTBSC_AA_AdminList::onSelect(%this,%id,%text)
 {
 	RTBSC_AA_RemoveAuto.setVisible(0);
 }
 
+//- RTBSC_Pane2::addAutoStatus (Adds a person as an auto admin)
 function RTBSC_Pane2::addAutoStatus(%this)
 {
 	%bl_id = RTBSC_AA_Add_ID.getValue();
@@ -310,6 +570,7 @@ function RTBSC_Pane2::addAutoStatus(%this)
 	}
 }
 
+//- RTBSC_Pane2::removeAutoStatus (Removes a person from the auto admin list)
 function RTBSC_Pane2::removeAutoStatus(%this)
 {
 	%bl_id = getField(RTBSC_AA_AdminList.getValue(),0);
@@ -319,6 +580,7 @@ function RTBSC_Pane2::removeAutoStatus(%this)
 		commandToServer('RTB_removeAutoStatus',%bl_id);
 }
 
+//- clientCmdRTB_getAutoAdminList (Gets the contents of the server admin/super admin lists)
 function clientCmdRTB_getAutoAdminList(%adminList,%superAdminList)
 {
 	RTBSC_AA_AdminList.clear();
@@ -342,6 +604,7 @@ function clientCmdRTB_getAutoAdminList(%adminList,%superAdminList)
 	RTBSC_AA_RemoveAuto.setVisible(1);
 }
 
+//- RTBSC_Pane2::clearAll (Clears all the auto admin entries)
 function RTBSC_Pane2::clearAll(%this,%confirm)
 {
 	if(!%confirm)
@@ -352,12 +615,14 @@ function RTBSC_Pane2::clearAll(%this,%confirm)
 	commandtoserver('RTB_clearAutoAdminList');
 }
 
+//- RTBSC_Pane2::addFromList (Adds a selected player to the auto admin list)
 function RTBSC_Pane2::addFromList(%this)
 {
    RTBSC_AA_AddStatus.setVisible(1);
    RTBSC_AA_Add_ID.setValue(getField(RTBSC_AA_PlayerList.getValue(),2));
 }
 
+//- RTBSC_Pane2::deAdmin (De-admins a player)
 function RTBSC_Pane2::deAdmin(%this)
 {
    %sel = RTBSC_AA_PlayerList.getSelectedID();
@@ -369,6 +634,7 @@ function RTBSC_Pane2::deAdmin(%this)
    commandtoserver('RTB_DeAdminPlayer',%sel);
 }
 
+//- RTBSC_Pane2::admin (Sets a player to admin)
 function RTBSC_Pane2::admin(%this)
 {
    %sel = RTBSC_AA_PlayerList.getSelectedID();
@@ -380,6 +646,7 @@ function RTBSC_Pane2::admin(%this)
    commandtoserver('RTB_AdminPlayer',%sel);
 }
 
+//- RTBSC_Pane2::superAdmin (Sets a player to super admin)
 function RTBSC_Pane2::superAdmin(%this)
 {
    %sel = RTBSC_AA_PlayerList.getSelectedID();
@@ -394,259 +661,348 @@ function RTBSC_Pane2::superAdmin(%this)
 //*********************************************************
 //* Preferences (PF) Pane 3
 //*********************************************************
+//- RTBSC_Pane3::onView (Callback for viewing Pane 3)
 function RTBSC_Pane3::onView(%this)
 {
-   RTBSC_PF_PrefList.clear();
+   RTBSC_applyPrefsToControls();
+}
+
+//- RTBSC_Pane3::render (Draws the list of items)
+function RTBSC_Pane3::render()
+{
+   %ctrl = RTBSC_SP_Swatch.getID();
+   %ctrl.clear();
+   %y = 1;
    
-   %idA = 0;
-   while($RTB::CServerControl::Server::Pref[%idA,0] !$= "")
+   if($RTB::CServerControl::Cache::SP::Cats <= 0)
    {
-      RTBSC_PF_createCategory($RTB::CServerControl::Server::Pref[%idA,0]);
-      
-      %idB = 1;
-      while($RTB::CServerControl::Server::Pref[%idA,%idB] !$= "")
-      {
-         if($RTB::CServerControl::Server::Pref[%idA,%idB] !$= "0")
-         {
-            %odd = %numAdded%2;
-            $RTB::CServerControl::Server::PrefControl[%idA,%idB] = RTBSC_PF_createPref(getField($RTB::CServerControl::Server::Pref[%idA,%idB],0),getField($RTB::CServerControl::Server::Pref[%idA,%idB],1),%odd,$RTB::CServerControl::Server::PrefValue[%idA,%idB],getField($RTB::CServerControl::Server::Pref[%idA,%idB],2));
-            %numAdded++;
-         }
-         %idB++;
-      }
-      %idA++;
-   }
-   
-   if(%numAdded <= 0)
-   {
-      RTBSC_PF_PrefList.resize(0,1,316,280);
+      RTBSC_SP_Swatch.resize(0,1,316,280);
       %txt = new GuiTextCtrl()
       {
          profile = RTB_Verdana12PtAuto;
          position = "48 132";
-         text = "This server has no preferences to manange.";
+         text = "This server has no preferences to manage.";
          horizSizing = "center";
          vertSizing = "center";
       };
-      RTBSC_PF_PrefList.add(%txt);
-   }
-}
-
-function clientCmdRTB_addPref(%idA,%idB,%string)
-{
-   $RTB::CServerControl::Server::Pref[%idA,%idB] = %string;
-}
-
-function clientCmdRTB_updatePrefs(%prefArray)
-{
-   for(%i=0;%i<getFieldCount(%prefArray);%i++)
-   {
-      %pref = strReplace(getField(%prefArray,%i),",","\t");
-      %idA = getField(%pref,0);
-      %idB = getField(%pref,1);
-      %value = getField(%pref,2);
-      
-      $RTB::CServerControl::Server::PrefValue[%idA,%idB] = %value;
+      RTBSC_SP_Swatch.add(%txt);
+      return;
    }
    
-   if($RTB::CServerControl::Cache::currentTab $= "3" && RTB_ServerControl.isAwake())
+   for(%i=0;%i<$RTB::CServerControl::Cache::SP::Cats;%i++)
    {
-      MessageBoxYesNo("Ooops","Someone has changed some server preferences. Would you like to update your view?","RTBSC_Pane3::onView();","");
+      %category = $RTB::CServerControl::Cache::SP::Cat[%i];
+      
+      %header = new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "2 "@%y;
+         extent = "330 30";
+         minExtent = "8 2";
+         visible = "1";
+         color = "0 0 0 50";
+         
+         new GuiTextCtrl() {
+            profile = "RTBMM_MainText";
+            horizSizing = "right";
+            vertSizing = "center";
+            position = "5 6";
+            extent = "200 18";
+            minExtent = "8 2";
+            visible = "1";
+            text = "\c1"@%category;
+            maxLength = "255";
+         };
+      };
+      %ctrl.add(%header);
+      %ctrl.resize(0,1,316,%y+31);
+      %y+=31;
+      
+      for(%k=0;%k<$RTB::CServerControl::Cache::SP::Prefs[%category];%k++)
+      {
+         %pref = $RTB::CServerControl::Cache::SP::CatPref[%category,%k];
+         
+         if(%k%2 $= 0)
+            %color = "0 0 0 10";
+         else
+            %color = "0 0 0 0";
+            
+         if(getField(%pref,3))
+            %star = "*";
+         else
+            %star = "";
+            
+         %ctrlRow = new GuiSwatchCtrl() {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "2 "@%y;
+            extent = "353 29";
+            minExtent = "8 2";
+            visible = "1";
+            color = %color;
+            
+            new GuiTextCtrl() {
+               profile = "GuiTextProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "5 5";
+               extent = "66 18";
+               minExtent = "8 2";
+               visible = "1";
+               text = "\c2"@getField(%pref,1)@%star@":";
+               maxLength = "255";
+            };
+         };
+         %ctrl.add(%ctrlRow);
+         
+         %type = getField(%pref,2);
+         %inputName = "RTBSC_SP_Pref"@getField(%pref,0);
+         if(firstWord(%type) $= "string")
+         {
+            %input = new GuiTextEditCtrl(%inputName) {
+               profile = "RTBMM_TextEditProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "150 7";
+               extent = "150 16";
+               minExtent = "8 2";
+               visible = "1";
+               maxLength = getWord(%type,1);
+               historySize = "0";
+               password = "0";
+               tabComplete = "0";
+               sinkAllKeyEvents = "0";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "int")
+         {
+            %input = new GuiTextEditCtrl(%inputName) {
+               profile = "RTBMM_TextEditProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "150 7";
+               extent = "150 16";
+               minExtent = "8 2";
+               visible = "1";
+               maxLength = strLen(getWord(%type,2));
+               historySize = "0";
+               password = "0";
+               tabComplete = "0";
+               sinkAllKeyEvents = "0";
+               fieldMin = getWord(%type,1);
+               fieldMax = getWord(%type,2);
+               command = "RTBSC_PF_ValidateInt($ThisControl);";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "bool")
+         {
+            %input = new GuiCheckboxCtrl(%inputName) {
+               profile = "RTBMM_CheckboxProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "156 1";
+               extent = "140 30";
+               minExtent = "8 2";
+               visible = "1";
+               text = " ";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "list")
+         {
+            %input = new GuiPopupMenuCtrl(%inputName) {
+               profile = "RTBMM_PopupProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "150 7";
+               extent = "150 16";
+               minExtent = "8 2";
+               visible = "1";
+               text = " ";
+            };
+            %ctrlRow.add(%input);
+            
+            for(%l=1;%l<getWordCount(%type);%l+=2)
+            {
+               %input.add(getWord(%type,%l),getWord(%type,%l+1));
+            }
+         }
+         %ctrl.resize(0,1,316,%y+30);
+         %y+=30;
+      }
    }
 }
 
+//- clientCmdRTB_addServerPrefs (Response from server to populate prefs menu)
+function clientCmdRTB_addServerPrefs(%prefs,%v1,%v2,%v3,%v4,%v5,%v6,%v7,%v8,%v9,%v10,%v11,%v12,%v13,%v14,%v15,%v16)
+{
+   for(%i=0;%i<getWordCount(%prefs);%i++)
+   {
+      if(getWord(%prefs,%i) $= "D")
+      {
+         $RTB::CServerControl::Cache::DownloadedServerPrefs = 1;
+         RTBSC_Pane3::render();
+         return;
+      }
+      RTBSC_cacheServerPref(getWord(%prefs,%i),getField(%v[%i+1],0),getField(%v[%i+1],1),getField(%v[%i+1],2),getField(%v[%i+1],3));
+   }
+}
+
+//- clientCmdRTB_setServerPrefs (Response from server to cache prefs values on the client)
+function clientCmdRTB_setServerPrefs(%prefs,%v1,%v2,%v3,%v4,%v5,%v6,%v7,%v8,%v9,%v10,%v11,%v12,%v13,%v14,%v15,%v16)
+{
+   for(%i=0;%i<getWordCount(%prefs);%i++)
+   {
+      %oldPref = $RTB::CServerControl::Cache::SP::Value[getWord(%prefs,%i)];
+      %value = %v[%i+1];
+      $RTB::CServerControl::Cache::SP::Value[getWord(%prefs,%i)] = %value;
+      %ctrl = "RTBSC_SP_Pref"@getWord(%prefs,%i);
+      
+      if(RTB_ServerControl.isAwake() && $RTB::CServerControl::Cache::currentTab $= 3)
+      {
+         if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
+            %oldValue = %ctrl.getSelected();
+         else
+            %oldValue = %ctrl.getValue();
+               
+         if(%value !$= %oldValue && $RTB::CServerControl::Cache::DownloadedServerPrefs)
+         {
+            MessageBoxYesNo("Uh Oh!","Another user has changed some prefs that you have changed but not saved. Would you like to replace your changes with the new values?","RTBSC_applyPrefsToControls();");
+         }
+         else
+         {
+            if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
+               %ctrl.setSelected(%value);
+            else
+               %ctrl.setValue(%value);
+         }
+      }
+   }
+}
+
+//- RTBSC_applyPrefsToControls (Applies all the cached server prefs to their controls)
+function RTBSC_applyPrefsToControls()
+{
+   for(%i=0;%i<$RTB::CServerControl::Cache::SP::Prefs;%i++)
+   {
+      %pref = $RTB::CServerControl::Cache::SP::Pref[%i];
+      %ctrl = "RTBSC_SP_Pref"@%i;
+      if(!isObject(%ctrl))
+         continue;
+         
+      %value = $RTB::CServerControl::Cache::SP::Value[%i];
+      
+      if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
+         %ctrl.setSelected(%value);
+      else
+         %ctrl.setValue(%value);
+   }
+}
+
+//- RTBSC_Pane3::saveOptions (Saves all the pref changes)
 function RTBSC_Pane3::saveOptions()
 {
-   %idA = 0;
-   while($RTB::CServerControl::Server::Pref[%idA,0] !$= "")
+   for(%i=0;%i<$RTB::CServerControl::Cache::SP::Prefs;%i++)
    {
-      %idB = 1;
-      while($RTB::CServerControl::Server::Pref[%idA,%idB] !$= "")
+      %pref = $RTB::CServerControl::Cache::SP::Pref[%i];
+      %ctrl = "RTBSC_SP_Pref"@%i;
+      if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
+         %value = %ctrl.getSelected();
+      else
+         %value = %ctrl.getValue();
+      %storedValue = $RTB::CServerControl::Cache::SP::Value[%i];
+      
+      if(%value !$= %storedValue)
       {
-         if($RTB::CServerControl::Server::Pref[%idA,%idB] $= "0")
-         {
-            %idB++;
-            continue;
-         }
-            
-         %ctrl = $RTB::CServerControl::Server::PrefControl[%idA,%idB];
+         %changes = %changes@%i@" ";
+      }
+   }
+   
+   if(getWordCount(%changes) >= 1 && strLen(%changes) >= 1)
+   {
+      %changes = getSubStr(%changes,0,strLen(%changes)-1);
+      
+      for(%i=0;%i<getWordCount(%changes);%i++)
+      {
+         %ctrl = "RTBSC_SP_Pref"@getWord(%changes,%i);
          if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
             %value = %ctrl.getSelected();
          else
             %value = %ctrl.getValue();
-            
-         if(%value !$= $RTB::CServerControl::Server::PrefValue[%idA,%idB])
+         %seq = %i%16;
+         
+         %var[%seq] = %value;
+         %prefs = %prefs@getWord(%changes,%i)@" ";
+         
+         if(%i%16 $= 15 || %i $= getWordCount(%changes)-1)
          {
-            %prefArray = %prefArray@%idA@","@%idB@","@%value@"\t";
-            %numChanged++;
+            if(%numSent > 0)
+               %prefs = %prefs@"N ";
+            if(%i $= getWordCount(%changes)-1)
+               %prefs = %prefs@"D ";
+            %numSent++;
+            commandtoserver('RTB_setServerPrefs',getSubStr(%prefs,0,strLen(%prefs)-1),%var0,%var1,%var2,%var3,%var4,%var5,%var6,%var7,%var8,%var9,%var10,%var11,%var12,%var13,%var14,%var,%var15);
+            %prefs = "";
+            for(%j=0;%j<16;%j++)
+            {
+               %var[%j] = "";
+            }
          }
-            
-         %idB++;
       }
-      %idA++;
    }
-   
-   if(%numChanged <= 0)
+   else
    {
-      canvas.popDialog(RTB_ServerControl);
+      MessageBoxOK("Ooops","You have not made any changes to save.");
       return;
    }
-   
-   %prefArray = getSubStr(%prefArray,0,strLen(%prefArray)-1);
-   commandtoserver('RTB_updatePrefs',%prefArray);
 }
 
-function RTBSC_PF_createCategory(%category)
+//- RTBSC_Pane3::resetOptions (Resets all options back to defaults)
+function RTBSC_Pane3::resetOptions(%this,%confirm)
 {
-   %yPos = RTBSC_PF_getLowestPos()+1;
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      position = "2" SPC %yPos;
-      extent = "330 30";
-      color = "0 0 0 50";
-      
-      new GuiTextCtrl()
-      {
-         profile = BlockWindowProfile;
-         position = "5 6";
-         extent = "296 18";
-         text = "\c2"@%category;
-      };
-   };
-   RTBSC_PF_PrefList.add(%swatch);
-   
-   RTBSC_PF_PrefList.resize(getWord(RTBSC_PF_PrefList.position,0),getWord(RTBSC_PF_PrefList.position,1),getWord(RTBSC_PF_PrefList.extent,0),RTBSC_PF_getLowestPos()+1);
+	if(!%confirm)
+	{
+		MessageBoxYesNo("Really?","Are you sure you want to reset ALL the server preferences to their default values?","RTBSC_Pane3::resetOptions("@%this@",1);","");
+		return;
+	}
+	commandtoserver('RTB_defaultServerPrefs');
 }
 
-function RTBSC_PF_createPref(%name,%variableType,%odd,%value,%requiresRestart)
+//- RTBSC_PF_ValidateInt (Checks whether a value is a valid integer)
+function RTBSC_PF_ValidateInt(%ctrl)
 {
-   if(%requiresRestart)
-      %star = "*";
-   else
-      %star = "";
+   if(%ctrl.getValue() $= "")
+      return;
+   if(%ctrl.getValue() $= "-")
+      return;      
       
-   if(%odd)
-      %color = "0 0 0 0";
-   else
-      %color = "0 0 0 10";
-      
-   %yPos = RTBSC_PF_getLowestPos()+1;
-      
-   %swatch = new GuiSwatchCtrl()
-   {
-      position = "2" SPC %yPos;
-      extent = "330 29";
-      color = %color;
-      
-      new GuiTextCtrl()
-      {
-         profile = GuiTextProfile;
-         position = "5 5";
-         extent = "162 18";
-         text = " "@%name@%star;
-      };
-   };
-   RTBSC_PF_PrefList.add(%swatch);
+   %value = mFloatLength(%ctrl.getValue(),0);
    
-   if(getWord(%variableType,0) $= "bool")
-   {
-      %var = new GuiCheckboxCtrl()
-      {
-         position = "170 0";
-         extent = "140 30";
-         text = "";
-      };
-      %swatch.add(%var);
-      if(%value)
-         %var.setValue(1);
-   }
-   else if(getWord(%variableType,0) $= "list")
-   {
-      %var = new GuiPopupMenuCtrl()
-      {
-         position = "171 4";
-         extent = "129 20";
-      };
-      for(%i=1;%i<getWordCount(%variableType);%i+=2)
-      {
-         %var.add(getWord(%variableType,%i),getWord(%variableType,%i+1));
-      }
-      %swatch.add(%var);
-      if(%value !$= "")
-         %var.setSelected(%value);
-   }
-   else if(getWord(%variableType,0) $= "int")
-   {
-      %var = new GuiTextEditCtrl()
-      {
-         position = "171 5";
-         extent = "129 18";
-         fieldMax = getWord(%variableType,2);
-         fieldMin = getWord(%variableType,1);
-      };
-      %swatch.add(%var);
-      %var.setValue(%value);
-      %var.command = "RTBSC_PF_CheckForInt("@%var@");";
-   }
-   else if(getWord(%variableType,0) $= "string")
-   {
-      %var = new GuiTextEditCtrl()
-      {
-         position = "171 5";
-         extent = "129 18";
-         maxLength = getWord(%variableType,1);
-      };
-      %swatch.add(%var);
-      %var.setValue(%value);
-   }
-   RTBSC_PF_PrefList.resize(getWord(RTBSC_PF_PrefList.position,0),getWord(RTBSC_PF_PrefList.position,1),getWord(RTBSC_PF_PrefList.extent,0),RTBSC_PF_getLowestPos()+1);
-   
-   return %var;
-}
-
-function RTBSC_PF_getLowestPos()
-{
-   %lowestPos = 0;
-   for(%i=0;%i<RTBSC_PF_PrefList.getCount();%i++)
-   {
-      %ctrl = RTBSC_PF_PrefList.getObject(%i);
-      %bottom = getWord(%ctrl.position,1)+getWord(%ctrl.extent,1);
+   if(%value > %ctrl.fieldMax)
+      %value = %ctrl.fieldMax;
       
-      if(%bottom > %lowestPos)
-         %lowestPos = %bottom;
-   }
-   
-   return %lowestpos;
-}
-
-function RTBSC_PF_CheckForInt(%ctrl)
-{
-   %value = %ctrl.getValue();
-   for(%i=0;%i<strLen(%value);%i++)
-   {
-      if(isInt(getSubStr(%value,%i,1)))
-         %string = %string@getSubStr(%value,%i,1);
-   }
-   
-   if(%string > %ctrl.fieldMax)
-      %string = %ctrl.fieldMax;
+   if(%value < %ctrl.fieldMin)
+      %value = %ctrl.fieldMin;
       
-   if(%string < %ctrl.fieldMin)
-      %string = %ctrl.fieldMin;
-      
-   %ctrl.setValue(%string);
+   %ctrl.setValue(%value);
 }
 
 //*********************************************************
 //* Version Establishment
 //*********************************************************
-function clientcmdsendRTBVersion(%version)
+//- clientCmdSendRTBVersion (Receives the server's RTB version and whether it has RTB)
+function clientCmdSendRTBVersion(%version)
 {
    $RTB::CServerControl::Cache::ServerHasRTB = 1;
    $RTB::CServerControl::Cache::ServerRTBVersion = %version;
    
-   //reset server-based vars
-   $RTB::CServerControl::Server::CatCount = 0;
-   $RTB::CServerControl::Server::PrefCount = 0;
+   RTBSC_Pane1.render();
+   RTBSC_Pane3.render();
+   
+   $RTB::CServerControl::Cache::SP::Cats = 0;
+   $RTB::CServerControl::Cache::SP::Prefs = 0;
 }

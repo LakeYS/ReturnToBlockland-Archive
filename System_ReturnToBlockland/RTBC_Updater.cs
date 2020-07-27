@@ -1,19 +1,19 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Updater.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBC_Updater.cs $
 //#
-//#      $Id: RTBC_Updater.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_Updater.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#   Auto-Updater for RTB
+//#   Client Updater (RTBCU/RTBCUpdater)
 //#
 //#############################################################################
 //Register that this module has been loaded
@@ -24,76 +24,68 @@ $RTB::RTBC_Updater = 1;
 //*********************************************************
 if(!isObject(RTB_Updater))
 	exec("./RTB_Updater.gui");
+	
+//*********************************************************
+//* Load Switchboard
+//*********************************************************
+%RTBCU_SB = RTB_createSwitchboard("CU","APIUM");
+%RTBCU_SB.registerLine(1,1);
 
 //*********************************************************
-//* Variable Declarations
+//* Request Gateway
 //*********************************************************
-$RTB::CUpdater::HostSite = "returntoblockland.com";
-$RTB::CUpdater::FilePath = "/blockland/rtbUpdateRouter.php";
-
-//*********************************************************
-//* Version Checking
-//*********************************************************
-function RTBCU_InitSC()
+//- RTBCU_SendRequest (Compiles arguments into POST string for transfer)
+function RTBCU_SendRequest(%cmd,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
 {
-   if(!isObject(RTBCU_SC))
-   {
-      new TCPObject(RTBCU_SC)
-      {
-         site = $RTB::CUpdater::HostSite;
-         port = 80;
-         cmd = "";
-         filePath = $RTB::CUpdater::FilePath;
-         
-         defaultFailHandle = "RTBCU_onCommFail";
-         
-         connected = 0;
-         transmitting = 0;
-         queueSize = 0;
-         
-         isRTBObject = 1;
-      };
-      
-      //Check for Updates
-      RTBCU_SC.addResponseHandle("GETVERSION","RTBCU_onVersion");
-      
-      //Get Change Log
-      RTBCU_SC.addResponseHandle("GETCHANGELOG","RTBCU_onChangeLog");
-      RTBCU_SC.addResponseHandle("ENDGETCHANGELOG","RTBCU_onEndChangeLog");
-   }
-}
-
-function RTBCU_SendRequest(%cmd,%layer,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
-{
-   if(!isObject(RTBCU_SC))
-      RTBCU_InitSC();
-
    for(%i=1;%i<11;%i++)
    {
-      %arg = urlEnc(%arg[%i]);
-      if(%argString $= "")
-         %argString = "arg1="@%arg;
-      else
-         %argString = %argString@"&arg"@%i@"="@%arg;
+      %string = %string@strReplace(urlEnc(%arg[%i]),"\t","")@"\t";
    }
-   RTBCU_SC.sendRequest(%cmd,%argString,%layer);
+   RTB_SB_CU.placeCall(%line,%cmd,%string);
 }
 
-function RTBCU_onCommFail()
-{
-   MessagePopup("","",1);
-}
-
+//*********************************************************
+//* Meat
+//*********************************************************
+//- RTBCU_Update (Sends a request with current version to find newer ones)
+%RTBCU_SB.registerResponseHandler("GETUPDATES","RTBCU_onUpdateReply");
 function RTBCU_Update()
 {
-   if($RTB::Options::EnableAutoUpdate && !$RTB::CUpdater::Cache::HasBeenPrompted)
+   if($RTB::Options::AU::Enable && !$RTB::CUpdater::Cache::HasBeenPrompted)
    {
       $RTB::CUpdater::Cache::HasBeenPrompted = 1;
-      RTBCU_SendRequest("GETVERSION",1,$RTB::Version,$Version);
+      RTBCU_SendRequest("GETUPDATES",1,$RTB::Beta,$RTB::Version);
    }
 }
 
-function RTBCU_GetChangeLog(%version)
+//- RTBCU_onUpdateReply (Reply from version controller)
+function RTBCU_onUpdateReply(%tcp,%line,%av)
+{
+   if(%av)
+   {
+      %version = getField(%line,1);
+      %date = getField(%line,2);
+      %filesize = getField(%line,3);
+      
+      canvas.pushDialog(RTB_Updater);
+      RTBCU_Version.setText("v"@%version);
+      RTBCU_Date.setText(%date);
+      RTBCU_Size.setText(byteRound(%filesize));
+      RTBCU_Speed.setText("N/A");
+      RTBCU_Done.setText("0kb");
+      
+      RTBCU_Progress.setValue(0);
+      RTBCU_ProgressText.setValue("Ready to Download");
+      
+      RTBCU_UpdateButton.setActive(1);
+      RTBCU_UpdateButton.command = "RTBCU_downloadUpdate(\""@%version@"\");";
+      RTBCU_ChangeLogButton.command = "RTBCU_getChangeLog(\""@%version@"\");";
+   }
+}
+
+//- RTBCU_getChangeLog (Retrieves the version changelog)
+%RTBCU_SB.registerResponseHandler("GETCHANGELOG","RTBCU_onChangeLog");
+function RTBCU_getChangeLog(%version)
 {
    RTBCU_SendRequest("GETCHANGELOG",1,%version);
    RTBCU_ChangeLog_Title.setText("Change Log for RTB v"@%version@":");
@@ -102,19 +94,20 @@ function RTBCU_GetChangeLog(%version)
    MessagePopup("Please Wait","Locating Change Log for RTB v"@%version@"...");
 }
 
+//- RTBCU_onChangeLog (Upon receiving changelog data)
 function RTBCU_onChangeLog(%this,%line)
 {
    if(%line $= 0)
    {
       MessageBoxOK("Oh Dear","The Change Log for this update could not be found. Sorry.");
       MessagePopup("","",1);
-      %this.disconnect();
    }
    else
       RTBCU_ChangeLog_Text.setText(RTBCU_ChangeLog_Text.getText()@%line@"<br>");
 }
 
-function RTBCU_onEndChangeLog()
+//- RTBCU_onChangeLogStop (Callback for end of changelog transmission)
+function RTBCU_onChangeLogStop()
 {
    if(RTBCU_ChangeLog_Text.getText() !$= "")
    {
@@ -122,72 +115,68 @@ function RTBCU_onEndChangeLog()
    }
    MessagePopup("","",1);
 }
-
-function RTBCU_onVersion(%this,%line)
-{
-   if(getField(%line,0) $= 1)
-   {
-      canvas.pushDialog(RTB_Updater);
-      RTBCU_Version.setText("v"@getField(%line,1));
-      RTBCU_Date.setText(getField(%line,2));
-      RTBCU_Size.setText(byteRound(getField(%line,3)));
-      RTBCU_Speed.setText("N/A");
-      RTBCU_Done.setText("0kb");
-      
-      RTBCU_Progress.setValue(0);
-      RTBCU_ProgressText.setValue("Ready to Download");
-      
-      RTBCU_UpdateButton.setActive(1);
-      RTBCU_UpdateButton.command = "RTBCU_DownloadUpdate(\""@getField(%line,1)@"\");";
-      RTBCU_ChangeLogButton.command = "RTBCU_GetChangeLog(\""@getField(%line,1)@"\");";
-   }
-}
 RTBCU_Update();
 
 //*********************************************************
 //* Update Downloading
 //*********************************************************
+//- RTBCU_InitFC (Creates a file connection)
 function RTBCU_InitFC()
 {
    if(isObject(RTBCU_FC))
-      return;
+   {
+      RTBCU_FC.disconnect();
+      RTBCU_FC.delete();
+   }
       
-   new TCPObject(RTBCU_FC);
+   new TCPObject(RTBCU_FC)
+   {
+      host = "api.returntoblockland.com";
+      port = 80;
+   };
 }
 
-function RTBCU_DownloadUpdate(%vers)
+//- RTBCU_downloadUpdate (Attempts to download an rtb update)
+function RTBCU_downloadUpdate(%version)
 {
-   if(isReadonly("Add-Ons/System_ReturnToBlockland.zip"))
-   {
-      messageBoxOK("ERROR", "It looks like Blockland cannot overwrite the System_ReturnToBlockland.zip folder so the auto-updater cannot work. Please either resolve this or download the latest RTB version manually from our website.");
-      return;
-   }
-   
    RTBCU_InitFC();
    
-   RTBCU_FC.setBinary(0);
-   RTBCU_FC.lastLine = "";
-   RTBCU_FC.targetVersion = %vers;
-   
-   RTBCU_FC.connect($RTB::CUpdater::HostSite@":80");
+   RTBCU_FC.targetVersion = %version;
+   RTBCU_FC.connect(RTBCU_FC.host@":"@RTBCU_FC.port);
    
    RTBCU_UpdateButton.setActive(0);
    RTBCU_ProgressText.setText("Locating Update...");
 }
 
+//- RTBCU_FC::onConnected (Connection success callback)
 function RTBCU_FC::onConnected(%this)
 {
-   %content = "c=GETDOWNLOAD&n="@urlEnc($pref::Player::NetName)@"&arg1="@%this.targetVersion;
-   %this.send("POST http://"@$RTB::CUpdater::HostSite@$RTB::CUpdater::FilePath@" HTTP/1.1\r\nHost: "@$RTB::CUpdater::HostSite@"\r\nUser-Agent: Torque/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@strLen(%content)@"\r\n\r\n"@%content@"\r\n");
+   %content = "c=DLUPDATE&n="@$Pref::Player::NetName@"&arg1="@%this.targetVersion@"&"@$RTB::Connection::Session;
+   %contentLen = strLen(%content);
+   
+   %this.send("POST /apiRouter.php?d=APIUM HTTP/1.1\r\nHost: api.returntoblockland.com\r\nUser-Agent: Torque/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@%contentLen@"\r\n\r\n"@%content@"\r\n");
 }
 
+//- RTBCU_FC::onLine (Callback for line response)
 function RTBCU_FC::onLine(%this,%line)
 {
    if(strPos(%line,"404 Not Found") >= 0)
    {
+      %this.disconnect();
       MessageBoxOK("Error!","There appears to be an error with the update and the ZIP cannot be located.");
       canvas.popDialog(RTB_Updater);
       return;
+   }
+   
+   if(strPos(%line,"DL-Result:") $= 0)
+   {
+      if(getWord(%line,1) $= 0)
+      {
+         %this.disconnect();
+         MessageBoxOK("Error!","There appears to be an error with the update and the ZIP cannot be located.");
+         Canvas.popDialog(RTB_Updater);
+         return;
+      }
    }
    
    if(strPos(%line,"Content-Length:") $= 0)
@@ -195,10 +184,9 @@ function RTBCU_FC::onLine(%this,%line)
       
    if(%line $= "")
       %this.setBinarySize(%this.contentSize);
-      
-   %this.lastLine = %line;
 }
 
+//- RTBCU_FC::onBinChunk (On binary chunk received)
 function RTBCU_FC::onBinChunk(%this,%chunk)
 {
    if(%this.timeStarted $= "")
@@ -208,7 +196,7 @@ function RTBCU_FC::onBinChunk(%this,%chunk)
    {
       %this.saveBufferToFile("Add-Ons/System_ReturnToBlockland.zip");
       %this.disconnect();
-         
+      
       RTBCU_Progress.setValue(1);
       RTBCU_ProgressText.setText("Download Complete");
       RTBCU_Speed.setText("N/A");

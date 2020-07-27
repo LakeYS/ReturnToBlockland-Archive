@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 67 $
+//#      $Date: 2009-07-18 10:59:39 +0100 (Sat, 18 Jul 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Profiles.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/RTBC_Profiles.cs $
 //#
-//#      $Id: RTBC_Profiles.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_Profiles.cs 67 2009-07-18 09:59:39Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -22,9 +22,59 @@ new AudioProfile(Note12Sound: Note11Sound)
 	filename = "./sounds/Synth4_12.wav";
 };
 
-new GuiControlProfile(GuiCheckBoxBoldProfile : GuiCheckBoxProfile)
+if(!isObject(GuiCheckBoxBoldProfile)) new GuiControlProfile(GuiCheckBoxBoldProfile : GuiCheckBoxProfile)
 {
- fontType = "Arial Bold";
+   fontType = "Arial Bold";
+};
+
+if(!isObject(RTBMM_CheckBoxProfile)) new GuiControlProfile(RTBMM_CheckBoxProfile : GuiCheckBoxProfile)
+{
+   bitmap = $RTB::Path@"images/ui/rtbCheck";
+};
+
+if(!isObject(RTBMM_PopupProfile)) new GuiControlProfile(RTBMM_PopupProfile : GuiPopupMenuProfile)
+{
+   fillColor = "227 228 230 255";
+   borderColor = "189 192 194 255";
+   fontSize = 12;
+   fontType = "Verdana";
+   fontColor = "64 64 64 255";
+   fontColors[0] = "64 64 64 255";
+};
+
+if(!isObject(RTBMM_TextEditProfile)) new GuiControlProfile(RTBMM_TextEditProfile : GuiTextEditProfile)
+{
+   fillColor = "255 255 255 255";
+   borderColor = "188 191 193 255";
+   fontSize = 12;
+   fontType = "Verdana";
+   fontColor = "64 64 64 255";
+   fontColors[0] = "64 64 64 255";
+};
+
+if(!isObject(RTBMM_MLEditProfile)) new GuiControlProfile(RTBMM_MLEditProfile : GuiMLTextEditProfile)
+{
+   fontSize = 12;
+   fontType = "Verdana";
+   fontColor = "64 64 64 255";
+   fontColors[0] = "64 64 64 255";
+};
+
+if(!isObject(RTBMM_ScrollProfile)) new GuiControlProfile(RTBMM_ScrollProfile)
+{
+   fontType = "Book Antiqua";
+   fontSize = 22;
+   justify = center;
+   fontColor = "0 0 0";
+   fontColorHL = "130 130 130";
+   fontColorNA = "255 0 0";
+   fontColors[0] = "0 0 0";
+   fontColors[1] = "0 255 0";  
+   fontColors[2] = "0 0 255"; 
+   fontColors[3] = "255 255 0";
+   hasBitmapArray = true;
+   
+   bitmap = "./images/ui/scrollArray";
 };
 
 if(!isObject(RTBIT_TipProfile)) new GuiControlProfile (RTBIT_TipProfile)
@@ -59,16 +109,30 @@ if(!isObject(RTBIC_MessageProfile)) new GuiControlProfile(RTBIC_MessageProfile :
 
 if(!isObject(RTBMM_PaginationProfile)) new GuiControlProfile(RTBMM_PaginationProfile)
 {
-   fontColor = "100 100 100 255";
+   fontColor = "230 230 230 255";
    fontType = "Verdana Bold";
    fontSize = "12";
    justify = "Center";
-   fontColors[1] = "100 100 100";
+   fontColors[1] = "230 230 230";
    fontColors[2] = "0 255 0";  
    fontColors[3] = "0 0 255"; 
    fontColors[4] = "255 255 0"; 
-   fontColorLink = "1 1 1 255";
-   fontColorLinkHL = "0 0 0 255";
+   fontColorLink = "230 230 230 255";
+   fontColorLinkHL = "255 255 255 255";
+};
+
+if(!isObject(RTBMM_NewsContentProfile)) new GuiControlProfile(RTBMM_NewsContentProfile)
+{
+   fontColor = "230 230 230 255";
+   fontType = "Verdana Bold";
+   fontSize = "12";
+   justify = "Center";
+   fontColors[1] = "230 230 230";
+   fontColors[2] = "0 255 0";  
+   fontColors[3] = "0 0 255"; 
+   fontColors[4] = "255 255 0"; 
+   fontColorLink = "150 150 150 255";
+   fontColorLinkHL = "200 200 200 255";
 };
 
 if(!isObject(RTBMA_ContentsProfile)) new GuiControlProfile(RTBMA_ContentsProfile)
@@ -141,6 +205,12 @@ if(!isObject(RTBMM_FieldText)) new GuiControlProfile(RTBMM_FieldText)
    fontColors[4] = "255 255 0";   
 };
 
+if(!isObject(RTBMM_ProgressBar)) new GuiControlProfile(RTBMM_ProgressBar)
+{
+   fillColor = "0 200 0 100";
+   border = 0; 
+};
+
 if(!isObject(RTMBS_MainMiddleText)) new GuiControlProfile(RTBMM_MainMiddleText)
 {
 	fontColor = "30 30 30 255";
@@ -191,6 +261,19 @@ if(!isObject(RTB_Verdana12PtAuto)) new GuiControlProfile(RTB_Verdana12PtAuto)
    fontColors[4] = "255 255 0";
    autoSizeWidth = true;
    autoSizeHeight = true; 
+};
+
+if(!isObject(RTB_Impact17PtAuto)) new GuiControlProfile(RTB_Impact17PtAuto)
+{
+	fontColor = "68 68 68 255";
+	fontSize = 17;
+	fontType = "Impact";
+	justify = "Left";
+   fontColors[1] = "100 100 100";
+   fontColors[2] = "0 255 0";  
+   fontColors[3] = "0 0 255"; 
+   fontColors[4] = "255 255 0";
+   autoSizeWidth = true;
 };
 
 if(!isObject(RTB_Verdana12PtCenter)) new GuiControlProfile(RTB_Verdana12PtCenter)
@@ -249,7 +332,7 @@ if(!isObject(RTB_VersionProfile)) new GuiControlProfile(RTB_VersionProfile)
    cursorColor = "0 0 0 255";
 };
 
-function clientCmdRTB_closeGui(%gui)
+function clientCmdcloseGui(%gui)
 {
    if(isObject(%gui))
       canvas.popDialog(%gui);

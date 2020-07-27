@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/dedicated.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/dedicated.cs $
 //#
-//#      $Id: dedicated.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: dedicated.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -18,8 +18,19 @@
 //#############################################################################
 
 //*********************************************************
+//* Load Prerequisites
+//*********************************************************
+exec("./RTBH_Support.cs");
+
+//*********************************************************
+//* Load Modules
+//*********************************************************
+exec("./RTBD_Updater.cs");
+
+//*********************************************************
 //* Dedicated Help
 //*********************************************************
+//- rtbHelp (displays a help menu)
 function rtbHelp()
 {
    RTBDU_drawSpacer();
@@ -37,9 +48,10 @@ function rtbHelp()
 //*********************************************************
 //* Setting up the Server
 //*********************************************************
+//- promptRTBSetup (displays a setup guide)
 function promptRTBSetup()
 {
-   if($Pref::Server::RTB::Setup)
+   if($Pref::Server::RTBSetup::User !$= "")
    {
       RTBDU_drawSpacer();
       RTBDU_drawDOSRow("");
@@ -50,12 +62,11 @@ function promptRTBSetup()
       RTBDU_drawDOSRow("to change setup options:");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("setupRTBDedicated(\"YourUsername\",1);");
+      RTBDU_drawDOSRow("setupRTBDedicated(\"YourUsername\");");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("YourUsername is the username you use for your BL ID ("@getNumKeyID()@")");
-      RTBDU_drawDOSRow("that runs this server and the 1 is so people");
-      RTBDU_drawDOSRow("can see the server players and add-ons it has.");
+      RTBDU_drawDOSRow("that runs this server.");
       RTBDU_drawDOSRow("");
       RTBDU_drawSpacer();
    }
@@ -71,51 +82,81 @@ function promptRTBSetup()
       RTBDU_drawDOSRow("to complete setup:");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("setupRTBDedicated(\"YourUsername\",1);");
+      RTBDU_drawDOSRow("setupRTBDedicated(\"YourUsername\");");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("YourUsername is the username you use for your BL ID ("@getNumKeyID()@")");
-      RTBDU_drawDOSRow("that runs this server and the 1 is so people");
-      RTBDU_drawDOSRow("can see the server players and add-ons it has.");
+      RTBDU_drawDOSRow("that runs this server.");
+      RTBDU_drawDOSRow("");
+      RTBDU_drawDOSRow(" - OR - ");
+      RTBDU_drawDOSRow("");
+      RTBDU_drawDOSRow("Simply join your dedicated server to do this automatically.");
       RTBDU_drawDOSRow("");
       RTBDU_drawSpacer();
       echo("");
    }
 }
 
-function setupRTBDedicated(%name,%post)
+//- setupRTBDedicated (a command to setup the server for RTB usage)
+function setupRTBDedicated(%name)
 {
-   if(%name $= "" || %post $= "")
+   if(%name $= "")
    {
-      echo("Usage: setupRTBDedicated(\"your username\", allow users to see server info (1 or 0));");
+      echo("Usage: setupRTBDedicated(\"your username\");");
       return;
    }
    
-   if(%post !$= "0")
-      %post = 1;
-   
-   $Pref::Server::RTB::Setup = 1;
-   $Pref::Server::RTB::Username = %name;
-   $Pref::Server::RTB::Post = %post;
-   
-   $RTB::Options::PostServer = %post;
+   $Pref::Server::RTBSetup::User = %name;
    $Pref::Player::NetName = %name;
    
    export("$Pref::Server*","config/server/prefs.cs");
    export("$Pref::*","config/client/prefs.cs");
    
-   echo("rtb is now setup on your server");
    RTBSA_Post();
 }
 
-if($Pref::Server::RTB::Setup)
+//*********************************************************
+//* Runtime
+//*********************************************************
+if($Pref::Server::RTBSetup::User !$= "")
 {
-   $RTB::Options::PostServer = $Pref::Server::RTB::Post;
-   $Pref::Player::netName = $Pref::Server::RTB::Username;
+   $Pref::Player::NetName = $Pref::Server::RTBSetup::User;
 }
 else
 {
    schedule(5000,0,"promptRTBSetup");
 }
 
-//#############################################################################
+//*********************************************************
+//* Support Functions
+//*********************************************************
+//- RTBDU_drawDOSRow (draws a centered string of text in a box)
+function RTBDU_drawDOSRow(%string)
+{
+   %boxStart = ((80-70)-2)/2;
+   %white = RTBDU_getWhitespace(%boxStart);
+   
+   %edgeSpace = (68-strLen(%string))/2;
+   if(strPos(%edgeSpace,".5") >= 0)
+      %minus = 1;
+   %space = RTBDU_getWhitespace(%edgeSpace);
+   %space2 = RTBDU_getWhitespace(%edgeSpace-%minus);
+   
+   echo(%white@"*"@%space@%string@%space2@"*");
+}
+
+//- RTBDU_drawSpacer (draws a spacer)
+function RTBDU_drawSpacer()
+{
+   echo("    **********************************************************************");
+}
+
+//- RTBDU_getWhitespace (generates a string of whitespace for padding)
+function RTBDU_getWhitespace(%length)
+{
+   for(%i=0;%i<%length;%i++)
+   {
+      %white = %white@" ";
+   }
+   return %white;
+}

@@ -35,7 +35,7 @@ new GuiControl(RTB_Updater) {
          extent = "434 150";
          minExtent = "8 2";
          visible = "1";
-         bitmap = "./images/rtbmsbackground";
+         bitmap = "./images/image_logoGray";
          wrap = "0";
          lockAspectRatio = "0";
          alignLeft = "0";
@@ -64,7 +64,7 @@ new GuiControl(RTB_Updater) {
          text = " ";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_update";
+         bitmap = "./images/buttons/large/btnUpdate";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
@@ -82,7 +82,7 @@ new GuiControl(RTB_Updater) {
          text = " ";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_changeLog";
+         bitmap = "./images/buttons/large/btnChangeLog";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";

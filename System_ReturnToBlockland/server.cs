@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 94 $
+//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/server.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/server.cs $
 //#
-//#      $Id: server.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: server.cs 94 2009-08-09 00:28:21Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -26,36 +26,17 @@ if(!isUnlocked())
 //*********************************************************
 //* RTB Variables
 //*********************************************************
-$RTB::Version = "2.03";
+$RTB::Version = "3b4";
 
 //*********************************************************
-//* Load Prerequisites
+//* Dedicated Handling
 //*********************************************************
-if(!isObject(canvas))
-{
-   exec("./RTBH_Support.cs");
-   exec("./RTBD_Updater.cs");
-}
-
-//*********************************************************
-//* Compatability with Add-Ons (Lol)
-//*********************************************************
-if(isFile("Add-Ons/Script_PTTA.zip"))
-{
-   echo("\c2WARNING: RTB has disabled the Add-On: Script_PTTA.zip as it is not compatible with RTB.");
-   $AddOn__Script_PTTA = 0;
-}
+if($Server::Dedicated)
+   exec("./dedicated.cs");
 
 //*********************************************************
 //* Load Modules
 //*********************************************************
 exec("./RTBS_Authentication.cs");
+exec("./RTBS_GUITransfer.cs");
 exec("./RTBS_ServerControl.cs");
-
-//*********************************************************
-//* Special Dedicated Stuff
-//*********************************************************
-if($Server::Dedicated)
-   exec("./dedicated.cs");
-
-//#############################################################################

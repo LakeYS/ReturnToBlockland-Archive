@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBD_Updater.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBD_Updater.cs $
 //#
-//#      $Id: RTBD_Updater.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBD_Updater.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -20,56 +20,37 @@
 $RTB::RTBD_Updater = 1;
 
 //*********************************************************
-//* Variable Declarations
+//* Load Switchboard
 //*********************************************************
-$RTB::DUpdater::HostSite = "returntoblockland.com";
-$RTB::DUpdater::FilePath = "/blockland/rtbUpdateRouter.php";
+%RTBDU_SB = RTB_createSwitchboard("DU","APIUM");
+%RTBDU_SB.registerLine(1,1);
 
 //*********************************************************
-//* Version Checking
+//* Request Gateway
 //*********************************************************
-function RTBDU_InitSC()
+//- RTBDU_SendRequest (compiles arguments into POST string for transfer)
+function RTBDU_SendRequest(%cmd,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
 {
-   if(!isObject(RTBDU_SC))
-   {
-      new TCPObject(RTBDU_SC)
-      {
-         site = $RTB::DUpdater::HostSite;
-         port = 80;
-         cmd = "";
-         filePath = $RTB::DUpdater::FilePath;
-         
-         defaultFailHandle = "RTBDU_onCommFail";
-         
-         connected = 0;
-         transmitting = 0;
-         queueSize = 0;
-         
-         isRTBObject = 1;
-      };
-      
-      //Check for Updates
-      RTBDU_SC.addResponseHandle("GETVERSION","RTBDU_onVersion");
-   }
-}
-
-function RTBDU_SendRequest(%cmd,%layer,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
-{
-   if(!isObject(RTBDU_SC))
-      RTBDU_InitSC();
-
    for(%i=1;%i<11;%i++)
    {
-      %arg = urlEnc(%arg[%i]);
-      if(%argString $= "")
-         %argString = "arg1="@%arg;
-      else
-         %argString = %argString@"&arg"@%i@"="@%arg;
+      %string = %string@strReplace(urlEnc(%arg[%i]),"\t","")@"\t";
    }
-   RTBDU_SC.sendRequest(%cmd,%argString,%layer);
+   RTB_SB_DU.placeCall(%line,%cmd,%string);
 }
 
-function RTBDU_onCommFail()
+//*********************************************************
+//* Meat
+//*********************************************************
+//- RTBDU_Update (sends a request with current version to find newer ones)
+%RTBDU_SB.registerResponseHandler("GETUPDATES","RTBDU_onUpdateReply");
+function checkRTBUpdates()
+{
+   RTBDU_SendRequest("GETUPDATES",1,$RTB::Beta,$RTB::Version);
+}
+
+//- RTBDU_onUpdateFail (if the connection fails)
+%RTBDU_SB.registerFailHandler("GETUPDATES","RTBDU_onUpdateFail");
+function RTBDU_onUpdateFail()
 {
       echo("");
       RTBDU_drawSpacer();
@@ -82,14 +63,10 @@ function RTBDU_onCommFail()
       echo("");
 }
 
-function checkRTBUpdates()
+//- RTBCU_onUpdateReply (reply from version controller)
+function RTBCU_onUpdateReply(%tcp,%line,%av)
 {
-   RTBDU_SendRequest("GETVERSION",1,$RTB::Version,$Version);
-}
-
-function RTBDU_onVersion(%this,%line)
-{
-   if(getField(%line,0) $= 1)
+   if(%av)
    {
       $RTB::DUpdater::Cache::Version = getField(%line,1);
       
@@ -127,18 +104,26 @@ function RTBDU_onVersion(%this,%line)
 //*********************************************************
 //* Update Downloading
 //*********************************************************
+//- RTBDU_InitFC (creates a file connection)
 function RTBDU_InitFC()
 {
    if(isObject(RTBDU_FC))
-      return;
+   {
+      RTBDU_FC.disconnect();
+      RTBDU_FC.delete();
+   }
       
-   new TCPObject(RTBDU_FC);
+   new TCPObject(RTBDU_FC)
+   {
+      host = "api.returntoblockland.com";
+      port = 80;
+   };
 }
 
+//- doRTBUpdate (attempts to download an rtb update)
 function doRTBUpdate()
 {
-   %vers = $RTB::DUpdater::Cache::Version;
-   if(%vers $= "")
+   if($RTB::DUpdater::Cache::Version $= "")
    {
       echo("");
       RTBDU_drawSpacer();
@@ -154,50 +139,42 @@ function doRTBUpdate()
       return;
    }
    
-   if(isReadonly("Add-Ons/System_ReturnToBlockland.zip"))
-   {
-      echo("");
-      RTBDU_drawSpacer();
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("ERROR");
-      RTBDU_drawDOSRow("System_ReturnToBlockland.zip is inaccessible and could be read-only.");
-      RTBDU_drawDOSRow("You will need to download the latest RTB manually from our website.");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawSpacer();
-      echo("");
-      return;
-   }
-   
    RTBDU_InitFC();
    
-   RTBDU_FC.setBinary(0);
-   RTBDU_FC.lastLine = "";
-   RTBDU_FC.targetVersion = %vers;
-   
-   RTBDU_FC.connect($RTB::DUpdater::HostSite@":80");
+   RTBCU_FC.targetVersion = $RTB::DUpdater::Cache::Version;
+   RTBCU_FC.connect(RTBDU_FC.host@":"@RTBDU_FC.port);
 }
 
+//- RTBDU_FC::onConnected (connection success callback)
 function RTBDU_FC::onConnected(%this)
 {
-   %content = "c=GETDOWNLOAD&n="@urlEnc($Pref::Player::NetName)@"&arg1="@%this.targetVersion;
-   %this.send("POST http://"@$RTB::DUpdater::HostSite@$RTB::DUpdater::FilePath@" HTTP/1.1\r\nHost: "@$RTB::DUpdater::HostSite@"\r\nUser-Agent: Torque/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@strLen(%content)@"\r\n\r\n"@%content@"\r\n");
+   %content = "c=DLUPDATE&n="@$Pref::Player::NetName@"&arg1="@%this.targetVersion@"&"@$RTB::Connection::Session;
+   %contentLen = strLen(%content);
+   
+   %this.send("POST /apiRouter.php?d=APIUM HTTP/1.1\r\nHost: api.returntoblockland.com\r\nUser-Agent: Torque/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@%contentLen@"\r\n\r\n"@%content@"\r\n");
 }
 
+//- RTBDU_FC::onLine (callback for line response)
 function RTBDU_FC::onLine(%this,%line)
 {
    if(strPos(%line,"404 Not Found") >= 0)
+      %error = 1;
+   
+   if(strPos(%line,"DL-Result:") $= 0)
+      %error = 1;
+   
+   if(%error)
    {
       echo("");
       RTBDU_drawSpacer();
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("The Filepath to RTB v"@%this.targetVersion@" is Invalid.");
+      RTBDU_drawDOSRow("An error occurred while downloading RTB v"@%this.targetVersion);
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
       RTBDU_drawSpacer();
       echo("");
+      RTBDU_InitFC();
       return;
    }
    
@@ -206,10 +183,9 @@ function RTBDU_FC::onLine(%this,%line)
       
    if(%line $= "")
       %this.setBinarySize(%this.contentSize);
-      
-   %this.lastLine = %line;
 }
 
+//- RTBDU_FC::onBinChunk (on binary chunk received)
 function RTBDU_FC::onBinChunk(%this,%chunk)
 {
    if(%chunk >= %this.contentSize)
@@ -223,41 +199,11 @@ function RTBDU_FC::onBinChunk(%this,%chunk)
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("RTB v"@%this.targetVersion@" has been downloaded and installed successfully.");
       RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("You may now restart your server.");
+      RTBDU_drawDOSRow("You must now restart your server.");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
       RTBDU_drawSpacer();
       echo("");
    }
 }
-
-//*********************************************************
-//* Support Functions
-//*********************************************************
-function RTBDU_drawDOSRow(%string)
-{
-   %boxStart = ((80-70)-2)/2;
-   %white = RTBDU_getWhitespace(%boxStart);
-   
-   %edgeSpace = (68-strLen(%string))/2;
-   if(strPos(%edgeSpace,".5") >= 0)
-      %minus = 1;
-   %space = RTBDU_getWhitespace(%edgeSpace);
-   %space2 = RTBDU_getWhitespace(%edgeSpace-%minus);
-   
-   echo(%white@"*"@%space@%string@%space2@"*");
-}
-
-function RTBDU_drawSpacer()
-{
-   echo("    **********************************************************************");
-}
-
-function RTBDU_getWhitespace(%length)
-{
-   for(%i=0;%i<%length;%i++)
-   {
-      %white = %white@" ";
-   }
-   return %white;
-}
+checkRTBUpdates();

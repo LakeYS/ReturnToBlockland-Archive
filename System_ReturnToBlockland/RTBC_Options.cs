@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 64 $
+//#      $Date: 2009-07-08 20:24:38 +0100 (Wed, 08 Jul 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Options.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/RTBC_Options.cs $
 //#
-//#      $Id: RTBC_Options.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_Options.cs 64 2009-07-08 19:24:38Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -36,7 +36,7 @@ if(!isObject(MM_RTBOptionsButton))
       text = " ";
       groupNum = "-1";
       buttonType = "PushButton";
-      bitmap = $RTB::Path@"images/buttons/btnOptions";
+      bitmap = $RTB::Path@"images/buttons/menu/btnOptions";
       command = "canvas.pushdialog(rtb_options);";
       lockAspectRatio = "1";
       alignLeft = "1";
@@ -74,34 +74,36 @@ if(!isObject(RTB_Options))
 //*********************************************************
 function RTB_Options::onWake(%this)
 {
-	applyRadioOption(RTBO_OptGen_Auth);
-	applyRadioOption(RTBO_OptGen_PostServer);
+	applyRadioOption(RTBO_OptSA_PostServer);
+	applyRadioOption(RTBO_OptSA_ShowPlayers);
 
-	applyRadioOption(RTBO_OptMan_Login);
-	applyRadioOption(RTBO_OptMan_CheckUpdate);
-	applyRadioOption(RTBO_OptMan_DownloadScreenshot);
-
-	applyRadioOption(RTBO_OptDis_EnableInfoTips);
-	applyRadioOption(RTBO_OptDis_EnableServerInfo);
-	applyRadioOption(RTBO_OptDis_EnableAutoUpdate);
-
-	applyRadioOption(RTBO_OptIrc_AutoConnect);
-	applyRadioOption(RTBO_OptIrc_AllowPM);
-	applyRadioOption(RTBO_OptIrc_AudioNotify);
-	applyRadioOption(RTBO_OptIrc_VisualNotify);
-
-	applyRadioOption(RTBO_OptPPS_ShowOnline);
-	applyRadioOption(RTBO_OptPPS_ShowServer);
-
-	applyRadioOption(RTBO_OptSPS_ShowPlayers);
-	applyRadioOption(RTBO_OptSPS_ShowPassworded);
-	applyRadioOption(RTBO_OptSPS_ShowOwnership);
+	applyRadioOption(RTBO_OptCA_AuthWithRTB);
+	applyRadioOption(RTBO_OptCA_ShowOnline);
+	applyRadioOption(RTBO_OptCA_ShowServer);
+	
+	applyRadioOption(RTBO_OptMM_AnimateGUI);
+	applyRadioOption(RTBO_OptMM_WarnFailed);
+	applyRadioOption(RTBO_OptMM_DisableFailed);
+	applyRadioOption(RTBO_OptMM_CheckForUpdates);
+	applyRadioOption(RTBO_OptMM_DownloadScreenshots);
+	
+	applyRadioOption(RTBO_OptIC_AutoConnect);
+	applyRadioOption(RTBO_OptIC_AllowPM);
+	applyRadioOption(RTBO_OptIC_AudioNotify);
+	applyRadioOption(RTBO_OptIC_VisualNotify);
+	
+	applyRadioOption(RTBO_OptIT_EnableInfoTips);
+	applyRadioOption(RTBO_OptIT_ShowAddonTips);
+	
+	applyRadioOption(RTBO_OptGT_EnableGUITransfer);
+	
+	applyRadioOption(RTBO_OptAU_EnableAutoUpdate);
 }
 
 function RTB_Options::onSleep(%this)
 {
    echo("Exporting rtb prefs");
-   export("$RTB::Options*","config/client/RTB/prefs.cs");
+   export("$RTB::Options*","config/client/rtb/prefs.cs");
 	RTBCA_SendPrefs();
 	RTBCA_Post();
 }
@@ -109,6 +111,7 @@ function RTB_Options::onSleep(%this)
 //*********************************************************
 //* Support Functions
 //*********************************************************
+//- applyRadioOption (Finds the value of an rtb pref and applies it)
 function applyRadioOption(%radio)
 {
 	eval("%pref = $"@(%radio@"Y").optionVariable@";");
@@ -135,6 +138,7 @@ function applyRadioOption(%radio)
 	%radio.setValue(1);
 }
 
+//- setRadioOption (Sets a specific radio to a value)
 function setRadioOption(%radio,%value)
 {
 	if(%value $= 1)

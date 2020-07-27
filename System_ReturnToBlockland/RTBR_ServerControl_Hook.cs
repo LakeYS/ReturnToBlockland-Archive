@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBR_ServerControl_Hook.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBR_ServerControl_Hook.cs $
 //#
-//#      $Id: RTBR_ServerControl_Hook.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBR_ServerControl_Hook.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -22,18 +22,20 @@ $RTB::RTBR_ServerControl_Hook = 1;
 //*********************************************************
 //* Variable Declarations
 //*********************************************************
-$RTB::ServerPrefs = 0;
+$RTB::SServerControl::SP::Cats = 0;
+$RTB::SServerControl::SP::Prefs = 0;
 
 //*********************************************************
 //* Requirements
 //*********************************************************
-if(isFile("config/server/RTB/modPrefs.cs"))
-   exec("config/server/RTB/modPrefs.cs");
+if(isFile("config/server/rtb/modPrefs.cs"))
+   exec("config/server/rtb/modPrefs.cs");
 
 //*********************************************************
 //* The Meat
 //*********************************************************
-function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresRestart,%hostOnly)
+//- RTB_registerPref (Registers a pref to be sent to clients)
+function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresRestart,%hostOnly,%callback)
 {
    %pref = strReplace(%pref,"$","");
    
@@ -62,17 +64,13 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
    if(%mod $= "")
       %mod = "Unknown";
    
-   for(%i=0;%i<$RTB::ServerPrefs;%i++)
+   for(%i=0;%i<$RTB::SServerControl::SP::Prefs;%i++)
    {
-      %catcount = $RTB::ServerPrefCount[%i];
-      for(%j=1;%j<%catcount+1;%j++)
+      %checkpref = getField($RTB::SServerControl::SP::Pref[%i],1);
+      if(%pref $= %checkpref)
       {
-         %checkpref = getField($RTB::ServerPref[%i,%j],1);
-         if(%pref $= %checkpref)
-         {
-            echo("\c2ERROR: $"@%pref@" pref has already been registered to add-on: "@getField($RTB::ServerPref[%i,%j],3)@" in RTB_registerPref");
-            return 0;
-         }
+         echo("\c2ERROR: $"@%pref@" pref has already been registered to add-on: "@getField($RTB::SServerControl::SP::Pref[%i],4)@" in RTB_registerPref");
+         return 0;
       }
    }
    
@@ -82,17 +80,18 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
    %pType = firstWord(%vartype);
    if(%pType $= "int")
    {
-      %min = getWord(%vartype,1);
-      if(%min <= -1)
+      if(getWordCount(%vartype) $= 3)
       {
-         echo("\c2ERROR: Invalid integer min value supplied for pref ("@%pref@") in RTB_registerPref");
-         return 0;
+         %max = getWord(%vartype,2);
+         if(%max <= %min)
+         {
+            echo("\c2ERROR: Integer max value supplied for pref ("@%pref@") is less than or equal to min value in RTB_registerPref");
+            return 0;
+         }
       }
-      
-      %max = getWord(%vartype,2);
-      if(%max <= %min)
+      else
       {
-         echo("\c2ERROR: Integer max value supplied for pref ("@%pref@") is less than or equal to min value in RTB_registerPref");
+         echo("\c2ERROR: Integer variable type expects 2 parameters in RTB_registerPref");
          return 0;
       }
    }
@@ -113,6 +112,14 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
          return 0;
       }
    }
+   //else if(%pType $= "float")
+   //{
+      //if(getWordCount(%vartype) !$= 4)
+      //{
+         //echo("\c2ERROR: Invalid float values supplied for pref ("@%pref@") in RTB_registerPref");
+         //return 0;
+      //}
+   //}
    else if(%pType $= "bool")
    {
    }
@@ -126,22 +133,8 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
    if(%currVal $= "")
       eval("$"@%pref@" = \""@%default@"\";");
    
-   for(%i=0;%i<$RTB::ServerPrefs;%i++)
-   {
-      if($RTB::ServerPref[%i,0] $= %cat)
-      {
-         %catcount = $RTB::ServerPrefCount[%i];
-         $RTB::ServerPref[%i,%catcount] = %name TAB %pref TAB %vartype TAB %mod TAB %requiresRestart TAB %hostOnly;
-         $RTB::ServerPrefCount[%i]++;
-         return 1;
-      }
-   }
-
-   $RTB::ServerPrefCount[$RTB::ServerPrefs] = 1;
-   $RTB::ServerPref[$RTB::ServerPrefs,0] = %cat;
-   $RTB::ServerPref[$RTB::ServerPrefs,1] = %name TAB %pref TAB %vartype TAB %mod TAB %requiresRestart TAB %hostOnly;
-   $RTB::ServerPrefCount[$RTB::ServerPrefs]++;
-   $RTB::ServerPrefs++;
-   
+   $RTB::SServerControl::SP::Pref[$RTB::SServerControl::SP::Prefs] = %name TAB %pref TAB %cat TAB %vartype TAB %mod TAB %requiresRestart TAB %hostOnly TAB %callback;
+   $RTB::SServerControl::SP::PrefDefault[$RTB::SServerControl::SP::Prefs] = %default;
+   $RTB::SServerControl::SP::Prefs++;
    return 1;
 }

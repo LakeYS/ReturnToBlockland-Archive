@@ -75,12 +75,12 @@ new GuiControl(RTB_Manual) {
             position = "42 406";
             extent = "82 25";
             minExtent = "8 2";
-            visible = "1";
+            visible = "0";
             command = "RTBBT_PushBugReporter();";
             text = "\c1";
             groupNum = "-1";
             buttonType = "PushButton";
-            bitmap = "./images/buttons/link_sendbug";
+            bitmap = "./images/buttons/large/btnSendBug";
             lockAspectRatio = "0";
             alignLeft = "0";
             overflowImage = "0";

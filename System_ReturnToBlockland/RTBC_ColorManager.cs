@@ -215,7 +215,7 @@ function RTBCM_PreviewSet(%filepath)
                   profile = "GuiDefaultProfile";
                   position = %xPos SPC %yPos;
                   extent = "16 16";
-                  bitmap = "./images/colorbg";
+                  bitmap = "./images/image_checker";
                };
                RTBCM_ColorsetPreview.add(%b);
             }

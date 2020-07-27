@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 94 $
+//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBH_Support.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/RTBH_Support.cs $
 //#
-//#      $Id: RTBH_Support.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBH_Support.cs 94 2009-08-09 00:28:21Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -18,6 +18,54 @@
 //#############################################################################
 //Register that this module has been loaded
 $RTB::RTBH_Support = 1;
+
+//**********************************************************
+// So its a toss-up between two real-life models to craft
+// this networking around. I'm gunning either for a "pimp
+// and his hoes" style architecture, or an old-fashioned
+// switchboard architecture.
+//
+// The "pimp & hoe" style could work like so; each module
+// has its own pimp (the module being a backalley i suppose)
+// Then the pimp is defined with a variable number of hoes
+// that fulfil the requests of the contents of the module
+// (the sleezy men in the backalley)
+// The hoes then keep books of what they need to do to these
+// men. So the pimp is a controller, the hoe is a tcpobject
+// and the books are standard linear queues of transmissions
+//
+// OR
+//
+// The switchboard is the controller for each module, and
+// each switchboard is registered with lines and each line
+// has its own socket that transmissions can plug into
+// And then each socket has its own relay queue
+//
+// Personally i'm liking the second option because the pimp
+// idea gets a bit too sleezy to uphold RTB's family values.
+// However I was looking forward to some interesting methods
+// for the hoes such as ::slap and ::pleasureRequest but oh
+// well. Maybe next time.
+//**********************************************************
+
+//#####################################################################################################
+//
+//   __      __         _       _     _          
+//   \ \    / /        (_)     | |   | |         
+//    \ \  / /__ _ _ __ _  __ _| |__ | | ___ ___ 
+//     \ \/ // _` | '__| |/ _` | '_ \| |/ _ | __|
+//      \  /| (_| | |  | | (_| | |_) | |  __|__ \
+//       \/  \__,_|_|  |_|\__,_|_.__/|_|\___|___/
+//
+//
+//##################################################################################################### 
+
+//*********************************************************
+//* Global Connection Variables
+//*********************************************************
+$RTB::Connection::Timeout     = 10; //> 30 Second Timeout (Sometimes the server just "hangs")
+$RTB::Connection::Retries     = 3;  //> 3 Retries, then fail message
+$RTB::Connection::Host        = "api.returntoblockland.com"; //> Type this into your browser, it rocks
 
 //*********************************************************
 //* Global Variables
@@ -40,6 +88,7 @@ $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_B
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Synth4";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Phone";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Beeps";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Script_ClearSpam";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Radio_Wave";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Pong";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Pinball";
@@ -53,10 +102,12 @@ $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_No
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Leap_Jet";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Jump_Jet";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Fuel_Jet";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Tools";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Player";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Grass";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_FX_Cans";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Basic";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Music_Default";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Tutorial";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Slopes";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Slate";
@@ -68,434 +119,773 @@ $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Bedro
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Light_Basic";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Light_Animated";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Item_Skis";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Face_Default";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Love";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Hate";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Confusion";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Alarm";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Decal_Default";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Brick_Large_Cubes";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Script_ClearSpam";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Brick_Arch";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "System_ReturnToBlockland";
 
-//*********************************************************
-//* Global Transmission Variables
-//*********************************************************
-$RTB::TransmissionTimeout = 60; //> 30 Second Timeout (Sometimes the server just "hangs")
-$RTB::TransmissionRetries = 3; //> 3 Retries, then fail message
+//#####################################################################################################
+//
+//    _   _      _                      _    _             
+//   | \ | |    | |                    | |  (_)            
+//   |  \| | ___| |___      _____  _ __| | ___ _ __   __ _ 
+//   | . ` |/ _ \ __\ \ /\ / / _ \| '__| |/ / | '_ \ / _` |
+//   | |\  |  __/ |_ \ V  V / (_) | |  |   <| | | | | (_| |
+//   |_| \_|\___|\__| \_/\_/ \___/|_|  |_|\_\_|_| |_|\__, |
+//                                                    __/ |
+//                                                   |___/
+//
+//##################################################################################################### 
 
 //*********************************************************
-//* TCPObject Transmission Queueing
+//* Switchboard Definition, Instantiation and Methods
+//* -------------------------------------------------------
+//* Switchboard Line Types:
+//*
+//*   0     >>       no queue (cancel current requests)
+//*   1     >>       standard linear queue
+//*   2     >>       overwrite if matching cmd
+//*   3     >>       overwrite if matching cmd & string
+//*
 //*********************************************************
-function TCPObject::pushQueue(%obj,%cmd,%string,%layer,%specialstring)
+//- RTB_createSwitchboard (Creates a switchboard instance)
+function RTB_createSwitchboard(%moduleID,%apiID)
 {
-   for(%i=0;%i<%obj.queueSize;%i++)
+   if(!isObject(RTB_Switchboards))
+      new SimGroup(RTB_Switchboards);
+   
+   %oName = "RTB_SB_"@%moduleID;   
+   if(isObject(%oName))
+      return %oName;
+   
+   %sb = new ScriptGroup(%oName)
    {
-      %qString = %obj.queueTransmitString[%i];
-      %qCmd = getField(%qString,0);
-      %qLayer = getField(%qString,2);
-      if(%qCmd $= %cmd)
-      {
-         %obj.queueTransmitString[%i] = %cmd TAB %string TAB %layer TAB %specialstring;
-         return %obj.queueSize;
-      }
+      class = "RTB_Switchboard";
       
-      if(%qLayer $= %layer)
-      {
-         %obj.queueTransmitString[%i] = %cmd TAB %string TAB %layer TAB %specialstring;
-         return %obj.queueSize;
-      }
-   }
+      moduleID = %moduleID;
+      apiID = %apiID;
+      
+      host = $RTB::Connection::Host;
+      port = 80;
+   };
+   RTB_Switchboards.add(%sb);
    
-   %obj.queueTransmitString[%obj.queueSize] = %cmd TAB %string TAB %layer TAB %specialstring;
-   %obj.queueSize++;
-   
-   return %obj.queueSize;
+   return %sb;
 }
 
-function TCPObject::hasQueue(%obj)
+//- RTB_Switchboard::instantiateSocket (Creates a switchboard socket and creates the queue for it)
+function RTB_Switchboard::instantiateSocket(%this,%line,%type)
 {
-   if(%obj.queueSize >= 1)
-      return 1;
+   %socket = new TCPObject()
+   {
+      line = %line;
+      switchboard = %this;
+      
+      type = %type;
+      
+      rtbObject = 1;
+   };
+   %this.add(%socket);
+   %socket.neutralise();
+   
+   %queue = new ScriptObject()
+   {
+      class = "RTB_CallQueue";
+      line = %line;
+      
+      size = 0;
+   };
+   %this.add(%queue);
+   
+   %socket.queue = %queue;
+   %queue.socket = %socket;
+
+   return %socket;
+}
+
+//- RTB_Switchboard::registerResponseHandler (Creates an entry for data routing)
+function RTB_Switchboard::registerResponseHandler(%this,%cmd,%handler,%exempt)
+{
+   if(%cmd $= "" || %handler $= "")
+      return 0;
+      
+   %this.r_[strUpr(%cmd)] = %handler;   
+   if(%exempt)
+      %this.e_[strUpr(%cmd)] = true;
+      
+   return 1;
+}
+
+//- RTB_Switchboard::registerFailHandler (Creates an entry for failed data receival routing)
+function RTB_Switchboard::registerFailHandler(%this,%cmd,%handler)
+{
+   if(%cmd $= "" || %handler $= "")
+      return 0;
+      
+   %this.r_fail_[strUpr(%cmd)] = %handler;
+   return 1;
+}
+
+//- RTB_Switchboard::registerLine (Registers a line on the switchboard for usage)
+function RTB_Switchboard::registerLine(%this,%line,%type)
+{
+   if(%line < 1)
+      return 0;
+      
+   if(isObject(%this.l_[%line]))
+      return 0;
+      
+   %socket = %this.instantiateSocket(%line,%type);
+      
+   %this.l_[%line] = %socket;
+   return 1;
+}
+
+//- RTB_Switchboard::killLine (Neutralises a particular line and cancels any outgoing/incoming transmission)
+function RTB_Switchboard::killLine(%this,%line)
+{
+   %socket = %this.l_[%line];
+   %socket.neutralise();
+}
+
+//- RTB_Switchboard::setLineProperty (Sets line-specific properties and settings)
+function RTB_Switchboard::setLineProperty(%this,%line,%property,%value)
+{
+   %socket = %this.l_[%line];
+   %socket.p_[%property] = %value;
+}
+
+//- RTB_Switchboard::getLineSocket (Returns a line socket instance for the line)
+function RTB_Switchboard::getLineSocket(%this,%line)
+{
+   if(isObject(%this.l_[%line]))
+      return %this.l_[%line];
    else
       return 0;
 }
 
-function TCPObject::popQueue(%obj)
+//- RTB_Switchboard::placeCall (Registers a call with the switchboard to be processed by the operator)
+function RTB_Switchboard::placeCall(%this,%line,%cmd,%string)
 {
-   if(%obj.queueSize < 1)
-      return -1;
-      
-   %retDat = %obj.queueTransmitString0;
-   for(%i=0;%i<%obj.queueSize;%i++)
-   {
-      %obj.queueTransmitString[%i] = %obj.queueTransmitString[%i+1];
-   }
-   %obj.queueSize--;
+   %cmd = strUpr(%cmd);
    
-   return %retDat;
+   if(!isObject(%this.getLineSocket(%line)))
+   {
+      echo("\c2ERROR: Cannot send cmd to uninstantiated line socket: "@%cmd);
+      return;
+   }
+   
+   if(%this.getLineSocket(%line).type $= 0)
+   {
+      %this.getLineSocket(%line).neutralise();
+      %this.getLineSocket(%line).plug(%cmd,%string);
+   }
+   else
+   {
+      %this.getLineSocket(%line).queue.push(%cmd,%string);
+   }
 }
 
-function TCPObject::addResponseHandle(%obj,%cmd,%call)
+//*********************************************************
+//* Queue Methods
+//*********************************************************
+//- RTB_CallQueue::push (Pushes a call onto the queue)
+function RTB_CallQueue::push(%this,%cmd,%string)
 {
-   if(!isFunction(%call))
-      return -1;
-   if(%cmd $= "")
-      return -1;
-   %obj.responseHandle[strUpr(%cmd)] = %call;
+   if(%this.socket.s_occupied)
+   {
+      if(%this.socket.type $= 1)
+      {
+         %this.i_cmd[%this.size] = %cmd;
+         %this.i_str[%this.size] = %string;
+         %this.size++;
+      }
+      else if(%this.socket.type $= 2)
+      {
+         for(%i=0;%i<%this.size;%i++)
+         {
+            if(%this.i_cmd[%i] $= %cmd)
+               break;
+         }            
+         %this.i_cmd[%i] = %cmd;
+         %this.i_str[%i] = %string;
+         
+         if(%i $= %this.size)
+            %this.size++;
+      }
+      else if(%this.socket.type $= 3)
+      {
+         if(%this.socket.t_cmd $= %cmd && %this.socket.t_string $= %string)
+         {
+            %this.socket.unplug();
+            %this.socket.plug(%cmd,%string);
+         }
+         else
+         {
+            for(%i=0;%i<%this.size;%i++)
+            {
+               if(%this.i_cmd[%i] $= %cmd && %this.i_str[%i] $= %string)
+                  break;
+            }            
+            %this.i_cmd[%i] = %cmd;
+            %this.i_str[%i] = %string;
+            
+            if(%i $= %this.size)
+               %this.size++;
+         }
+      }
+   }
+   else
+      %this.socket.plug(%cmd,%string);
 }
 
-function TCPObject::addFailHandle(%obj,%cmd,%call)
+//- RTB_CallQueue::plug (Plugs a call into a socket and cycles the queue)
+function RTB_CallQueue::plug(%this)
 {
-   if(!isFunction(%call))
-      return -1;
-   if(%cmd $= "")
-      return -1;
-   %obj.failHandle[strUpr(%cmd)] = %call;
+   if(%this.socket.s_occupied)
+      return;
+      
+   if(%this.i_cmd[0] $= "")
+      return;
+      
+   %this.socket.plug(%this.i_cmd[0],%this.i_str[0]);
+   
+   %this.cycle();
 }
 
+//- RTB_CallQueue::cycle (Removes an item from the queue and bumps all items up a space)
+function RTB_CallQueue::cycle(%this)
+{
+   for(%i=0;%i<%this.size;%i++)
+   {
+      %this.i_cmd[%i] = %this.i_cmd[%i+1];
+      %this.i_str[%i] = %this.i_str[%i+1];
+   }
+   %this.i_cmd[%i] = "";
+   %this.i_str[%i] = "";
+   %this.size--;
+}
+
+//*********************************************************
+//* TCPObject Methods, Definition & Handling
+//* -------------------------------------------------------
+//*
+//*  s_*                >>    status data
+//*   s_connected       >>     (bool) connected to host
+//*   s_sending         >>     (bool) sending data
+//*   s_receiving       >>     (bool) receiving data
+//*   s_occupied        >>     (bool) indicates current usage
+//*
+//*  p_*                >>    property data
+//*   p_["Keep-Alive"]  >>     (bool) indicates keep-alive status
+//*
+//*  t_*                >>    transmission data
+//*   t_cmd             >>     (string) transmit cmd
+//*   t_string          >>     (string) transmit query string
+//*   t_request         >>     (string) transmit http request
+//*   t_time            >>     (int) time of request
+//*
+//*  c_*                >>    cache data
+//*   c_lastCmd         >>     (string) last cmd received
+//*   c_lastLine        >>     (string) last line received
+//*
+//*  d_hangTime         >>     (delay) time before timeout
+//*
+//*********************************************************
+//- TCPObject::plug (Loads a call into a socket and activates the line)
+function TCPObject::plug(%this,%cmd,%string)
+{
+   %this.t_cmd = %cmd;
+   
+   for(%i=0;%i<10;%i++)
+   {
+      if(%this.t_string $= "")
+         %this.t_string = "arg1="@getField(%string,%i);
+      else
+         %this.t_string = %this.t_string@"&arg"@%i+1@"="@getField(%string,%i);
+   }
+   %this.t_rawString = %string;
+   
+   %this.activateLine();
+}
+
+//- TCPObject::neutralise (Kills all transmission and resets the line + socket)
+function TCPObject::neutralise(%this)
+{
+   if(%this.s_connected)
+   {
+      %this.disconnect();
+   }
+   %this.s_connected = 0;
+   %this.s_sending = 0;
+   %this.s_receiving = 0;
+   %this.s_occupied = 0;
+   
+   %this.t_cmd = "";
+   %this.t_string = "";
+   %this.t_rawString = "";
+   %this.t_request = "";
+   %this.t_time = 0;
+   
+   %this.c_lastCmd = "";
+   %this.c_lastLine = "";
+   
+   if(isEventPending(%this.d_hangTime))
+      cancel(%this.d_hangTime);     
+   %this.d_hangTime = "";
+}
+
+//- TCPObject::activateLine (Activates a socket, prepares the transmission then connects/opens the line)
+function TCPObject::activateLine(%this)
+{
+   if(%this.t_cmd $= "")
+      return 0;
+      
+   %this.s_occupied = 1;
+   %this.s_sending = 1;
+
+   if(%this.t_string !$= "")
+      %this.t_string = "c="@%this.t_cmd@"&n="@$Pref::Player::NetName@"&"@%this.t_string;
+   else
+      %this.t_string = "c="@%this.t_cmd@"&n="@$Pref::Player::NetName;
+      
+   if($RTB::Connection::Session !$= "")
+      %this.t_string = %this.t_string@"&"@$RTB::Connection::Session;
+   
+   if($RTB::Debug $= 3)   
+      %this.t_string = %this.t_string@"&XDEBUG_PROFILE=1";
+
+   if(%this.p_["Keep-Alive"] == 1)
+      %connection = "Keep-Alive\r\nKeep-Alive: timeout=2, max=10";
+   else
+      %connection = "close";
+      
+   %contentLen = strLen(%this.t_string);
+   %this.t_request = "POST /apiRouter.php?d="@%this.switchboard.apiID@" HTTP/1.1\r\nHost: "@%this.switchboard.host@"\r\nUser-Agent: Torque/1.0\r\nConnection: "@%connection@"\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@%contentLen@"\r\n\r\n"@%this.t_string@"\r\n";
+   
+   if(isEventPending(%this.d_hangTime))
+      cancel(%this.d_hangTime);      
+   %this.d_hangTime = %this.schedule($RTB::Connection::Timeout*1000,"onTimeout");
+   
+   %this.t_time = getSimTime();
+   
+   if(%this.s_connected)
+      %this.openLine();
+   else
+      %this.connect(%this.switchboard.host@":"@%this.switchboard.port);
+}
+
+//- TCPObject::openLine (Opens a line for the call and pushes it)
+function TCPObject::openLine(%this)
+{
+   if(%this.s_connected $= "")
+      return;
+      
+   if(%this.t_request $= "")
+      return;
+      
+   if($RTB::Debug)
+      echo("\c5>> Transmit Requested: "@%this.switchboard.apiID@"/"@%this.t_cmd@" > "@%this.t_string);
+   if($RTB::Debug > 1)
+      echo("\c5"@strReplace(%this.t_request,"\r\n","\r\n\c5"));
+      
+   %this.send(%this.t_request);
+}
+
+//- TCPObject::unplug (Unplugs a line from the socket)
+function TCPObject::unplug(%this)
+{
+   %this.disconnect();
+   %this.onDisconnect();
+}
+
+//*********************************************************
+//* Global Callbacks
+//*********************************************************
+//- RTB_onDefine (Defines specific RTB settings for the client after auth)
+function RTB_onDefine(%this,%line)
+{
+   //If you remove this code it'll stop you getting barred by RTB! Please don't!
+   if(getField(%line,0) $= "BARRED")
+   {
+      if(getField(%line,1) $= "0")
+      {
+         $RTB::Barred::Reason = "";
+         $RTB::Barred::Date = "";         
+         
+         $RTB::Barred::System = 0;
+         $RTB::Barred::Link = 0;
+         $RTB::Barred::ClientAuth = 0;
+         $RTB::Barred::ServerAuth = 0;
+         $RTB::Barred::Upload = 0;
+         $RTB::Barred::Download = 0;
+         $RTB::Barred::Comment = 0;
+         $RTB::Barred::Rate = 0;
+         $RTB::Barred::ServerInfo = 0;
+      }
+      else
+      {
+         $RTB::Barred::Reason = getField(%line,2);
+         $RTB::Barred::Date = getField(%line,3);
+         
+         $RTB::Barred::System = getField(%line,4);
+         $RTB::Barred::Link = getField(%line,5);
+         $RTB::Barred::ClientAuth = getField(%line,6);
+         $RTB::Barred::ServerAuth = getField(%line,7);
+         $RTB::Barred::Upload = getField(%line,8);
+         $RTB::Barred::Download = getField(%line,9);
+         $RTB::Barred::Comment = getField(%line,10);
+         $RTB::Barred::Rate = getField(%line,11);
+         $RTB::Barred::ServerInfo = getField(%line,12);
+      }
+      RTBMM_setBarred();
+   }
+   else if(getField(%line,0) $= "CRAPON")
+   {
+      if(getField(%line,1) $= "CRC")
+         $CrapOnCRC_[getField(%line,2)] = true;
+      else if(getField(%line,1) $= "NAME")
+         $CrapOnName_[getField(%line,2)] = true;
+   }
+   else if(getField(%line,0) $= "GUIDL")
+   {
+      //Essentially a killswitch incase an exploit is found in the gui downloader that compromises user security
+      if(getField(%line,1) $= "KILL")
+         $RTB::Options::GT::Enable = 0;
+      else if(getField(%line,1) $= "RESURRECT")
+         $RTB::Options::GT::Enable = 1;
+         
+      export("$RTB::Options*","config/client/rtb/prefs.cs");
+   }
+}
+
+//*********************************************************
+//* TCPObject Callbacks
+//*********************************************************
 package RTBH_Support
 {
-   function TCPObject::onLine(%this,%line)
+   function TCPObject::onConnected(%this)
    {
-      if(%this.isRTBObject)
+      if(%this.rtbObject)
       {
-         if(%line $= "END")
-         {
-            %lastCmd = %this.lastCmd;
-            %cmdName = %this.responseHandle[%lastCmd]@"End";
-            if(isFunction(%cmdName))
-            {
-               %call = %cmdName@"("@%this@");";
-               eval(%call);
-            }
-            %this.disconnect();
-            %this.onDisconnect();
-            return;
-         }
-         
-         %line = strReplace(%line,"\"","\\\"");
-         %line = strReplace(%line,"\n","");
-         %line = strReplace(%line,"\r","");
-         %line = strReplace(%line,"\r\n","");
+         if($RTB::Debug)
+            echo("\c4>> Transmit Connected");
+            
+         %this.s_connected = 1;
+         %this.openLine();
+      }
+      else
+      {
+         if(isFunction(Parent,"onConnected"))
+            Parent::onConnected(%this);
+      }
+   }
+   
+   function TCPObject::onLine(%this, %line)
+   {
+      if(%this.rtbObject)
+      { 
+         %this.s_sending = 0;
+         cancel(%this.d_hangTime);
          
          if($RTB::Debug)
             echo("\c2>> Transmit Line ("@%line@")");
+            
+         if(getField(%line,0) $= "DEFINE")
+         {
+            call("RTB_onDefine",%this,getFields(%line,1,getFieldCount(%line)));
+            return;
+         }
+         
+         if(getField(%line,0) $= "MESSAGE")
+         {
+            if($Server::Dedicated)
+               echo("RTB NOTIFICATION: "@getField(%line,2));
+            else
+               messageBoxOK("RTB Notification",getField(%line,2));
+            return;
+         }
+         
+         if(getField(%line,0) $= "NOTIFY")
+         {
+		      if($Tmp::HasNotifyCode[getField(%line,1)])
+			      return;
+			      
+            if($Server::Dedicated)
+               echo("RTB NOTIFICATION: "@getField(%line,2));
+            else
+               messageBoxOK("RTB Notification",getField(%line,2));
+               
+            $Tmp::HasNotifyCode[getField(%line,1)] = 1;
+            return;
+         }
+            
+         if(%line $= "END")
+         {
+            %cmd = %this.t_cmd;
+            %cmdEnd = %this.switchboard.r_[%cmd]@"Stop";
+            if(isFunction(%cmdEnd))
+            {
+               call(%cmdEnd,%this);
+            }
+            %this.s_receiving = 0;
+            
+            if(!%this.p_["Keep-Alive"])
+               %this.unplug();
+            else
+            {
+               %this.s_sending = 0;
+               %this.s_receiving = 0;
+               %this.s_occupied = 0;
+               
+               %this.t_string = "";
+            }
+               
+            %this.queue.plug();
+            return;
+         }
          
          if(strPos(%line,"Set-Cookie:") $= 0)
          {
             %cookie = getSubStr(%line,strPos(%line,": ")+2,strLen(%line));
-            $RTB::Cache::Cookie = getSubStr(%cookie,0,strPos(%cookie,";"));
+            $RTB::Connection::Session = getSubStr(%cookie,0,strPos(%cookie,";"));            
          }
          
-         cancel(%this.timeoutSchedule);
-         if(%line $= "" && %this.lastLine !$= "")
-            %this.receiving = 1;
-         %this.lastLine = %line;
+         if(%this.c_lastLine $= "")
+            %this.s_receiving = 1;            
+         %this.c_lastLine = %line;
             
-         if(!%this.receiving)
+         if(!%this.s_receiving || %line $= "")
             return;
-         
-         if(%line $= "")
-            return;
-         
-         if(%this.lineCallback !$= "")
-         {
-            %call = %this.lineCallback@"("@%this@",\""@%line@"\");";
-            eval(%call);
-         }
-         
-         if(getField(%line,0) $= "SQLERROR")
-         {
-            %this.transmitting = 0;
-            if(!$Server::Dedicated)
-            {
-               RTBBT_pushBugReporter("RTB","SQL Error",2,getFields(%line,1,getFieldCount(%line)));
-               MessageBoxOK("ERROR","There has been a critical error. We would appreciate it if you could send this Bug Report so it can be fixed ASAP.");
-            }
-            else
-               echo("ERROR: SQL ERROR OCCURRED!");
-            return;
-         }
-         
-         if(getField(%line,0) $= "ERROR")
-         {
-            %this.transmitting = 0;
-            echo("\c2TCP ERROR ("@getField(%line,1)@"): "@getField(%line,2));
-            if(!$Server::Dedicated)
-               MessageBoxOK(getfield(%line,1),getfield(%line,2));
-            return;
-         }
+            
+         if(%this.switchboard.r_["LINE"] !$= "")
+            call(%this.switchboard.r_["LINE"],%this,%line);
          
          %cmd = getField(%line,0);
-         if(%this.responseHandle[%cmd] !$= "")
+         if(%cmd !$= %this.t_cmd && !%this.switchboard.e_[%cmd])
+            return;
+            
+         if(%this.switchboard.r_[%cmd] !$= "")
          {
-            %this.lastCmd = %cmd;
-            %call = %this.responseHandle[%cmd]@"("@%this@",\""@getFields(%line,1,getFieldCount(%line))@"\");";
-            eval(%call);
+            if(%this.c_lastCmd !$= %cmd)
+            {
+               %call = %this.switchboard.r_[%cmd]@"Start";
+               if(isFunction(%call))
+                  call(%call,%this);
+               %this.c_lastCmd = %cmd;
+            }
+            call(%this.switchboard.r_[%cmd],%this,getFields(%line,1,getFieldCount(%line)-1),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6),getField(%line,7),getField(%line,8),getField(%line,9),getField(%line,10),getField(%line,11),getField(%line,12),getField(%line,13),getField(%line,14),getField(%line,15),getField(%line,16),getField(%line,17),getField(%line,18),getField(%line,19),getField(%line,20));
          }
       }
       else
       {
-         if(isFunction(%this,"onLine"))
+         if(isFunction(Parent,"onLine"))
             Parent::onLine(%this,%line);
       }
    }
-
-   function TCPObject::onConnected(%this)
-   {
-      if(%this.isRTBObject)
-      {
-         if($RTB::Debug)
-            echo("\c2>> Transmit Connected");
-         %this.connected = 1;
-         %this.beginTransmit();
-      }
-      else
-      {
-         if(isFunction(%this,"onConnected"))
-            Parent::onConnected(%this);
-      }
-   }
-
+   
    function TCPObject::onConnectFailed(%this)
    {
-      if(%this.isRTBObject)
+      if(%this.rtbObject)
       {
-         if(%this.numTries < $RTB::TransmissionRetries)
+         cancel(%this.d_hangTime);
+         if($RTB::Debug)
+            echo("\c2>> Transmit Connect Failed [END]");
+            
+         %this.s_sending = 0;
+         %cmd = %this.t_cmd;
+         
+         if(%this.switchboard.r_fail_[%cmd] !$= "")
          {
-            if($RTB::Debug)
-            {
-               echo("\c2>> Transmit Failed [R"@%this.numTries@"]");
-               echo("\c4>> Retrying Transmit...");
-            }
-            %this.timeoutSchedule = %this.schedule($RTB::TransmissionTimeout*1000,"onTimeout");
-            %this.beginTransmit();
-            %this.numTries++;
+            %call = %this.switchboard.r_fail_[%cmd]@"("@%this@",\"Fail\",\""@%this.t_rawString@"\");";
+            eval(%call);
          }
-         else
+         else if(%this.switchboard.r_fail_["DEFAULT"] !$= "")
          {
-            if($RTB::Debug)
-               echo("\c2>> Transmit Failed [END]");
-            %this.transmitting = 0;
-            %this.receiving = 0;
-            %cmd = %this.t_command;
-            cancel(%this.timeoutSchedule);
-            if(%this.failHandle[%cmd] !$= "")
-            {
-               %call = %this.failHandle[%cmd]@"("@%this@",\"Fail\");";
-               eval(%call);
-            }
-            else if(%this.defaultFailHandle !$= "")
-            {
-               %call = %this.defaultFailHandle@"("@%this@",\""@%cmd@"\",\"Fail\");";
-               eval(%call);
-            }
+            %call = %this.switchboard.r_fail_["DEFAULT"]@"("@%this@",\""@%cmd@"\",\"Fail\",\""@%this.t_rawString@"\");";
+            eval(%call);
          }
+         %this.neutralise();
       }
       else
       {
-         if(isFunction(%this,"onConnectFailed"))
+         if(isFunction(Parent,"onConnectFailed"))
             Parent::onConnectFailed(%this);
       }
    }
-
+   
    function TCPObject::onDNSFailed(%this)
    {
-      if(%this.isRTBObject)
+      if(%this.rtbObject)
       {
+         cancel(%this.d_hangTime);
          if($RTB::Debug)
             echo("\c2>> Transmit DNS Failed [END]");
-         %this.transmitting = 0;
-         %this.receiving = 0;
-         %cmd = %this.t_command;
-         cancel(%this.timeoutSchedule);
-         if(%this.failHandle[%cmd] !$= "")
+            
+         %this.s_sending = 0;
+         %cmd = %this.t_cmd;
+         
+         if(%this.switchboard.r_fail_[%cmd] !$= "")
          {
-            %call = %this.failHandle[%cmd]@"("@%this@",\"DNS\");";
+            %call = %this.switchboard.r_fail_[%cmd]@"("@%this@",\"DNS\",\""@%this.t_rawString@"\");";
             eval(%call);
          }
-         else if(%this.defaultFailHandle !$= "")
+         else if(%this.switchboard.r_fail_["DEFAULT"] !$= "")
          {
-            %call = %this.defaultFailHandle@"("@%this@",\""@%cmd@"\",\"DNS\");";
+            %call = %this.switchboard.r_fail_["DEFAULT"]@"("@%this@",\""@%cmd@"\",\"DNS\",\""@%this.t_rawString@"\");";
             eval(%call);
          }
+         %this.neutralise();
       }
       else
       {
-         if(isFunction(%this,"onDNSFailed"))
+         if(isFunction(Parent,"onDNSFailed"))
             Parent::onDNSFailed(%this);
       }
    }
-
-   function TCPObject::onTimeout(%this)
+   
+   function TCPObject::onDisconnect(%this)
    {
-      if(%this.isRTBObject)
+      if(%this.rtbObject)
       {
-         if(%this.numTries < $RTB::TransmissionRetries)
-         {
-            if($RTB::Debug)
-            {
-               echo("\c2>> Transmit Timed Out [R"@%this.numTries@"]");
-               echo("\c4>> Retrying Transmit...");
-            }
-            %this.timeoutSchedule = %this.schedule($RTB::TransmissionTimeout*1000,"onTimeout");
-            %this.beginTransmit();
-            %this.numTries++;
-         }
-         else
-         {
-            if($RTB::Debug)
-               echo("\c2>> Transmit Timed Out [END]");
-            %this.transmitting = 0;
-            %this.receiving = 0;
-            %cmd = %this.t_command;
-            if(%this.failHandle[%cmd] !$= "")
-            {
-               %call = %this.failHandle[%cmd]@"("@%this@",\"Timeout\");";
-               eval(%call);
-            }
-            else if(%this.defaultFailHandle !$= "")
-            {
-               %call = %this.defaultFailHandle@"("@%this@",\""@%cmd@"\",\"Timeout\");";
-               eval(%call);
-            }
-            else
-            {
-               if($Server::Dedicated)
-                  echo("ERROR: RTB Connection timed out!");
-               else
-                  MessageBoxOK("Whoops","For some reason the connection Timed Out. You may want to check your internet or seek support if this is ongoing.");
-            }
-         }
-      }
-   }
-
-   function TCPObject::onDisconnect(%this,%skip)
-   {
-      if(%this.isRTBObject)
-      {
+         cancel(%this.d_hangTime);
          if($RTB::Debug)
             echo("\c2>> Transmit Disconnect");
-         %this.connected = 0;
-         %this.transmitting = 0;
-         %this.receiving = 0;
-         %this.lastLine = "";
-         cancel(%this.timeoutSchedule);
          
-         if(%this.hasQueue() && !%skip)
+         if(%this.s_sending)
          {
-            %request = %this.popQueue();
-            %this.sendRequest(getField(%request,0),getField(%request,1),getField(%request,2),getField(%request,3));
+            %this.s_connected = 0;
+            %this.activateLine();
          }
+         else
+            %this.neutralise();
       }
       else
       {
-         if(isFunction(%this,"onDisconnect"))
+         if(isFunction(Parent,"onDisconnect"))
             Parent::onDisconnect(%this);
       }
+   }
+   
+   function Script_GUI::getClassName(%this)
+   {
+      return %this.className;
+   }
+   
+   function Script_GUI::getValue(%this)
+   {
+      return %this.text;
    }
 };
 activatePackage(RTBH_Support);
 
-function filterKey(%string)
-{
-   %string = strReplace(%string,"-","\t");
-   %string = strReplace(%string," ","\t");
-   
-   %stageCheck = 0;
-   for(%i=0;%i<getFieldCount(%string);%i++)
-   {
-      if(stringMatch(getField(%string,%i),"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
-      {
-         if(%stageCheck $= 0)
-         {
-            if(strlen(getField(%string,%i)) $= 5)
-            {
-               %stageCheck++;
-            }
-         }
-         else
-         {
-            if(strlen(getField(%string,%i)) $= 4)
-            {
-               %stageCheck++;
-               
-               if(%stageCheck > 3)
-                  return 1;
-            }
-            else
-            {
-               %stageCheck = 0;
-            }
-         }
-      }
-      else
-         %stageCheck = 0;
-   }
-   return 0;
-}
-
-function TCPObject::sendRequest(%this,%cmd,%string,%layer,%specialstring)
-{
-   if(%this.transmitting || %this.connected)
-   {
-      if(%this.requestLayer $= %layer)
-      {
-         %this.disconnect();
-         %this.onDisconnect(1);
-         %this.schedule(50,"sendRequest",%cmd,%string,%layer,%specialstring);
-      }
-      else
-         %this.pushQueue(%cmd,%string,%layer);
-         
-      return;
-   }
-   
-   %cmd = strUpr(%cmd);
-   %this.requestLayer = %layer;
-   %this.transmitting = 1;
-   %this.t_command = %cmd;
-   %this.t_command[%layer] = %cmd;
-   %this.t_string[%layer] = %string;
-   %this.t_specialstring[%layer] = %specialstring;
-   if(%string $= "")
-      %string = "c="@strUpr(%cmd)@"&n="@urlEnc($pref::Player::NetName);
-   else
-      %string = "c="@strUpr(%cmd)@"&n="@urlEnc($pref::Player::NetName)@"&"@%string;
-   
-   if($RTB::Cache::Cookie !$= "")
-      %string = %string@"&"@$RTB::Cache::Cookie;
-   
-   %string = %string@%specialstring;
-      
-   %contentLength = strLen(%string);
-   %this.cmd = "POST "@%this.filePath@" HTTP/1.1\r\nHost: "@%this.site@"\r\nUser-Agent: Torque/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@%contentLength@"\r\n\r\n"@%string@"\r\n";
-   
-   if(isEventPending(%this.timeoutSchedule))
-      cancel(%this.timeoutSchedule);
-      
-   %this.numTries = 0;
-   %this.timeoutSchedule = %this.schedule($RTB::TransmissionTimeout*1000,"onTimeout");
-   
-   if($RTB::Debug)
-      echo("\c4>> Transmit Requested ("@%cmd@" - "@%string@")");
-      
-   if(!%this.connected)
-      %this.connect(%this.site@":"@%this.port);
-   else
-      %this.beginTransmit();
-}
-
-function TCPObject::beginTransmit(%this)
-{
-   if(!%this.connected)
-      return;
-      
-   %this.send(%this.cmd);
-}
+//#####################################################################################################
+//
+//    ______                _   _                 
+//   |  ____|              | | (_)                
+//   | |__ _   _ _ __   ___| |_ _  ___  _ __  ___ 
+//   |  __| | | | '_ \ / __| __| |/ _ \| '_ \/ __|
+//   | |  | |_| | | | | (__| |_| | (_) | | | \__ \
+//   |_|   \__,_|_| |_|\___|\__|_|\___/|_| |_|___/
+//                                              
+//
+//##################################################################################################### 
 
 //*********************************************************
 //* Support Functions
 //*********************************************************
+//- SimGroup::getCanvasPosition (returns absolute position of a control on the canvas)
+function SimGroup::getCanvasPosition(%this)
+{
+   %targ = %this;
+   %x = getWord(%this.position,0);
+   %y = getWord(%this.position,1);
+   while(isObject(%targ.getGroup()))
+   {
+      %parent = %targ.getGroup();
+      if(%parent.getName() $= "Canvas")
+         return %x SPC %y;
+         
+      %x += getWord(%parent.position,0);
+      %y += getWord(%parent.position,1);
+      %targ = %parent;
+   }
+}
+
+//- SimGroup::shift (moves a gui in the X or Y)
+function SimGroup::shift(%this,%x,%y)
+{
+   %this.position = vectorAdd(%this.position,%x SPC %y);
+}
+
+//- SimGroup::swap (swaps the position of two children of a simgroup)
+function SimGroup::swap(%this,%a,%b)
+{
+	%childA = %this.getObject(%a);
+	%childB = %this.getObject(%b);
+
+	for(%i=0;%i<%this.getCount();%i++)
+	{
+		%ctrl = %this.getObject(%i);
+		%order[%i] = %ctrl;
+	}
+	%order[%a] = %childB;
+	%order[%b] = %childA;
+
+	for(%i=0;%i<%this.getCount();%i++)
+	{
+		%this.pushToBack(%order[%i]);
+	}
+}
+
+//- GuiControl::getLowestPoint (finds the lowest point within a gui)
+function GuiControl::getLowestPoint(%this)
+{
+   %lowest = 0;
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      %obj = %this.getObject(%i);
+      %low = getWord(%obj.position,1) + getWord(%obj.extent,1);
+      if(%low > %lowest)
+         %lowest = %low;
+   }
+   return %lowest;
+}
+
+//- SimGroup::getBottom (recursively gets to the bottom of an object tree, with %offset being an offset from the bottom)
+function SimGroup::getBottom(%this,%offset)
+{
+   %parent = %this;
+   %layer[0] = %parent;
+
+   %k = 1;
+   while(%parent.getCount() >= 1)
+   {
+      %parent = %parent.getObject(0);
+      %layer[%k] = %parent;
+      %k++;
+   }
+   if(%offset > %k)
+      %offset = %k-1;
+      
+   return %layer[%k-%offset-1];
+}
+
+//- SimGroup::clear (had problems with standard method not doing the job, so overloaded it)
+function SimGroup::clear(%this)
+{
+   while(%this.getCount() > 0)
+   {
+      %this.getObject(0).delete();
+   }
+}
+
+//- filterString (removes all characters not in %allowed)
 function filterString(%string,%allowed)
 {
    for(%i=0;%i<strLen(%string);%i++)
@@ -507,6 +897,19 @@ function filterString(%string,%allowed)
    return %return;
 }
 
+//- filterOutString (removes all characters in %disallowed)
+function filterOutString(%string,%disallowed)
+{
+   for(%i=0;%i<strLen(%string);%i++)
+   {
+      %char = getSubStr(%string,%i,1);
+      if(strPos(%disallowed,%char) < 0)
+         %return = %return@%char;
+   }
+   return %return;
+}
+
+//- stringMatch (returns true if contents of %string can be found in %allowed)
 function stringMatch(%string,%allowed)
 {
    for(%i=0;%i<strLen(%string);%i++)
@@ -518,22 +921,13 @@ function stringMatch(%string,%allowed)
    return 1;
 }
 
-function SimGroup::clear(%this)
-{
-   while(%this.getCount() > 0)
-   {
-      %this.getObject(0).delete();
-   }
-}
-
+//- isReadonly (determines whether a particular file is read only or not)
 function isReadonly(%file)
 {
-   if(isWriteableFilename(%file))
-      return 0;
-   else
-      return 1;
+   return (isWriteableFileName(%file) == 0);
 }
 
+//- RTB_addControlMap (adds a control map to the controls list)
 function RTB_addControlMap(%inputDevice,%keys,%name,%command)
 {
    if(!$RTB::addedCatSep)
@@ -541,28 +935,12 @@ function RTB_addControlMap(%inputDevice,%keys,%name,%command)
 	   $remapDivision[$remapCount] = "Return to Blockland";
 	   $RTB::addedCatSep = 1;
    }
-	$remapName[$remapCount] = %name;
-	$remapCmd[$remapCount] = %command;
-	$remapCount++;
+   $remapName[$remapCount] = %name;
+   $remapCmd[$remapCount] = %command;
+   $remapCount++;
 }
 
-function RTBMM_getFieldFromContents(%contents,%field)
-{
-   for(%i=0;%i<getFieldCount(%contents);%i++)
-   {
-      %item = getField(%contents,%i);
-      if(strPos(%item,":") >= 0)
-      {
-         if(getSubStr(%item,0,strPos(%item,":")) $= %field)
-            return getSubStr(%item,strPos(%item,":")+2,strLen(%item));
-      }
-      else if(%field $= "" && %item !$= "")
-         return %item;
-      else
-         return 0;
-   }
-}
-
+//- byteRound (rounds bytes to b,mb and kb)
 function byteRound(%bytes)
 {
 	if(%bytes $= "")
@@ -577,9 +955,10 @@ function byteRound(%bytes)
 	return %result;
 }
 
+//- isInt (determines whether or not a string contains an integer)
 function isInt(%string)
 {
-	%numbers = "-0123456789";
+	%numbers = "0123456789";
 	for(%i=0;%i<strLen(%string);%i++)
 	{
 		%char = getSubStr(%string,%i,1);
@@ -589,6 +968,71 @@ function isInt(%string)
 	return 1;
 }
 
+//- trimLeading (removes all leading spaces and html linebreaks)
+function trimLeading(%string)
+{
+   for(%i=0;%i<strLen(%string);%i++)
+   {
+      if(getSubStr(%string,%i,1) $= " ")
+         continue;
+      else
+         break;
+   }
+   %string = getSubStr(%string,%i,strLen(%string));
+   
+   for(%i=0;%i<strLen(%string);%i+=4)
+   {
+      if(getSubStr(%string,%i,4) $= "<br>")
+         continue;
+      else
+         break;
+   }
+   return getSubStr(%string,%i,strLen(%string));
+}
+
+//- trimTrailing (removes all trailing spaces and html linebreaks)
+function trimTrailing(%string)
+{
+   for(%i=strLen(%string)-1;%i>=0;%i--)
+   {
+      if(getSubStr(%string,%i,1) $= " ")
+         continue;
+      else
+         break;
+   }
+   %string = getSubStr(%string,0,%i+1);
+   
+   for(%i=strLen(%string)-1;%i>=0&&(%i-4)>=0;%i-=4)
+   {
+      if(getSubStr(%string,%i-3,4) $= "<br>")
+         continue;
+      else
+         break;
+   }
+   return getSubStr(%string,0,%i+1);
+}
+
+//- getRandomString (returns a random string of the specified %length)
+function getRandomString(%length)
+{
+   %numeroalphabet = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
+   
+   for(%i=0;%i<%length;%i++)
+   {
+      %string = %string@getSubStr(%numeroalphabet,getRandom(0,strlen(%numeroalphabet)-1),1);
+   }
+   return %string;
+}
+
+//- strTrim (shortcut to trim both trailing and leading)
+function strTrim(%string)
+{
+   %string = trimLeading(%string);
+   %string = trimTrailing(%string);
+   return %string;
+}
+
+//- alphaCompare (determines alphabetic order of two strings)
 function alphaCompare(%string1,%string2)
 {
    %alphabet = "abcdefghijklmnopqrstuvwxyz";
@@ -628,6 +1072,39 @@ function alphaCompare(%string1,%string2)
    return %winString;
 }
 
+//- Anim_EaseInOut (Easing Animation)
+function Anim_EaseInOut(%time,%begin,%change,%duration)
+{
+   if((%time/=%duration/2) < 1)
+      return %change/2 * mPow(%time,3) + %begin;
+   return %change/2 * (mPow(%time-2,3) + 2) + %begin;
+}
+
+//- sortFields (Probably like, the hackiest sorting method ever - I cant be bothered to write a proper one)
+function sortFields(%fields)
+{
+   %fields = strReplace(%fields,",","\t");
+   %list = new GuiTextListCtrl();
+   for(%i=0;%i<getFieldCount(%fields);%i++)
+   {
+      %field = strReplace(getField(%fields,%i),"=>","\t");
+      %list.addRow(getField(%field,0),getField(%field,1));
+   }
+   %list.sort(0);
+   
+   for(%i=0;%i<%list.rowCount();%i++)
+   {
+      %return = %return@%list.getRowId(%i)@"=>"@%list.getRowText(%i)@",";
+   }
+   %list.delete();
+   
+   if(strLen(%return) > 0)
+      %return = getSubStr(%return,0,strLen(%return)-1);
+      
+   return %return;
+}
+
+//- getFileContents (returns the entire contents of a file in a string)
 function getFileContents(%file)
 {
    %IO = new FileObject();

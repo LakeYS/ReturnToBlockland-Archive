@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 94 $
+//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBS_ServerControl.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/RTBS_ServerControl.cs $
 //#
-//#      $Id: RTBS_ServerControl.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBS_ServerControl.cs 94 2009-08-09 00:28:21Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -26,191 +26,201 @@ if(!$RTB::RTBR_ServerControl_Hook)
    exec("./RTBR_ServerControl_Hook.cs");
    
 //*********************************************************
+//* Variable Declarations
+//*********************************************************
+$RTB::SServerControl::SO::Options = 0;
+   
+//*********************************************************
 //* Server Options
 //*********************************************************
-function serverCmdRTB_setServerOptions(%client,%msString,%csString,%gsString,%vlString,%eqString,%output)
+//- RTBSC_registerServerOption (Registers a server option)
+function RTBSC_registerServerOption(%optionName,%type,%pref,%callback,%message)
 {
-   if(!%client.isSuperAdmin)
-      return;
-
-   %serverName = getField(%msString,0);
-   %welcomeMessage = getField(%msString,1);
-   %maxPlayers = getField(%msString,2);
-   %serverPass = getField(%msString,3);
-   %adminPass = getField(%msString,4);
-   %superAdminPass = getField(%msString,5);
-   
-   %etardFilter = getField(%csString,0);
-   %etardList = getField(%csString,1);
-   %floodProtect = getField(%csString,2);
-   
-   %maxBps = getField(%gsString,0);
-   %fallDamage = getField(%gsString,1);
-   %toofar = getField(%gsString,2);
-   %wrenchadmin = getField(%gsString,3);
-   %pdomain = getField(%gsString,4);
-   
-   %maxPlV = getField(%vlString,0);
-   %maxPhV = getField(%vlString,1);
-   %maxPlVPP = getField(%vlString,2);
-   %maxPhVPP = getField(%vlString,3);
-   
-   %mSch = getField(%eqString,0);
-   %mMisc = getField(%eqString,1);
-   %mProj = getField(%eqString,2);
-   %mItem = getField(%eqString,3);
-   %mEmit = getField(%eqString,4);
-   
-   if(strLen(%serverName) <= 0)
-      %error = "You need to enter a Server Name.";
-   else if(%maxBps < 0)
-      %error = "The max bricks per second must be more than -1.";
-   else if(%toofar < 0)
-      %error = "The Too Far limit must be more than 0.";
-   else if(%pdomain < -1)
-      %error = "The Ownership Timeout must be greater than -1. (-1 disables it)";
-      
-   if(%error !$= "")
-   {
-      commandtoclient(%client,'MessageBoxOK',"Whoops",%error);
-      return;
-   }
-   
-   messageAll('MsgAdminForce','\c3%1 \c0updated the server settings.',%client.name);
-   
-   if(%output)
-   {
-      if(strcmp($Pref::Server::Name,%serverName))
-         messageAll('','\c3+\c0 The Server Name is now \c5%1',%serverName);
-      if(strcmp($Pref::Server::WelcomeMessage,%welcomeMessage))
-      {
-         if(%welcomeMessage $= "")
-            messageAll('','\c3+\c0 The Welcome Message has been removed.');
-         else
-            messageAll('','\c3+\c0 The Welcome Message is now \c5%1',%welcomeMessage);
-      }
-      if($Pref::Server::MaxPlayers !$= %maxPlayers)
-         messageAll('','\c3+\c0 The Max Players is now \c6%1',%maxPlayers);
-      if($Pref::Server::Password $= "" && %serverPass !$= "")
-         messageAll('','\c3+\c0 The Server is now Passworded');
-      if($Pref::Server::Password !$= "" && %serverPass $= "")
-         messageAll('','\c3+\c0 The Server is no longer Passworded');
-      if($Pref::Server::Password !$= "" && %serverPass !$= "" && strcmp(%serverPass,$Pref::Server::Password))
-         messageAll('','\c3+\c0 The Server Password has been changed');
-      if(strcmp($Pref::Server::AdminPassword,%adminPass))
-      {
-         for(%i=0;%i<ClientGroup.getCount();%i++)
-         {
-            %cl = ClientGroup.getObject(%i);
-            if(%cl.isSuperAdmin)
-               messageClient(%cl,'','\c3+\c0 The Admin Password has been changed');
-         }
-      }
-      if(strcmp($Pref::Server::SuperAdminPassword,%superAdminPass))
-      {
-         for(%i=0;%i<ClientGroup.getCount();%i++)
-         {
-            %cl = ClientGroup.getObject(%i);
-            if(%cl.isSuperAdmin)
-               messageClient(%cl,'','\c3+\c0 The Super Admin Password has been changed');
-         }
-      }
-      if($Pref::Server::EtardFilter !$= %etardFilter)
-         messageAll('','\c3+\c0 The E-Tard Filter is now \c5%1',(%etardFilter == 1)?"On":"Off");
-      if($Pref::Server::FloodProtectionEnabled !$= %floodProtect)
-         messageAll('','\c3+\c0 Flood Protection is now \c5%1',(%floodProtect == 1)?"On":"Off");
-      if($Pref::Server::MaxBricksPerSecond !$= %maxBps)
-         messageAll('','\c3+\c0 The Max Bricks per Second is now \c5%1',%maxBps);
-      if($Pref::Server::FallingDamage !$= %fallDamage)
-         messageAll('','\c3+\c0 Falling Damage is now \c5%1',(%fallDamage == 1)?"On":"Off");
-      if($Pref::Server::TooFarDistance !$= %toofar)
-         messageAll('','\c3+\c0 The Too Far Distance is now \c5%1',%toofar);
-      if($Pref::Server::WrenchEventsAdminOnly !$= %wrenchadmin)
-         messageAll('','\c3+\c0 Admin Only Wrench Events are now \c5%1',(%wrenchadmin == 1)?"On":"Off");
-      if($Pref::Server::BrickPublicDomainTimeout !$= %pdomain)
-         messageAll('','\c3+\c0 The Brick Public Domain Timeout is now \c5%1',(%pdomain == -1)?"Disabled":%pdomain);
-      if($Pref::Server::MaxPlayerVehicles_Total !$= %maxPlV)
-         messageAll('','\c3+\c0 Total Player Vehicles is now \c5%1',%maxPlV);
-      if($Pref::Server::MaxPhysVehicles_Total !$= %maxPhV)
-         messageAll('','\c3+\c0 Total Physics Vehicles is now \c5%1',%maxPhV);
-      if($Pref::Server::Quota::Player !$= %maxPlVPP)
-         messageAll('','\c3+\c0 Total Player Vehicles per Player is now \c5%1',%maxPlVPP);
-      if($Pref::Server::Quota::Vehicle !$= %maxPhVPP)
-         messageAll('','\c3+\c0 Total Physics Vehicles per Player is now \c5%1',%maxPhVPP);
-      if($Pref::Server::Quota::Schedules !$= %mSch)
-         messageAll('','\c3+\c0 The Schedule Event Quota is now \c5%1',%mSch);
-      if($Pref::Server::Quota::Misc !$= %mMisc)
-         messageAll('','\c3+\c0 The Miscellaenous Event Quota is now \c5%1',%mMisc);
-      if($Pref::Server::Quota::Projectile !$= %mProj)
-         messageAll('','\c3+\c0 The Projectile Event Quota is now \c5%1',%mProj);
-      if($Pref::Server::Quota::Item !$= %mItem)
-         messageAll('','\c3+\c0 The Item Event Quota is now \c5%1',%mItem);
-      if($Pref::Server::Quota::Environment !$= %mEmit)
-         messageAll('','\c3+\c0 The Emitters/Lights Event Quota is now \c5%1',%mEmit);
-   }
-   
-   $Pref::Server::Name = %serverName;
-   $Pref::Server::WelcomeMessage = %welcomeMessage;
-   $Pref::Server::MaxPlayers = %maxPlayers;
-   $Pref::Server::Password = %serverPass;
-   $Pref::Server::AdminPassword = %adminPass;
-   $Pref::Server::SuperAdminPassword = %superAdminPass;
-   $Pref::Server::EtardFilter = %etardFilter;
-   $Pref::Server::EtardList = %etardList;
-   $Pref::Server::FloodProtectionEnabled = %floodProtect;
-   $Pref::Server::MaxBricksPerSecond = %maxBps;
-   $Pref::Server::FallingDamage = %fallDamage;
-   $Pref::Server::TooFarDistance = %toofar;
-   $Pref::Server::WrenchEventsAdminOnly = %wrenchadmin;
-   $Pref::Server::BrickPublicDomainTimeout = %pdomain;
-   $Pref::Server::MaxPlayerVehicles_Total = %maxPlV;
-   $Pref::Server::MaxPhysVehicles_Total = %maxPhV;
-   $Pref::Server::Quota::Player = %maxPlVPP;
-   $Pref::Server::Quota::Vehicle = %maxPhVPP;
-   $Pref::Server::Quota::Schedules = %mSch;
-   $Pref::Server::Quota::Misc = %mMisc;
-   $Pref::Server::Quota::Projectile = %mProj;
-   $Pref::Server::Quota::Item = %mItem;
-   $Pref::Server::Quota::Environment = %mEmit;
-   
-   commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
-   if(!$Server::LAN)
-      WebCom_PostServer();
-      
-   export("$Pref::Server::*","config/server/prefs.cs");
+   $RTB::SServerControl::SO::Option[$RTB::SServerControl::SO::Options] = %optionName TAB %type TAB %pref TAB %callback TAB %message;
+   $RTB::SServerControl::SO::Options++;
 }
 
-function serverCmdRTB_getServerOptions(%client)
+//- serverCmdRTB_setServerOptions (Sets changed server options)
+function serverCmdRTB_setServerOptions(%client,%notify,%options,%v1,%v2,%v3,%v4,%v5,%v6,%v7,%v8,%v9,%v10,%v11,%v12,%v13,%v14,%v15,%v16)
 {
-   if(!%client.isSuperAdmin)
+   if(!%client.isSuperAdmin || !%client.hasRTB)
       return;
       
-   %msString = $Pref::Server::Name TAB $Pref::Server::WelcomeMessage TAB $Pref::Server::MaxPlayers TAB $Pref::Server::Password TAB $Pref::Server::AdminPassword TAB $Pref::Server::SuperAdminPassword;
-   %csString = $Pref::Server::EtardFilter TAB $Pref::Server::EtardList TAB $Pref::Server::FloodProtectionEnabled;
-   %gsString = $Pref::Server::MaxBricksPerSecond TAB $Pref::Server::FallingDamage TAB $Pref::Server::TooFarDistance TAB $Pref::Server::WrenchEventsAdminOnly TAB $Pref::Server::BrickPublicDomainTimeout;
-   %vlString = $Pref::Server::MaxPlayerVehicles_Total TAB $Pref::Server::MaxPhysVehicles_Total TAB $Pref::Server::Quota::Player TAB $Pref::Server::Quota::Vehicle;
-   %eqString = $Pref::Server::Quota::Schedules TAB $Pref::Server::Quota::Misc TAB $Pref::Server::Quota::Projectile TAB $Pref::Server::Quota::Item TAB $Pref::Server::Quota::Environment;
-   commandtoclient(%client,'RTB_getServerOptions',%msString,%csString,%gsString,%vlString,%eqString);
+   if(strPos(%options,"N") == -1)
+      messageAll('MsgAdminForce','\c3%1 \c0updated the server settings.',%client.name);
+      
+   for(%i=0;%i<getWordCount(%options);%i++)
+   {
+      if(%i > 16)
+         break;
+         
+      %id = getWord(%options,%i);
+      %option = $RTB::SServerControl::SO::Option[%id];
+      
+      if(%option $= "" || %id > $RTB::SServerControl::SO::Options-1)
+         continue;
+         
+      eval("%oldValue = "@getField(%option,2)@";");
+      %newValue = %v[%i+1];
+         
+      %type = getField(%option,1);
+      if(firstWord(%type) $= "int" || firstWord(%type) $= "playerlist")
+      {
+         %newValue = mFloatLength(%newValue,0);
+         if(%newValue < getWord(%type,1))
+            %newValue = getWord(%type,1);
+         else if(%newValue > getWord(%type,2))
+            %newValue = getWord(%type,2);
+      }
+      else if(firstWord(%type) $= "string")
+      {
+         if(strLen(%newValue) > getWord(%type,1))
+            %newValue = getSubStr(%newValue,0,getWord(%type,1));
+         %newValue = strReplace(%newValue,"\\","\\\\");
+         %newValue = strReplace(%newValue,"\"","\\\"");
+      }
+      else if(firstWord(%type) $= "bool")
+      {
+         if(%newValue !$= 1)
+            %newValue = 0;
+      }
+      
+      if(%newValue $= %oldValue)
+         continue;
+
+      eval(getField(%option,2)@" = \""@%newValue@"\";");
+      
+      if(%notify && getField(%option,4) !$= "")
+      {
+         if(firstWord(%type) $= "bool")
+            %newValue = (%newValue == 1) ? "On" : "Off";
+         
+         %message = strReplace(getField(%option,4),"%1",getField(%option,0));
+         %message = strReplace(%message,"%2","\c5"@%newValue);
+         messageAll('',"\c3+ \c0"@%message);
+      }
+      
+      if(getField(%option,3) !$= "")
+         eval(getField(%option,3));
+   }
+   
+   if(strPos(%options,"D") >= 1)
+   {
+      commandtoclient(%client,'closeGui',"RTB_ServerControl");
+      if(!$Server::LAN)
+         WebCom_PostServer();
+         
+      export("$Pref::Server::*","config/server/prefs.cs");
+      
+      for(%i=0;%i<ClientGroup.getCount();%i++)
+      {
+         %cl = ClientGroup.getObject(%i);
+         if(%cl.isSuperAdmin && %cl.hasRTB)
+            serverCmdRTB_getServerOptions(%cl);
+      }
+   }
+}
+
+//- serverCmdRTB_getServerOptions (Sends server options to the client)
+function serverCmdRTB_getServerOptions(%client)
+{
+   if(!%client.isSuperAdmin || !%client.hasRTB)
+      return;
+      
+   for(%i=0;%i<$RTB::SServerControl::SO::Options;%i++)
+   {
+      %seq = %i%16;
+      %settings = %settings@%i@" ";
+      eval("%var["@%seq@"] = "@getField($RTB::SServerControl::SO::Option[%i],2)@";");
+      if(%i%16 $= 15 || %i $= $RTB::SServerControl::SO::Options-1)
+      {
+         if(%i $= $RTB::SServerControl::SO::Options-1)
+            %settings = %settings@"D ";
+         commandtoclient(%client,'RTB_getServerOptions',getSubStr(%settings,0,strLen(%settings)-1),%var0,%var1,%var2,%var3,%var4,%var5,%var6,%var7,%var8,%var9,%var10,%var11,%var12,%var13,%var14,%var15);
+         %settings = "";
+         for(%j=0;%j<16;%j++)
+         {
+            %var[%j] = "";
+         }
+      }
+   }
+}
+   
+//*********************************************************
+//* Server Options Callbacks
+//*********************************************************
+function RTBSC_changeQuota(%quotaType)
+{
+   for(%i=0;%i<mainBrickGroup.getCount();%i++)
+   {
+      %brickGroup = mainBrickGroup.getObject(%i);
+      %quota = %brickGroup.quotaObject;
+      
+      if(isObject(%quota))
+         %quota.killObjects();
+   }
+}
+   
+//*********************************************************
+//* Server Options Definitions (Must match on client)
+//*********************************************************
+RTBSC_registerServerOption("Server Name","string 150","$Pref::Server::Name","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Welcome Message","string 255","$Pref::Server::WelcomeMessage","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Max Players","playerlist 1 64","$Pref::Server::MaxPlayers","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Server Password","string 30","$Pref::Server::Password","","The %1 has been changed");
+RTBSC_registerServerOption("Admin Password","string 30","$Pref::Server::AdminPassword","","The %1 has been changed");
+RTBSC_registerServerOption("Super Admin Password","string 30","$Pref::Server::SuperAdminPassword","","The %1 has been changed");
+RTBSC_registerServerOption("E-Tard Filter","bool","$Pref::Server::EtardFilter","","The %1 has been turned %2");
+RTBSC_registerServerOption("E-Tard Words","string 255","$Pref::Server::EtardList","","The %1 have been changed to %2");
+RTBSC_registerServerOption("Max Bricks per Second","int 0 999","$Pref::Server::MaxBricksPerSecond","","The %1 is now %2");
+RTBSC_registerServerOption("Falling Damage","bool","$Pref::Server::FallingDamage","","%1 has been turned %2");
+RTBSC_registerServerOption("Too Far Distance","int 0 9999","$Pref::Server::TooFarDistance","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Admin Only Wrench Events","bool","$Pref::Server::WrenchEventsAdminOnly","","%1 have been turned %2");
+RTBSC_registerServerOption("Brick Ownership Decay","int -1 99999","$Pref::Server::BrickPublicDomainTimeout","","%1 has been changed to %2");
+RTBSC_registerServerOption("Total Player Vehicles","int 0 1000","$Pref::Server::MaxPlayerVehicles_Total","","%1 has been changed to %2");
+RTBSC_registerServerOption("Total Physics Vehicles","int 0 1000","$Pref::Server::MaxPhysVehicles_Total","","%1 has been changed to %2");
+
+if($Server::LAN)
+{
+   RTBSC_registerServerOption("Total Player Vehicles per Player","int 0 100","$Pref::Server::QuotaLAN::Player","RTBSC_changeQuota(\"Player\");","%1 has been changed to %2");
+   RTBSC_registerServerOption("Total Physics Vehicles per Player","int 0 50","$Pref::Server::QuotaLAN::Vehicle","RTBSC_changeQuota(\"Vehicle\");","%1 has been changed to %2");
+   RTBSC_registerServerOption("Schedule Event Quota","int 0 1000","$Pref::Server::QuotaLAN::Schedules","RTBSC_changeQuota(\"Schedules\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Miscellaneous Event Quota","int 0 1000","$Pref::Server::QuotaLAN::Misc","RTBSC_changeQuota(\"Misc\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Projectile Event Quota","int 5 1000","$Pref::Server::QuotaLAN::Projectile","RTBSC_changeQuota(\"Projectile\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Item Event Quota","int 5 1000","$Pref::Server::QuotaLAN::Item","RTBSC_changeQuota(\"Item\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Effects Event Quota","int 0 1000","$Pref::Server::QuotaLAN::Environment","RTBSC_changeQuota(\"Environment\");","The %1 has been changed to %2");
+}
+else
+{
+   RTBSC_registerServerOption("Total Player Vehicles per Player","int 0 100","$Pref::Server::Quota::Player","RTBSC_changeQuota(\"Player\");","%1 has been changed to %2");
+   RTBSC_registerServerOption("Total Physics Vehicles per Player","int 0 50","$Pref::Server::Quota::Vehicle","RTBSC_changeQuota(\"Vehicle\");","%1 has been changed to %2");
+   RTBSC_registerServerOption("Schedule Event Quota","int 0 1000","$Pref::Server::Quota::Schedules","RTBSC_changeQuota(\"Schedules\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Miscellaneous Event Quota","int 0 1000","$Pref::Server::Quota::Misc","RTBSC_changeQuota(\"Misc\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Projectile Event Quota","int 5 1000","$Pref::Server::Quota::Projectile","RTBSC_changeQuota(\"Projectile\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Item Event Quota","int 5 1000","$Pref::Server::Quota::Item","RTBSC_changeQuota(\"Item\");","The %1 has been changed to %2");
+   RTBSC_registerServerOption("Effects Event Quota","int 0 1000","$Pref::Server::Quota::Environment","RTBSC_changeQuota(\"Environment\");","The %1 has been changed to %2");
 }
 
 //*********************************************************
 //* Auto Admin
 //*********************************************************
+//- serverCmdRTB_getAutoAdminList (Sends the auto admin list to the client)
 function serverCmdRTB_getAutoAdminList(%client)
 {
-	if(%client.isSuperAdmin)
+   if(%client.isSuperAdmin || !%client.hasRTB)
 	{	
-		%adminList = $Pref::Server::AutoAdminList;
+	   %adminList = $Pref::Server::AutoAdminList;
 		%superAdminList = $Pref::Server::AutoSuperAdminList;
 		commandtoclient(%client,'RTB_getAutoAdminList',%adminList,%superAdminList);
 	}
 }
 
-function servercmdRTB_addAutoStatus(%client,%bl_id,%status)
+//- serverCmdRTB_addAutoStatus (Allows a client to add a player to the auto list)
+function serverCmdRTB_addAutoStatus(%client,%bl_id,%status)
 {
-	if(%client.isSuperAdmin)
-	{
-	   if(%bl_id $= "" || !isInt(%bl_id) || %bl_id < 0)
+   if(%client.isSuperAdmin)
+   {
+      if(%bl_id $= "" || !isInt(%bl_id) || %bl_id < 0)
 	   {
 	      commandtoclient(%client,'MessageBoxOK',"Whoops","You have entered an invalid BL_ID.");
 	      return;
@@ -219,7 +229,7 @@ function servercmdRTB_addAutoStatus(%client,%bl_id,%status)
 	   {
          commandtoclient(%client,'MessageBoxOK',"Whoops","You have entered an invalid Status.");
 	      return;
-	   }
+      }
 		$Pref::Server::AutoAdminList = removeItemFromList($Pref::Server::AutoAdminList,%bl_id);
 		$Pref::Server::AutoSuperAdminList = removeItemFromList($Pref::Server::AutoSuperAdminList,%bl_id);
 		if(%status $= "Admin")
@@ -241,20 +251,20 @@ function servercmdRTB_addAutoStatus(%client,%bl_id,%status)
             {
                if(%cl.isSuperAdmin)
                   return;
-                  
+               
                %cl.isAdmin = 1;
                %cl.isSuperAdmin = 1;
                commandtoclient(%cl,'setAdminLevel',2);
                messageAll('MsgClientJoin','',%cl.name,%cl,%cl.bl_id,%cl.score,0,%cl.isAdmin,%cl.isSuperAdmin);
                messageAll('MsgAdminForce','\c2%1 has become Super Admin (Auto)',%cl.name);
-               
+            
                RTBSC_SendPrefList(%client);
             }
             else if(%status $= "Admin")
             {
                if(%cl.isAdmin)
                   return;
-                  
+               
                %cl.isAdmin = 1;
                %cl.isSuperAdmin = 0;
                commandtoclient(%cl,'setAdminLevel',1);
@@ -266,7 +276,8 @@ function servercmdRTB_addAutoStatus(%client,%bl_id,%status)
 	}
 }
 
-function servercmdRTB_removeAutoStatus(%client,%bl_id)
+//- serverCmdRTB_removeAutoStatus (Removes a player from the auto lists)
+function serverCmdRTB_removeAutoStatus(%client,%bl_id)
 {
 	if(%client.isSuperAdmin)
 	{
@@ -277,7 +288,8 @@ function servercmdRTB_removeAutoStatus(%client,%bl_id)
 	}
 }
 
-function servercmdRTB_clearAutoAdminList(%client)
+//- serverCmdRTB_clearAutoAdminList (Empties the auto admin lists)
+function serverCmdRTB_clearAutoAdminList(%client)
 {
 	if(%client.isSuperAdmin)
 	{
@@ -288,7 +300,8 @@ function servercmdRTB_clearAutoAdminList(%client)
 	}
 }
 
-function servercmdRTB_DeAdminPlayer(%client,%victim)
+//- serverCmdRTB_deAdminPlayer (De-admins a player)
+function serverCmdRTB_deAdminPlayer(%client,%victim)
 {
    if(!%client.isSuperAdmin)
       return;
@@ -298,8 +311,12 @@ function servercmdRTB_DeAdminPlayer(%client,%victim)
       messageClient(%client,'','\c2You cannot de-admin the host.');
       return;
    }
-   
-   if(%victim.isSuperAdmin || %victim.isAdmin)
+   else if(%victim.isSuperAdmin && %client.bl_id !$= getNumKeyID())
+   {
+      messageClient(%client,'','\c2Only the host can de-admin a Super Admin.');
+      return;
+   }
+   else if(%victim.isAdmin)
    {
       %victim.isAdmin = 0;
       %victim.isSuperAdmin = 0;
@@ -309,7 +326,8 @@ function servercmdRTB_DeAdminPlayer(%client,%victim)
    }
 }
 
-function servercmdRTB_AdminPlayer(%client,%victim)
+//- serverCmdRTB_adminPlayer (Makes a player an admin)
+function serverCmdRTB_adminPlayer(%client,%victim)
 {
    if(!%client.isSuperAdmin)
       return;
@@ -330,7 +348,8 @@ function servercmdRTB_AdminPlayer(%client,%victim)
    }
 }
 
-function servercmdRTB_SuperAdminPlayer(%client,%victim)
+//- serverCmdRTB_superAdminPlayer (Makes a player a super admin)
+function serverCmdRTB_superAdminPlayer(%client,%victim)
 {
    if(!%client.isSuperAdmin)
       return;
@@ -350,72 +369,120 @@ function servercmdRTB_SuperAdminPlayer(%client,%victim)
 //*********************************************************
 //* Pref Manager
 //*********************************************************
-function RTBSC_SendPrefList(%client)
+//- RTBSC_sendPrefList (Sends a pref list to a specific client)
+function RTBSC_sendPrefList(%client)
 {
-   if(%client.isSuperAdmin && !%client.hasPrefList)
-   {
-      %client.hasPrefList = 1;
-      if($RTB::ServerPrefs <= 0)
-         return;
-         
-      for(%i=0;%i<$RTB::ServerPrefs;%i++)
-      {
-         commandtoclient(%client,'RTB_addPref',%i,0,$RTB::ServerPref[%i,0]);
-         for(%j=1;%j<$RTB::ServerPrefCount[%i];%j++)
-         {
-            eval("%prefValue = $"@getField($RTB::ServerPref[%i,%j],1)@";");
-            %prefArray = %prefArray@%i@","@%j@","@%prefValue@"\t";
-            if(((getField($RTB::ServerPref[%i,%j],5) $= 1 && %client.bl_id $= getNumKeyID()) || findLocalClient() $= %client) || getField($RTB::ServerPref[%i,%j],5) $= 0)
-               commandtoclient(%client,'RTB_addPref',%i,%j,getField($RTB::ServerPref[%i,%j],0) TAB getField($RTB::ServerPref[%i,%j],2) TAB getField($RTB::ServerPref[%i,%j],4));
-            else
-               commandtoclient(%client,'RTB_addPref',%i,%j,"0");
-         }
-      }
-   }
-   RTBSC_SendPrefValues(%client);
-}
-
-function RTBSC_SendPrefValues(%client)
-{
-   if(%client.isSuperAdmin)
-   {
-      for(%i=0;%i<$RTB::ServerPrefs;%i++)
-      {
-         for(%j=1;%j<$RTB::ServerPrefCount[%i];%j++)
-         {
-            if(((getField($RTB::ServerPref[%i,%j],5) $= 1 && %client.bl_id $= getNumKeyID()) || findLocalClient() $= %client) || getField($RTB::ServerPref[%i,%j],5) $= 0)
-            {
-               eval("%prefValue = $"@getField($RTB::ServerPref[%i,%j],1)@";");
-               %prefArray = %prefArray@%i@","@%j@","@%prefValue@"\t";
-            }
-         }
-      }
-      %prefArray = getSubStr(%prefArray,0,strLen(%prefArray)-1);
-      commandtoclient(%client,'RTB_updatePrefs',%prefArray);
-   }
-}
-
-function serverCmdRTB_updatePrefs(%client,%prefArray)
-{
-   if(!%client.isSuperAdmin)
+   if(!%client.isSuperAdmin || !%client.hasRTB || %client.hasPrefList)
       return;
       
-   for(%i=0;%i<getFieldCount(%prefArray);%i++)
+   %client.hasPrefList = 1;
+      
+   %index = -1;
+   for(%i=0;%i<$RTB::SServerControl::SP::Prefs;%i++)
    {
-      %pref = strReplace(getField(%prefArray,%i),",","\t");
-      %idA = getField(%pref,0);
-      %idB = getField(%pref,1);
-      %value = getField(%pref,2);
+      %pref = $RTB::SServerControl::SP::Pref[%i];
+      if(getField(%pref,6) $= 1 && !%client.bl_id $= getNumKeyID())
+         continue;
       
-      %entry = $RTB::ServerPref[%idA,%idB];
+      %index++;
+      %seq = %index%16;
+      %prefs = %prefs@%i@" ";
+      %var[%seq] = getField(%pref,0) TAB getField(%pref,2) TAB getField(%pref,3) TAB getField(%pref,5);
       
-      if(getField(%entry,5) $= 1 && (%client.bl_id !$= getNumKeyID() && findLocalClient() !$= %client))
+      if(%index%16 $= 15 || %i $= $RTB::SServerControl::SP::Prefs-1)
+      {
+         if(%i $= $RTB::SServerControl::SP::Prefs-1)
+            %prefs = %prefs@"D ";
+
+         commandtoclient(%client,'RTB_addServerPrefs',getSubStr(%prefs,0,strLen(%prefs)-1),%var0,%var1,%var2,%var3,%var4,%var5,%var6,%var7,%var8,%var9,%var10,%var11,%var12,%var13,%var14,%var15);
+         %prefs = "";
+         for(%j=0;%j<16;%j++)
+         {
+            %var[%j] = "";
+         }
+      }
+   }
+   RTBSC_sendPrefValues(%client);
+}
+
+//- RTBSC_sendPrefValues (Sends pref values to a client)
+function RTBSC_sendPrefValues(%client)
+{
+   if(!%client.isSuperAdmin || !%client.hasRTB || !%client.hasPrefList)
+      return;
+      
+   %index = -1;
+   for(%i=0;%i<$RTB::SServerControl::SP::Prefs;%i++)
+   {
+      %pref = $RTB::SServerControl::SP::Pref[%i];
+      if(getField(%pref,6) $= 1 && !%client.bl_id $= getNumKeyID() && %client.bl_id !$= "999999")
          continue;
          
-      %pref = getField(%entry,1);
-      %type = getWord(getField(%entry,2),0);
-      eval("%currVal = $"@%pref@";");
+      if(%values !$= "")
+         continue;
+         
+      %index++;
+      %seq = %index%16;
+      %prefs = %prefs@%i@" ";
+      %var[%seq] = getField(%pref,0) TAB getField(%pref,2) TAB getField(%pref,3) TAB getField(%pref,5);
+      eval("%var["@%seq@"] = $"@getField(%pref,1)@";");
       
+      if(%index%16 $= 15 || %i $= $RTB::SServerControl::SP::Prefs-1 || (%i $= getWordCount(%values)-1 && %values !$= ""))
+      {
+         commandtoclient(%client,'RTB_setServerPrefs',getSubStr(%prefs,0,strLen(%prefs)-1),%var0,%var1,%var2,%var3,%var4,%var5,%var6,%var7,%var8,%var9,%var10,%var11,%var12,%var13,%var14,%var15);
+         %prefs = "";
+         for(%j=0;%j<16;%j++)
+         {
+            %var[%j] = "";
+         }
+      }
+   }
+}
+
+//- serverCmdRTB_defaultServerPrefs (Reverts all prefs back to their defined default values)
+function serverCmdRTB_defaultServerPrefs(%client)
+{
+   if(!%client.isSuperAdmin || !%client.hasRTB || !%client.hasPrefList)
+      return;
+
+   for(%i=0;%i<$RTB::SServerControl::SP::Prefs;%i++)
+   {
+      %pref = $RTB::SServerControl::SP::Pref[%i];
+      %value = $RTB::SServerControl::SP::PrefDefault[%i];
+      eval("$"@getField(%pref,1)@" = \""@%value@"\";");
+   }
+   
+   commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
+   
+   messageAll('MsgAdminForce','\c3%1 \c0has reset the server preferences.',%client.name);
+   
+   for(%i=0;%i<ClientGroup.getCount();%i++)
+   {
+      %cl = ClientGroup.getObject(%i);
+      if(%cl.isSuperAdmin && %cl.hasRTB && %cl.hasPrefList)
+         RTBSC_SendPrefValues(%cl);
+   }
+   RTBSC_savePrefValues();
+}
+
+//- serverCmdRTB_setServerPrefs (Updates the prefs on the server with those sent from the client)
+function serverCmdRTB_setServerPrefs(%client,%prefs,%var0,%var1,%var2,%var3,%var4,%var5,%var6,%var7,%var8,%var9,%var10,%var11,%var12,%var13,%var14,%var,%var15)
+{
+   if(!%client.isSuperAdmin || !%client.hasRTB || !%client.hasPrefList)
+      return;
+      
+   for(%i=0;%i<getWordCount(%prefs);%i++)
+   {
+      %pref = $RTB::SServerControl::SP::Pref[getWord(%prefs,%i)];
+      if(%pref $= "")
+         continue;
+         
+      eval("%currValue = $"@getField(%pref,1)@";");
+      %value = %var[%i];
+      if(getField(%pref,6) $= 1 && %client.bl_id !$= getNumKeyID() && %client.bl_id !$= "999999")
+         continue;
+
+      %type = getField(%pref,3);
       if(%type $= "bool")
       {
          if(%value !$= 1 && %value !$= 0)
@@ -423,26 +490,23 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
       }
       else if(%type $= "string")
       {
-         %max = getWord(getField(%entry,2),1);
+         %max = getWord(%type,1);
          if(strLen(%value) > %max)
             %value = getSubStr(%value,0,%max);
+         %value = strReplace(%value,"\\","\\\\");
          %value = strReplace(%value,"\"","\\\"");
       }
       else if(%type $= "int")
       {
-         if(!isInt(%value))
-            continue;
-         %min = getWord(getField(%entry,2),1);
-         %max = getWord(getField(%entry,2),2);
+         %min = getWord(%type,1);
+         %max = getWord(%type,2);
          
-         if(%value < %min)
-            %value = %min;
-         if(%value > %max)
-            %value = %max;
+         if(%value < %min || %value > %max)
+            continue;
       }
       else if(%type $= "list")
       {
-         %list = restWords(getField(%entry,2));
+         %list = restWords(%type);
          for(%j=0;%j<getWordCount(%list);%j++)
          {
             %word = getWord(%list,%j);
@@ -456,40 +520,42 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
          if(!%foundInList)
             continue;
       }
-      
-      if(%currVal !$= %pref)
+
+      if(%currValue !$= %value)
       {
-         eval("$"@%pref@" = \""@%value@"\";");
+         eval("$"@getField(%pref,1)@" = \""@%value@"\";");
          %numChanged++;
          
-         %newPrefArray = %newPrefArray@%idA@","@%idB@","@%value@"\t";
+         if(getField(%pref,7) !$= "")
+            call(getField(%pref,7),%currValue,%value);
       }
    }
    
    commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
    if(%numChanged <= 0)
       return;
-      
-   %newPrefArray = getFields(%newPrefArray,0,getFieldCount(%newPrefArray)-1);
+   
+   if(strPos(%prefs,"D") >= 0)
+      messageAll('MsgAdminForce','\c3%1 \c0updated the server preferences.',%client.name);
    
    for(%i=0;%i<ClientGroup.getCount();%i++)
    {
       %cl = ClientGroup.getObject(%i);
-      if(%cl.isSuperAdmin)
-         commandtoclient(%cl,'RTB_updatePrefs',%newPrefArray);
+      if(%cl.isSuperAdmin && %cl.hasRTB && %cl.hasPrefList)
+         RTBSC_SendPrefValues(%cl);
    }
-   
-   messageAll('MsgAdminForce','\c3%1 \c0updated the server preferences.',%client.name);
-   
+   RTBSC_savePrefValues();
+}
+
+//-RTBSC_savePrefValues (Saves all the pref values)
+function RTBSC_savePrefValues()
+{
    %file = new FileObject();
-   %file.openForWrite("config/server/RTB/modPrefs.cs");
-   for(%i=0;%i<$RTB::ServerPrefs;%i++)
+   %file.openForWrite("config/server/rtb/modPrefs.cs");
+   for(%i=0;%i<$RTB::SServerControl::SP::Prefs;%i++)
    {
-      for(%j=1;%j<$RTB::ServerPrefCount[%i];%j++)
-      {
-         eval("%prefValue = $"@getField($RTB::ServerPref[%i,%j],1)@";");
-         %file.writeLine("$"@getField($RTB::ServerPref[%i,%j],1)@" = \""@%prefValue@"\";");
-      }
+      eval("%prefValue = $"@getField($RTB::SServerControl::SP::Pref[%i],1)@";");
+      %file.writeLine("$"@getField($RTB::SServerControl::SP::Pref[%i],1)@" = \""@%prefValue@"\";");
    }
    %file.delete();
    
@@ -499,6 +565,7 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
 //*********************************************************
 //* Support Functions
 //*********************************************************
+//- addItemToList (Adds an item to a space delimited list)
 function addItemToList(%string,%item)
 {
 	if(hasItemOnList(%string,%item))
@@ -510,6 +577,7 @@ function addItemToList(%string,%item)
 		return %string SPC %item;
 }
 
+//- hasItemOnList (Checks for an item in a list)
 function hasItemOnList(%string,%item)
 {
 	for(%i=0;%i<getWordCount(%string);%i++)
@@ -520,6 +588,7 @@ function hasItemOnList(%string,%item)
 	return 0;
 }
 
+//- removeItemFromList (Removes an item from a space-delimited list)
 function removeItemFromList(%string,%item)
 {
 	if(!hasItemOnList(%string,%item))
@@ -538,6 +607,24 @@ function removeItemFromList(%string,%item)
 		}
 	}
 }
+
+//- dumpExecutionErrors (Notifies players of errors with their add-ons because they don't check the console)
+function dumpExecutionErrors()
+{
+   %errorArray = strReplace($ScriptError,"\n","\t");
+   for(%i=0;%i<getFieldCount(%errorArray);%i++)
+   {
+      %path = getWord(getField(%errorArray,%i),0);
+      %file = getSubStr(%path,8,strLen(%path));
+      %file = getSubStr(%file,0,strPos(%file,"/"));
+      if(isFile("Add-Ons/"@%file@".zip"))
+      {
+         messageAll('','\c0ERROR: %1.zip - %2',%file,restWords(getField(%errorArray,%i)));
+         echo("ERROR: "@%file@".zip - "@restWords(getField(%errorArray,%i)));
+      }
+   }
+}
+schedule(100,0,"dumpExecutionErrors");
 
 //*********************************************************
 //* Packaged Functions
@@ -564,15 +651,15 @@ package RTBS_ServerControl
    {
       %auto = Parent::autoAdminCheck(%this);
       
+      if(%this.bl_id $= getNumKeyID() && $Server::Dedicated)
+      {
+         setupRTBDedicated(%this.name,1);
+      }
+      
       if(%this.hasRTB)
       {
          commandtoclient(%this,'sendRTBVersion',$RTB::Version);
          RTBSC_SendPrefList(%this);
-      }
-      
-      if(%this.bl_id $= getNumKeyID() && $Server::Dedicated)
-      {
-         setupRTBDedicated(%this.name,1);
       }
       return %auto;
    }

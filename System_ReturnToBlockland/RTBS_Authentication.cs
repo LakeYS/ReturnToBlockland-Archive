@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBS_Authentication.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBS_Authentication.cs $
 //#
-//#      $Id: RTBS_Authentication.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBS_Authentication.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -20,149 +20,78 @@
 $RTB::RTBS_Authentication = 1;
 
 //*********************************************************
+//* Load Switchboard
+//*********************************************************
+%RTBSA_SB = RTB_createSwitchboard("SA","APISA");
+%RTBSA_SB.registerLine(1,1);
+
+//*********************************************************
 //* Variable Declarations
 //*********************************************************
-$RTB::SAuthentication::AuthServer = "returntoblockland.com";
-$RTB::SAuthentication::AuthPath = "/blockland/rtbServerAuth.php";
 $RTB::SAuthentication::Cache::SentMods = 0;
 
 //*********************************************************
-//* Operational Functions
+//* Request Gateway
 //*********************************************************
-function RTBSA_InitASC()
+//- RTBSA_SendRequest (Compiles arguments into POST string for transfer)
+function RTBSA_SendRequest(%cmd,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
 {
-   if(!isObject(RTBSA_ASC))
-   {
-      new TCPObject(RTBSA_ASC)
-      {
-         site = $RTB::SAuthentication::AuthServer;
-         port = 80;
-         cmd = "";
-         filePath = $RTB::SAuthentication::AuthPath;
-         
-         defaultFailHandle = "RTBSA_handleTimeout";
-         
-         connected = 0;
-         transmitting = 0;
-         queueSize = 0;
-         
-         isRTBObject = 1;
-      };
-      
-      RTBSA_ASC.addResponseHandle("POST","RTBSA_onPostResponse");
-      RTBSA_ASC.addResponseHandle("POSTMODS","RTBSA_onPostModsResponse");
-   }
-}
-
-function RTBSA_handleTimeout()
-{
-}
-
-function RTBSA_SendRequest(%cmd,%layer,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
-{
-   if(!isObject(RTBSA_ASC))
-      RTBSA_InitASC();
-
    for(%i=1;%i<11;%i++)
    {
-      %arg = urlEnc(%arg[%i]);
-      if(%argString $= "")
-         %argString = "arg1="@%arg;
-      else
-         %argString = %argString@"&arg"@%i@"="@%arg;
+      %string = %string@strReplace(urlEnc(%arg[%i]),"\t","")@"\t";
    }
-   
-   RTBSA_ASC.sendRequest(%cmd,%argString,%layer);
+   RTB_SB_SA.placeCall(%line,%cmd,%string);
 }
 
+//*********************************************************
+//* Meat
+//*********************************************************
+//- RTBSA_Post (Updates RTB API with player's details)
+%RTBSA_SB.registerResponseHandler("POST","RTBSA_onPostResponse");
+function RTBSA_Post()
+{
+   if(!$RTB::Options::SA::PostServer || RTBSA_getServerType() !$= "Multiplayer")
+	   return;
+	   
+   if($Pref::Server::RTBSetup::User $= "" && $Server::Dedicated)
+      return;
+   
+   if(isEventPending($RTB::SAuthentication::Auth))
+      cancel($RTB::SAuthentication::Auth);
+      
+   $RTB::SAuthentication::Auth = schedule(180000,0,"RTBSA_Post");
+   RTBSA_SendRequest("POST",1,$Pref::Server::Port,ClientGroup.getCount(),RTBSA_getPlayerList());
+   echo("Posting to rtb server");
+}
+
+//- RTBSA_onPostResponse (Reply from POST request)
+function RTBSA_onPostResponse(%tcp,%line)
+{
+   if(%line $= 1)
+      RTBSA_PostMods();
+}
+
+//- RTBSA_PostMods (Sends a list of add-ons the server has to the RTB API)
+%RTBSA_SB.registerResponseHandler("POSTMODS","RTBSA_onPostModsResponse");
+function RTBSA_PostMods()
+{
+   if($RTB::SAuthentication::Cache::SentMods)
+      return;
+      
+   RTBSA_SendRequest("POSTMODS",1,$Pref::Server::Port,RTBSA_getModList());
+}
+
+//- RTBSA_onPostModsResponse (Reply from attempt to post mods list)
 function RTBSA_onPostModsResponse(%this,%line)
 {
    if(%line $= 1)
       $RTB::SAuthentication::Cache::SentMods = 1;
 }
 
-function RTBSA_PostMods()
-{
-	%mod = FindFirstFile("Add-Ons/*_*/description.txt");
-	while(strLen(%mod) > 0)
-	{
-	   %modName = getSubStr(%mod,8,strLen(%mod)-24);
-	   %modVarName = getSafeVariableName(%modName);
-	   
-      %isDefault = 0;
-      for(%i=0;%i<$RTB::CModManager::DefaultBLMods+1;%i++)
-      {
-         if($RTB::CModManager::DefaultBLMod[%i] $= %modName)
-         {
-            %isDefault = 1;
-            break;
-         }
-      }
-	   if($AddOn__[%modVarName] $= 1 && isFile("Add-Ons/"@%modName@".zip") && !%isDefault)
-	   {
-         %descriptionData = getFileContents("Add-Ons/"@%modName@"/description.txt");
-         if(isFile("Add-Ons/"@%modName@"/rtbInfo.txt"))
-         {
-            %rtbData = getFileContents("Add-Ons/"@%modName@"/rtbInfo.txt");
-            %id = RTBMM_getFieldFromContents(%rtbData,"ID");
-            %field = "rtb~"@%id@"~"@%modName@".zip";
-         }
-         else
-         {
-            %title = RTBMM_getFieldFromContents(%descriptionData,"Title");
-            if(%title !$= "0")
-               %field = "bl~"@%title@"~"@%modName@".zip";
-         }
-	   
-	      if(%field !$= "")
-	      {
-            %modArray = (%modArray $= "") ? "" : %modArray@";";
-            %modArray = %modArray@%field;
-	      }
-	   }
-		%mod = FindNextFile("Add-Ons/*_*/description.txt");
-	}
-	
-	%modArray = strReplace(%modArray,";","\t");
-	for(%i=0;%i<getFieldCount(%modArray);%i++)
-	{
-      %section = strReplace(getField(%modArray,%i),"~","\t");
-      %zip = getSubStr(getField(%section,2),0,strPos(getField(%section,2),".zip"));
-      if(strLen(findFirstFile("Add-Ons/"@%zip@"/*.dts")) > 0 || strLen(findFirstFile("Add-Ons/"@%zip@"/*.wav")) > 0 || strLen(findFirstFile("Add-Ons/"@%zip@"/*.ogg")) > 0 || strLen(findFirstFile("Add-Ons/"@%zip@"/*.png")) > 0 || strLen(findFirstFile("Add-Ons/"@%zip@"/*.jpg")) > 0)
-         %modLine = getField(%modArray,%i)@"~1";
-      else
-         %modLine = getField(%modArray,%i)@"~0";
-         
-      %finalModArray = (%finalModArray $= "") ? "" : %finalModArray@";";
-      %finalModArray = %finalModArray@%modLine;
-	}
-   RTBSA_SendRequest("POSTMODS",1,$Pref::Server::Port,%finalModArray);
-}
-
-function RTBSA_onPostResponse(%this,%line)
-{
-   if(%line $= "SUCCESS" && !$RTB::SAuthentication::Cache::SentMods)
-      RTBSA_PostMods();
-}
-
-function RTBSA_Post()
-{
-   if(!$RTB::Options::PostServer || RTBSA_getServerType() !$= "Multiplayer")
-	   return;
-
-   %name = $pref::Player::NetName;
-   
-   if(isEventPending($RTB::SAuthentication::AuthSS))
-      cancel($RTB::SAuthentication::AuthSS);
-      
-   $RTB::SAuthentication::AuthSS = schedule(180000,0,"RTBSA_Post");
-   RTBSA_SendRequest("POST",1,$Pref::Server::Port,ClientGroup.getCount(),RTBSA_getPlayerList());
-   echo("Posting to rtb server");
-}
-
 //*********************************************************
 //* Support Functions
 //*********************************************************
+//- RTBSA_getServerType (Establishes what type of server is being hosted)
 function RTBSA_getServerType()
 {
    if(isObject(MissionGroup))
@@ -176,6 +105,7 @@ function RTBSA_getServerType()
       return 0;
 }
 
+//- RTBSA_getPlayerList (Gets an http-friendly list of players)
 function RTBSA_getPlayerList()
 {
    for(%i=0;%i<ClientGroup.getCount();%i++)
@@ -205,6 +135,62 @@ function RTBSA_getPlayerList()
       %playerList = (%playerList $= "") ? %client_name@";"@%client_ip@";"@%client_score@";"@%client_state : %playerList@"~"@%client_name@";"@%client_ip@";"@%client_score@";"@%client_state;
    }
    return %playerList;
+}
+
+//- RTBSA_getModList (Gets a list of mods running on the server)
+function RTBSA_getModList()
+{
+   %filepath = findFirstFile("Add-Ons/*_*/server.cs");
+   while(strlen(%filepath) > 0)
+   {
+      %zip = getSubStr(%filepath,8,strLen(%filepath)-strLen("/server.cs")-strLen("Add-Ons/"));
+      
+      if($AddOn__[%zip] $= 1)
+      {
+         %fileObject = new FileObject();
+         if(isFile("Add-Ons/"@%zip@"/rtbInfo.txt"))
+         {
+            if(%fileObject.openForRead("Add-Ons/"@%zip@"/rtbInfo.txt"))
+            {
+               while(!%fileObject.isEOF())
+               {
+                  %line = %fileObject.readLine();
+                  if(strPos(%line,"id:") !$= -1)
+                  {
+                     %id = trim(strReplace(%line,"id:",""));
+                  }
+                  else if(strPos(%line,"version:") !$= -1)
+                  {
+                     %version = trim(strReplace(%line,"version:",""));
+                  }
+               }
+               %modArray = %modArray@"rtb~"@%id@"~"@%version@"~"@%zip@".zip;";
+               %fileObject.close();
+            }
+         }
+         else
+         {
+            if(%fileObject.openForRead("Add-Ons/"@%zip@"/description.txt"))
+            {
+               while(!%fileObject.isEOF())
+               {
+                  %line = %fileObject.readLine();
+                  if(strPos(%line,"Title:") !$= -1)
+                  {
+                     %title = trim(strReplace(%line,"Title:",""));
+                     break;
+                  }
+               }
+               %modArray = %modArray@"bl~"@%title@"~"@%zip@".zip;";
+               %fileObject.close();
+            }
+         }
+      }
+      %filepath = findNextFile("Add-Ons/*_*/server.cs");
+   }
+   if(strLen(%modArray) > 0)
+      %modArray = getSubStr(%modArray,0,strLen(%modArray)-1);
+   return %modArray;
 }
 
 //*********************************************************

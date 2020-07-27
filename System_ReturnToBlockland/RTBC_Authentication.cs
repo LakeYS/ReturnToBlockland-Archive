@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 93 $
+//#      $Date: 2009-08-01 20:32:18 +0100 (Sat, 01 Aug 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Authentication.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/RTBC_Authentication.cs $
 //#
-//#      $Id: RTBC_Authentication.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_Authentication.cs 93 2009-08-01 19:32:18Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -20,145 +20,96 @@
 $RTB::RTBC_Authentication = 1;
 
 //*********************************************************
-//* Variable Declarations
+//* Load Switchboard
 //*********************************************************
-$RTB::CAuthentication::AuthServer = "returntoblockland.com";
-$RTB::CAuthentication::AuthPath = "/blockland/rtbClientAuth.php";
+%RTBCA_SB = RTB_createSwitchboard("CA","APICA");
+%RTBCA_SB.registerLine(1,1);
+%RTBCA_SB.registerLine(2,1);
 
 //*********************************************************
-//* Operational Functions
+//* Request Gateway
 //*********************************************************
-function RTBCA_InitASC()
+//- RTBCA_SendRequest (Compiles arguments into POST string for transfer)
+function RTBCA_SendRequest(%cmd,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
 {
-   if(!isObject(RTBCA_ASC))
-   {
-      new TCPObject(RTBCA_ASC)
-      {
-         site = $RTB::CAuthentication::AuthServer;
-         port = 80;
-         cmd = "";
-         filePath = $RTB::CAuthentication::AuthPath;
-         
-         defaultFailHandle = "RTBCA_handleTimeout";
-         
-         connected = 0;
-         transmitting = 0;
-         queueSize = 0;
-         
-         isRTBObject = 1;
-      };
-      RTBCA_ASC.addResponseHandle("AUTH","RTBCA_onAuthResponse");
-      RTBCA_ASC.addResponseHandle("UPDATEPREFS","RTBCA_onUpdatePrefs");
-      RTBCA_ASC.addResponseHandle("PUSHUPDATE","RTBCA_onPushUpdate");
-   }
-}
-
-function RTBCA_handleTimeout()
-{
-}
-
-function RTBCA_SendRequest(%cmd,%layer,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
-{
-   if(!isObject(RTBCA_ASC))
-      RTBCA_InitASC();
-
    for(%i=1;%i<11;%i++)
    {
-      %arg = urlEnc(%arg[%i]);
-      if(%argString $= "")
-         %argString = "arg1="@%arg;
-      else
-         %argString = %argString@"&arg"@%i@"="@%arg;
+      %string = %string@strReplace(urlEnc(%arg[%i]),"\t","")@"\t";
    }
-   
-   RTBCA_ASC.sendRequest(%cmd,%argString,%layer);
+   RTB_SB_CA.placeCall(%line,%cmd,%string);
 }
 
+//*********************************************************
+//* Meat
+//*********************************************************
+//- RTBCA_Post (Updates RTB API with player's details)
+function RTBCA_Post()
+{
+   if(!$RTB::Options::CA::AuthWithRTB)
+	   return;
+
+   %name = $pref::Player::NetName;
+   
+   if(isEventPending($RTB::CAuthentication::Auth))
+      cancel($RTB::CAuthentication::Auth);
+      
+   $RTB::CAuthentication::Auth = schedule(180000,0,"RTBCA_Post");
+   RTBCA_SendRequest("AUTH",1,RTBCA_EstablishLocation(),RTBCA_GetPlaytime(),$RTB::Version,$Version);
+}
+
+//- RTBCA_onAuthResponse (Handles any special requests from the API)
+%RTBCA_SB.registerResponseHandler("AUTH","RTBCA_onAuthResponse");
+function RTBCA_onAuthResponse(%this,%line)
+{
+   if(getField(%line,0) $= "WELCOME")
+   {
+      RTB_LoadDefaultPrefs();
+      %hasAccount = getField(%line,1);
+      canvas.pushDialog(RTB_WelcomeScreen);
+      
+      if(%hasAccount)
+      {
+         //Welcome (with account)
+      }
+      else
+      {
+         //Other Welcome
+      }
+   }
+   else if(%line $= "PREFS")
+      RTBCA_SendPrefs();
+}
+
+//- RTBCA_onPushUpdate (Check for updates if the API commands it)
+%RTBCA_SB.registerResponseHandler("PUSHUPDATE","RTBCA_onPushUpdate");
 function RTBCA_onPushUpdate()
 {
    RTBCU_Update();
 }
 
-function RTBCA_onAuthResponse(%this,%line)
-{
-   if(%line $= "SUCCESS")
-      $RTB::Options::IAmBarred = 0;
-   else if(getField(%line,0) $= "WELCOME")
-   {
-      %hasLinked = getField(%line,1);
-      canvas.pushDialog(RTB_WelcomeScreen);
-      
-      if(%hasLinked)
-      {
-         RTBWS_ThanksBtn.position = RTBWS_NextBtn.position;
-         RTBWS_Frame1Text.setText("Congratulations on your first successful login to RTB from in-game!\n\n We're glad to see you've already linked your RTB Profile with your Blockland Account!");
-      }
-      else
-      {
-         RTBWS_Frame1Text.setText("Congratulations on your first successful login to RTB from in-game!\n\n We noticed you haven't linked your RTB Profile with your Blockland Account yet. Click Next to find out more!");
-      }
-   }
-   else if(%line $= "SENDPREFS")
-      RTBCA_SendPrefs();
-   else if(getField(%line,0) $= "BARRED")
-   {
-      cancel($RTB::CAuthentication::AuthSS);
-      if(!$RTB::Options::IAmBarred)
-      {
-         $RTB::Options::IAmBarred = 1;
-         canvas.pushDialog(RTB_BarredScreen);
-         if(getField(%line,1) $= "")
-            RTBB_Text.setText("No reason has been specified.");
-         else
-            RTBB_Text.setText(getField(%line,1));
-      }
-   }
-}
-
-function RTBCA_Post()
-{
-   if(!$RTB::Options::AuthWithRTB)
-	   return;
-
-   %name = $pref::Player::NetName;
-   
-   if(isEventPending($RTB::CAuthentication::AuthSS))
-      cancel($RTB::CAuthentication::AuthSS);
-      
-   $RTB::CAuthentication::AuthSS = schedule(180000,0,"RTBCA_Post");
-   if(RTBIC_SC.connected)
-      RTBCA_SendRequest("AUTH",1,RTBCA_EstablishLocation(),RTBCA_GetPlaytime(),$RTB::Version,$RTB::CIRCClient::Cache::NickName);
-   else
-      RTBCA_SendRequest("AUTH",1,RTBCA_EstablishLocation(),RTBCA_GetPlaytime(),$RTB::Version,"");
-}
-
-function RTBCA_onUpdatePrefs(%this,%line)
-{
-   if(getField(%line,0) $= "FAIL")
-      error("ERROR (UPDATEPREFS): "@getField(%line,1));
-}
-
+//- RTBCA_SendPrefs (Updates player's RTB profile with privacy settings)
 function RTBCA_SendPrefs()
 {
    %name = $pref::Player::NetName;
-   RTBCA_SendRequest("UPDATEPREFS",2,$RTB::Options::PrivacyShowOnline,$RTB::Options::PrivacyShowServer,$RTB::Options::PrivacyShowPlayers,$RTB::Options::PrivacyShowPassworded,$RTB::Options::PrivacyShowOwnership);
+   RTBCA_SendRequest("UPDATEPREFS",2,$RTB::Options::CA::Privacy::ShowOnline,$RTB::Options::CA::Privacy::ShowServer,$RTB::Options::SA::Privacy::ShowPlayers);
 }
 
 //*********************************************************
 //* Support Functions
 //*********************************************************
+//- RTBCA_GetPlaytime (Gets a nice formatted string of how long the user has had the game open)
 function RTBCA_GetPlaytime()
 {
    %timestring = getTimeString($Sim::Time);
    return %timestring;
 }
 
+//- RTBCA_EstablishLocation (Decides where the player is currently)
 function RTBCA_EstablishLocation()
 {
-   if(!$RTB::Options::PrivacyShowServer)
-      return 0;
+   if(!$RTB::Options::CA::Privacy::ShowServer)
+      return "UNK";
       
-   %location = "Unknown";
    if(isObject(ServerConnection))
    {
       %address = ServerConnection.getAddress();
@@ -166,21 +117,28 @@ function RTBCA_EstablishLocation()
       {
          if($Server::LAN)
             if($Server::ServerType $= "SinglePlayer")
-               %address = "Singleplayer Server";
+               %address = "SNG";
             else
-               %address = "LAN Server";
+               %address = "LAN";
          else
-            %address = "local "@$Pref::Server::Port;
+            %address = "LOC "@$Pref::Server::Port;
       }
       else
       {
          %address = getSubStr(%address,3,strLen(%address));
          %address = strReplace(%address,":"," ");  
+         %ip = getWord(%address,0);
+         %port = getWord(%address,1);
+         
+         if(strPos(%ip,"192.") $= 0 || strPos(%ip,"10.") $= 0)
+            %address = "NWK "@%ip@":"@%port;
+         else
+            %address = "WEB "@%ip@":"@%port;
       }
       %location = %address;
    }
    else
-      %location = "Not on a Server";
+      %location = "NOS";
       
    return %location;
 }

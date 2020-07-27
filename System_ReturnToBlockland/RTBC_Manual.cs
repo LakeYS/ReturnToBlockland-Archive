@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Manual.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBC_Manual.cs $
 //#
-//#      $Id: RTBC_Manual.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_Manual.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -18,6 +18,10 @@
 //#############################################################################
 //Register that this module has been loaded
 $RTB::RTBC_Manual = 1;
+
+//*********************************************************
+//* GUI Modification
+//*********************************************************
 if(!isObject(MM_RTBHelpButton))
 {
    %btn = new GuiBitmapButtonCtrl(MM_RTBHelpButton)
@@ -32,7 +36,7 @@ if(!isObject(MM_RTBHelpButton))
       text = " ";
       groupNum = "-1";
       buttonType = "PushButton";
-      bitmap = $RTB::Path@"images/buttons/btnHelp";
+      bitmap = $RTB::Path@"images/buttons/menu/btnHelp";
       command = "canvas.pushdialog(RTB_Manual);";
       lockAspectRatio = "1";
       alignLeft = "1";
@@ -103,7 +107,7 @@ function RTB_Manual::onWake(%this)
       %file = getField(%line,2);
       
       if(!isFile($RTB::Path@%icon@".png"))
-         %icon = "images/exclamation";
+         %icon = "images/icon_alert";
       
       RTBMA_Contents.addRow(0,"       "@%title TAB %file);
       %rows = RTBMA_Contents.rowCount()-1;

@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 94 $
+//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_ModManager.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/RTBC_ModManager.cs $
 //#
-//#      $Id: RTBC_ModManager.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_ModManager.cs 94 2009-08-09 00:28:21Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -18,6 +18,18 @@
 //#############################################################################
 //Register that this module has been loaded
 $RTB::RTBC_ModManager = 1;
+
+//#####################################################################################################
+//
+//     _____   _    _   _____   
+//    / ____| | |  | | |_   _|  
+//   | |  __  | |  | |   | |    
+//   | | |_ | | |  | |   | |    
+//   | |__| |_| |__| |_ _| |_ _ 
+//    \_____(_)\____/(_)_____(_)
+//
+//
+//##################################################################################################### 
 
 //*********************************************************
 //* GUI Modification
@@ -36,7 +48,7 @@ if(!isObject(MM_RTBModManagerButton))
       text = " ";
       groupNum = "-1";
       buttonType = "PushButton";
-      bitmap = $RTB::Path@"images/buttons/btnMODManager";
+      bitmap = $RTB::Path@"images/buttons/menu/btnMODManager";
       command = "canvas.pushdialog(RTB_ModManager);";
       lockAspectRatio = "1";
       alignLeft = "1";
@@ -55,10 +67,6 @@ function MM_RTBModManagerButton::onMouseEnter(%this)
 //*********************************************************
 //* Variable Declarations
 //*********************************************************
-$RTB::CModManager::HostSite = "returntoblockland.com";
-$RTB::CModManager::EnginePath = "/blockland/rtbModEngine.php";
-$RTB::CModManager::GUI::YSpacing = 1;
-
 $RTB::CModManager::Style::ColorDARKRED = "8B0000";
 $RTB::CModManager::Style::ColorRED = "FF0000";
 $RTB::CModManager::Style::ColorORANGE = "FFA500";
@@ -81,151 +89,233 @@ if(!isObject(RTB_ModManager))
 	exec("./RTB_ModManager.gui");
 
 //*********************************************************
-//* Transmission Protocol
+//* Load TCP Object
 //*********************************************************
-//- RTBMM_InitSC (Prepares TCPObject)
-function RTBMM_InitSC()
-{
-   if(!isObject(RTBMM_SC))
-   {
-      new TCPObject(RTBMM_SC)
-      {
-         site = $RTB::CModManager::HostSite;
-         port = 80;
-         cmd = "";
-         filePath = $RTB::CModManager::EnginePath;
-         
-         connected = 0;
-         transmitting = 0;
-         queueSize = 0;
-         
-         lineCallback = "RTBMM_onCommLine";
-         defaultFailHandle = "RTBMM_onCommFail";
-         
-         isRTBObject = 1;
-      };
-      
-      //Auth
-      RTBMM_SC.addResponseHandle("AUTH","RTBMM_Auth_HandleResponse");
-      
-      //General Errors
-      RTBMM_SC.addResponseHandle("ERROR","RTBMM_onError");
-      RTBMM_SC.addResponseHandle("MESSAGE","RTBMM_onMessage");
-      RTBMM_SC.addResponseHandle("SQLERROR","RTBMM_onSQLError");
-      RTBMM_SC.addResponseHandle("BARRED","RTBMM_onBarred");
-      
-      //Multifunctional Calls
-      RTBMM_SC.addResponseHandle("PAGINATION","RTBMM_Pagination");
-      
-      //Category View
-      RTBMM_SC.addResponseHandle("GETCATEGORIES","RTBMM_CategoryView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETCATEGORIES","RTBMM_CategoryView_onTransmitEnd");
-      
-      //Section View
-      RTBMM_SC.addResponseHandle("GETSECTION","RTBMM_SectionView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETSECTION","RTBMM_SectionView_onTransmitEnd");
-      
-      //File View
-      RTBMM_SC.addResponseHandle("GETFILE","RTBMM_FileView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETFILE","RTBMM_FileView_onTransmitFileEnd");
-      
-      //Presets View
-      RTBMM_SC.addResponseHandle("GETPRESETS","RTBMM_PresetsView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETPRESETS","RTBMM_PresetsView_onTransmitEnd");
-      
-      //Preset View
-      RTBMM_SC.addResponseHandle("GETPRESETINFO","RTBMM_PresetView_onTransmit");
-      RTBMM_SC.addResponseHandle("GETPRESET","RTBMM_PresetView_onTransmitRow");
-      RTBMM_SC.addResponseHandle("ENDGETPRESET","RTBMM_PresetView_onTransmitEnd");
-      
-      //All Files View
-      RTBMM_SC.addResponseHandle("GETALLFILES","RTBMM_AllFilesView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETALLFILES","RTBMM_AllFilesView_onTransmitEnd");
-      
-      //User Favourite Files View
-      RTBMM_SC.addResponseHandle("GETUSERFAVS","RTBMM_FavsView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETUSERFAVS","RTBMM_FavsView_onTransmitEnd");
-      
-      //Search View
-      RTBMM_SC.addResponseHandle("GETSEARCHDATA","RTBMM_SearchView_onTransmit");
-      RTBMM_SC.addResponseHandle("ENDGETSEARCHDATA","RTBMM_SearchView_onTransmitEnd");
-      RTBMM_SC.addResponseHandle("GETSEARCHRESULTS","RTBMM_SearchView_onResult");
-      RTBMM_SC.addResponseHandle("FINISHGETSEARCHRESULTS","RTBMM_SearchView_onResultEnd");
-      
-      //Commenting and Rating
-      RTBMM_SC.addResponseHandle("GETCOMMENT","RTBMM_Comments_onRetrieve");
-      RTBMM_SC.addResponseHandle("ADDCOMMENT","RTBMM_Comments_onSend");
-      RTBMM_SC.addResponseHandle("ADDRATING","RTBMM_Ratings_onSend");
-      
-      //Download Managing
-      RTBMM_SC.addResponseHandle("GETFILEDATA","RTBMM_DownloadsView_retrieveFileData");
-      
-      //File Update Checking
-      RTBMM_SC.addResponseHandle("GETFILEUPDATES","RTBMM_ModsView_retrieveUpdates");
-      
-      //News Feed
-      RTBMM_SC.addResponseHandle("GETNEWSFEED","RTBMM_NewsFeedView_onTransmit");
-      
-      //Sync Mods
-      RTBMM_SC.addResponseHandle("SYNCMODS","RTBMM_ModsView_syncResults");
-      RTBMM_SC.addResponseHandle("ENDSYNCMODS","RTBMM_ModsView_endSyncResults");
-      RTBMM_SC.addFailHandle("SYNCMODS","RTBMM_ModsView_failSyncResults");
-   }
-}
-//- RTBMM_SendRequest (Handles Encoding for TCP Transmission)
-function RTBMM_SendRequest(%cmd,%layer,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
-{
-   if(!isObject(RTBMM_SC))
-      RTBMM_InitSC();
-
-   for(%i=1;%i<11;%i++)
-   {
-      %arg = urlEnc(%arg[%i]);
-      if(%argString $= "")
-         %argString = "arg1="@%arg;
-      else
-         %argString = %argString@"&arg"@%i@"="@%arg;
-   }
-   RTBMM_SC.sendRequest(%cmd,%argString,%layer);
-}
+%RTBMM_SB = RTB_createSwitchboard("MM","APIMS");
+%RTBMM_SB.registerResponseHandler("DEFAULT","RTBMM_Default_onReply");
+%RTBMM_SB.registerFailHandler("DEFAULT","RTBMM_Default_onFail");
+%RTBMM_SB.registerLine(1,0);
+%RTBMM_SB.registerLine(2,2);
+%RTBMM_SB.registerLine(3,3);
+%RTBMM_SB.setLineProperty(3,"Keep-Alive",1);
+$RTB::CModManager::Switchboard = %RTBMM_SB;
 
 //*********************************************************
-//* GUI Support
+//* Load TCP Object
 //*********************************************************
-function RTB_ModManager::onWake(%this)
+//- RTBMM_SendRequest (Compiles arguments into POST string for transfer)
+function RTBMM_SendRequest(%cmd,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
 {
-   if(!isObject(RTBMM_MODManifest))
-      RTBMM_loadExistingRTBMods();
-      
-	if(!$RTB::CModManager::Session::LoggedIn && !$RTB::CModManager::Session::TimedOut)
-	   RTBMM_beginAuth();
-	   
-   if(!isObject(RTBMM_WindowSwatch))
-      RTBMM_getNewsFeedView();
-   else
+   if($RTB::Barred::Download)
    {
-      if(!$RTB::CModManager::Cache::DirectOpen)
-      {
-         RTBMM_SendRequest("GETNEWSFEED",7,RTBMM_getDelimitedMods(),RTBMM_FeedControl.latestFeed);
-      }
-   }
-      
-   $RTB::CModManager::Cache::DirectOpen = 0;
-   if($RTB::CModManager::Cache::CurrentZone $= "modview")
-      RTBMM_getModsView();
-}
-//- GuiMouseEventCtrl::onMouseEnter (Hack)
-function GuiMouseEventCtrl::onMouseEnter(%this)
-{
-   if(%this.eventHover)
-   {
-      if(isObject(%this.eventSwatch))
-      {
-         %this.eventSwatch.visible = 1;
-         %this.eventSwatch.color = "255 200 200 100";
-      }
+      RTBMM_setBarred();
+      return;
    }
    
+   if(%line $= 1)
+      deleteVariables("$RTB::CModManager::Cache*");
+      
+   for(%i=1;%i<11;%i++)
+   {
+      %arg[%i] = strReplace(%arg[%i],"\n","<br>");
+      %string = %string@strReplace(urlEnc(%arg[%i]),"\t","")@"\t";
+   }
+   RTB_SB_MM.placeCall(%line,%cmd,%string);
+}
+
+//*********************************************************
+//* Special Controllers
+//*********************************************************
+//- RTBMM_setBarred (Decides whether you are barred from using the mod manager or not)
+function RTBMM_setBarred()
+{
+   if($RTB::Barred::Download)
+   {
+      if(isObject(RTBMM_WindowSwatch))
+         RTBMM_WindowSwatch.delete();
+         
+      if(isObject(RTBMM_LoadingContentSwatch))
+         RTBMM_LoadingContentSwatch.delete();
+         
+      RTBMM_BarredReason.setText("<just:center><font:Verdana Bold:18><color:AAAAAA>"@$RTB::Barred::Reason);
+      RTBMM_BarredOverlay.setVisible(1);
+   }
+   else
+   {
+      RTBMM_BarredOverlay.setVisible(0);
+   }
+}
+
+//*********************************************************
+//* GUI Callbacks
+//*********************************************************
+//- RTB_ModManager::onWake (GUI wake callback, updates browser buttons + auth)
+function RTB_ModManager::onWake()
+{
+   RTBMM_Zones_CheckButtons();
+   RTBMM_Auth_Init();
+   
+   if(!$RTB::CModManager::Cache::OpenDirect)
+      RTBMM_Zones_Refresh();
+      
+   if($RTB::CModManager::Cache::CurrentZone $= "")
+      RTBMM_NewsFeedView_Init();
+   
+   if($AddOn__Weapon_Gun $= "")
+      clientUpdateAddonsList();   
+   
+   if(RTBMM_FileCache.getCount() <= 0)
+      RTBMM_FileCache.refresh();
+}
+
+//*********************************************************
+//* Forward/Backward Tracking
+//*********************************************************
+//- RTBMM_Zones_Track (Tracks current zone and return eval)
+function RTBMM_Zones_Track(%zone,%return,%pagination)
+{
+   if(!isObject(RTBMM_ZoneTracker))
+   {
+      new ScriptObject(RTBMM_ZoneTracker)
+      {
+         currZone = -1;
+         numZones = 0;
+      };
+   }
+   
+   //I have run out of milkshake so thats why the tracking queue will have to
+   //be of an indeterminate length... can't work without milkshake
+   if(RTBMM_ZoneTracker.zoneCmd[RTBMM_ZoneTracker.currZone] !$= %return)
+   {
+      RTBMM_ZoneTracker.currZone++;
+      RTBMM_ZoneTracker.zone[RTBMM_ZoneTracker.currZone] = %zone;
+      RTBMM_ZoneTracker.zoneCmd[RTBMM_ZoneTracker.currZone] = %return;
+      RTBMM_ZoneTracker.numZones = RTBMM_ZoneTracker.currZone+1;
+   }
+   $RTB::CModManager::Cache::CurrentZone = %zone;
+   $RTB::CModManager::Cache::PaginationTemplate = %pagination;
+   
+   RTBMM_Zones_CheckButtons();
+}
+
+//- RTBMM_Zones_Back (Moves back in history)
+function RTBMM_Zones_Back()
+{
+   if(RTBMM_ZoneTracker.currZone >= 1)
+   {
+      RTBMM_ZoneTracker.currZone--;
+      %return = RTBMM_ZoneTracker.zoneCmd[RTBMM_ZoneTracker.currZone];
+      eval(%return);
+   }
+   RTBMM_Zones_CheckButtons();
+}
+
+//- RTBMM_Zones_Forward (Moves forward in history)
+function RTBMM_Zones_Forward()
+{
+   if(RTBMM_ZoneTracker.currZone < (RTBMM_ZoneTracker.numZones-1))
+   {
+      RTBMM_ZoneTracker.currZone++;
+      %return = RTBMM_ZoneTracker.zoneCmd[RTBMM_ZoneTracker.currZone];
+      eval(%return);
+   }
+   RTBMM_Zones_CheckButtons();
+}
+
+//- RTBMM_Zones_Refresh (Refreshes current page)
+function RTBMM_Zones_Refresh()
+{
+   if(RTBMM_ZoneTracker.numZones >= 1)
+   {
+      %return = RTBMM_ZoneTracker.zoneCmd[RTBMM_ZoneTracker.currZone];
+      eval(%return);
+   }
+}
+
+//- RTBMM_Zones_CheckButtons (checks to see if buttons should be active)
+function RTBMM_Zones_CheckButtons()
+{
+   RTBMM_HistoryBack.setActive(0);
+   RTBMM_HistoryForward.setActive(0);
+   RTBMM_Refresh.setActive(1);
+   
+   if(RTBMM_ZoneTracker.numZones > 1)
+   {
+      if(RTBMM_ZoneTracker.currZone < (RTBMM_ZoneTracker.numZones-1))
+         RTBMM_HistoryForward.setActive(1);
+         
+      if(RTBMM_ZoneTracker.currZone >= 1)
+         RTBMM_HistoryBack.setActive(1);
+   }
+   
+   if(RTBMM_ZoneTracker.currZone $= "")
+      RTBMM_Refresh.setActive(0);
+}
+
+//*********************************************************
+//* Package
+//*********************************************************
+package RTBC_ModManager
+{
+   function clientUpdateAddonsList()
+   {
+      if($AddOn__Weapon_Gun $= "")
+         Parent::clientUpdateAddonsList();
+   }
+   
+   function GuiMLTextCtrl::onUrl(%this,%url)
+   {
+      %explode = strReplace(%url,"-","\t");
+      if(getField(%explode,0) $= "pagination")
+      {
+         %eval = $RTB::CModManager::Cache::PaginationTemplate;
+         %pageNumber = getField(%explode,1);
+         %eval = strReplace(%eval,"%%page%%",%pageNumber);
+         
+         schedule(10,0,"eval",%eval);
+      }
+      else if(getField(%explode,0) $= "comment")
+      {
+         if(getField(%explode,1) $= "pagination")
+         {
+            if(getField(%explode,2) $= "next")
+               RTBMM_FileView_getCommentPage($RTB::CModManager::Cache::CommentCurrPage-1);
+            else
+               RTBMM_FileView_getCommentPage($RTB::CModManager::Cache::CommentCurrPage+1);
+         }
+      }
+      else if(getField(%explode,0) $= "file")
+      {
+         RTBMM_FileView_Init(getField(%explode,1));
+      }
+      else if(getField(%explode,0) $= "pack")
+      {
+         RTBMM_PackView_Init(getField(%explode,1));
+      }
+      else if(getField(%explode,0) $= "rtb")
+      {
+         schedule(10,0,"RTBMM_FileView_Init",getField(%explode,1));
+      }
+      else
+         Parent::onUrl(%this,%url);
+   }
+};
+activatePackage(RTBC_ModManager);
+
+//*********************************************************
+//* Mouse Event Handling
+//* -------------------------------------------------------
+//* This setup allows mouseEventCtrls to contain other
+//* controls within itself that you can mouseover without
+//* the engine thinking you left the mouse event ctrl.
+//* Its just a looping check to see if you're within the
+//* bounds - and performance it'll reduce the number of
+//* checks if you've left the mouse afk in the ctrl or
+//* something. Shouldn't cause trouble really.
+//*********************************************************
+//- GuiMouseEventCtrl::onMouseEnter (Hack)
+function GuiMouseEventCtrl::onMouseEnter(%this)
+{   
    if(%this.eventType !$= "")
    {
       if(strLen(%this.eventCallbacks) == 4)
@@ -234,17 +324,45 @@ function GuiMouseEventCtrl::onMouseEnter(%this)
          {
             %command = "Event_"@%this.eventType@"::onMouseEnter("@%this@");";
             eval(%command);
+            %isSpecial = 1;
          }
       }
    }
+   
+   if(!%isSpecial)
+   {
+      if(isFunction(Parent,"onMouseEnter"))
+      {
+         Parent::onMouseEnter(Parent);
+      }
+   }
 }
-//- GuiMouseEventCtrl::onMouseLeave (Hack)
+//- GuiMouseEventCtrl::onMouseLeave (Epic Hack, So bad it makes me sick)
 function GuiMouseEventCtrl::onMouseLeave(%this)
 {
-   if(%this.eventHover)
+   if(%this.persistent)
    {
-      if(isObject(%this.eventSwatch))
-         %this.eventSwatch.visible = 0;
+      %position = %this.getCanvasPosition();
+      %minX = getWord(%position,0);
+      %maxX = getWord(%position,0) + getWord(%this.extent,0);
+      %minY = getWord(%position,1);
+      %maxY = getWord(%position,1) + getWord(%this.extent,1);
+      %curX = getWord(Canvas.getCursorPos(),0);   
+      %curY = getWord(Canvas.getCursorPos(),1);
+
+      if(%curX > %minX && %curX < %maxX && %curY > %minY && %curY < %maxY)
+      {
+         if(%this.checks > 1000)
+            %sch = 1000;
+         else if(%this.checks > 500)
+            %sch = 100;
+         else
+            %sch = 10;
+
+         %this.schedule(%sch,"onMouseLeave");
+         %this.checks++;
+         return;
+      }
    }
    
    if(%this.eventType !$= "")
@@ -255,19 +373,23 @@ function GuiMouseEventCtrl::onMouseLeave(%this)
          {
             %command = "Event_"@%this.eventType@"::onMouseLeave("@%this@");";
             eval(%command);
+            %isSpecial = 1;
+            %this.checks = 0;
          }
+      }
+   }
+   
+   if(!%isSpecial)
+   {
+      if(isFunction(Parent,"onMouseLeave"))
+      {
+         Parent::onMouseLeave(Parent);
       }
    }
 }
 //- GuiMouseEventCtrl::onMouseDown (Hack)
 function GuiMouseEventCtrl::onMouseDown(%this)
 {
-   if(%this.eventHover)
-   {
-      if(isObject(%this.eventSwatch))
-         %this.eventSwatch.color = "255 100 100 100";
-   }
-   
    if(%this.eventType !$= "")
    {
       if(strLen(%this.eventCallbacks) == 4)
@@ -276,19 +398,22 @@ function GuiMouseEventCtrl::onMouseDown(%this)
          {
             %command = "Event_"@%this.eventType@"::onMouseDown("@%this@");";
             eval(%command);
+            %isSpecial = 1;
          }
+      }
+   }
+   
+   if(!%isSpecial)
+   {
+      if(isFunction(Parent,"onMouseDown"))
+      {
+         Parent::onMouseDown(Parent);
       }
    }
 }
 //- GuiMouseEventCtrl::onMouseUp (Hack)
 function GuiMouseEventCtrl::onMouseUp(%this)
 {
-   if(%this.eventHover)
-   {
-      if(isObject(%this.eventSwatch))
-         %this.eventSwatch.color = "255 200 200 100";
-   }
-   
    if(%this.eventType !$= "")
    {
       if(strLen(%this.eventCallbacks) == 4)
@@ -297,475 +422,1072 @@ function GuiMouseEventCtrl::onMouseUp(%this)
          {
             %command = "Event_"@%this.eventType@"::onMouseUp("@%this@");";
             eval(%command);
+            %isSpecial = 1;
          }
       }
    }
-}
-//- RTBMM_OpenDirect()
-function RTBMM_OpenDirect()
-{
-   $RTB::CModManager::Cache::DirectOpen = 1;
-   canvas.pushDialog(RTB_ModManager);
-}
-
-//*********************************************************
-//* Support Functions
-//*********************************************************
-//- RTBMM_getFieldFromContents (gets a tag from a contents var)
-function RTBMM_getFieldFromContents(%contents,%field)
-{
-   for(%i=0;%i<getFieldCount(%contents);%i++)
+   
+   if(!%isSpecial)
    {
-      %item = getField(%contents,%i);
-      if(strPos(%item,":") >= 0)
+      if(isFunction(Parent,"onMouseUp"))
       {
-         if(getSubStr(%item,0,strPos(%item,":")) $= %field)
-            return getSubStr(%item,strPos(%item,":")+2,strLen(%item));
+         Parent::onMouseUp(Parent);
       }
-      else if(%field $= "" && %item !$= "")
-         return %item;
-      else
-         return 0;
    }
 }
 
 //*********************************************************
-//* Movement Tracking
+//* Default Communication Handling
 //*********************************************************
-//- RTBMM_trackZone (logs where client browses for back button referral)
-function RTBMM_trackZone(%zoneName,%returnEval)
+//- RTBMM_Default_onConnected (onConnected Callback)
+function RTBMM_Default_onConnected(%this)
 {
-   if(!isObject(RTBMM_ZoneTracker))
-   {
-      new ScriptObject(RTBMM_ZoneTracker)
-      {
-         queueSize = 0;
-      };
-   }
-   
-   if(RTBMM_ZoneTracker.queueItem[RTBMM_ZoneTracker.queueSize-1] !$= %returnEval)
-   {
-      RTBMM_ZoneTracker.queueItem[RTBMM_ZoneTracker.queueSize] = %returnEval;
-      RTBMM_ZoneTracker.queueSize++;
-   }
-   
-   $RTB::CModManager::Cache::CurrentZone = %zoneName;
 }
-//- RTBMM_goBack (pops off tracking queue)
-function RTBMM_goBack()
+
+//- RTBMM_Default_onReply (onReply Callback)
+function RTBMM_Default_onReply(%this,%line)
 {
-   %returnEval = RTBMM_ZoneTracker.queueItem[RTBMM_ZoneTracker.queueSize-2];
-   RTBMM_ZoneTracker.queueItem[RTBMM_ZoneTracker.queueSize-1] = "";
-   RTBMM_ZoneTracker.queueSize--;
-   eval(%returnEval);
+}
+
+//- RTBMM_Default_onDisconnected (onDisconnected Callback)
+function RTBMM_Default_onDisconnected(%this)
+{
+}
+
+//- RTBMM_Default_onFail (onFail Callback)
+function RTBMM_Default_onFail(%this,%errorCode)
+{
 }
 
 //*********************************************************
-//* Communication with RTB Mods Server
+//* GUI Generation Management
 //*********************************************************
-//- RTBMM_onCommLine (On communication from server)
-function RTBMM_onCommLine(%this, %line)
-{		
-   if($RTB::CModManager::Session::TimedOut && !$RTB::CModManager::Session::LoggedIn)
-      RTBMM_beginAuth();
-      
-   $RTB::CModManager::Session::TimedOut = 0;
-}
-//- RTBMM_onCommFail (On failure to communicate with server)
-function RTBMM_onCommFail(%this,%type)
+//- RTBMM_GUI_Init (Creates intial gui for building into)
+function RTBMM_GUI_Init()
 {
-   RTB_ModManager.getObject(0).setText("Mod Manager - Unable to Connect");
-   $RTB::CModManager::Session::TimedOut = 1;
-   $RTB::CModManager::Session::LoggedIn = 0;
-
    if(isObject(RTBMM_LoadingContentSwatch))
-   {
-      RTBMM_stopLoadingRing(RTBMM_LoadingContentSwatch.getObject(0));
-      RTBMM_LoadingContentSwatch.getObject(0).setBitmap($RTB::Path@"images/loadRingFail");
-      RTBMM_LoadingContentSwatch.getObject(1).setText("<just:center><color:555555>Unable to Connect");
-   }
-   MessagePopup("","",1);
+      RTBMM_LoadingContentSwatch.delete();
    
-   if(%type $= "DNS")
-      MessageBoxOK("ERROR","It would appear that you are not connected to the internet at the moment. Please check your connection and try again.");
-   else
-      MessageBoxOK("ERROR","A connection cannot be established with the RTB Server. Either this is a problem with your internet connection or the server.\n\nCheck your internet and retry in a few minutes.");
-}
-
-//*********************************************************
-//* Authentication with RTB Server
-//*********************************************************
-//- RTBMM_beginAuth (start auth process)
-function RTBMM_beginAuth()
-{
-   $RTB::CModManager::Session::LoggedIn = false;
-   $RTB::CModManager::Session::LogInName = "";
+   $RTB::CModManager::GUI::CurrentY = 0;
    
-   if(!$RTB::Options::LoginWithProfile)
-   {
-      RTB_ModManager.getObject(0).setText("Mod Manager");
-      return;
-   }
-   
-   RTBMM_SendRequest("AUTH",1);
-   RTB_ModManager.getObject(0).setText("Mod Manager - Logging In...");
-}
-//- RTBMM_Auth_HandleResponse (handle auth response from server)
-function RTBMM_Auth_HandleResponse(%this,%line)
-{
-   %result = getField(%line,0);
-   %accountName = getField(%line,1);
-   
-   if(%result $= "FAIL")
-   {
-      RTB_ModManager.getObject(0).setText("Mod Manager - Logged Out (No RTB Account)");
-      $RTB::CModManager::Session::LoggedIn = false;
-      $RTB::CModManager::Session::LogInName = "";
-   }
-   else if(%result $= "WIN")
-   {
-      RTB_ModManager.getObject(0).setText("Mod Manager - Logged in as "@%accountName);
-      $RTB::CModManager::Session::LoggedIn = true;
-      $RTB::CModManager::Session::LogInName = %accountName;
-   }
-   else if(%result $= "BARRED")
-   {
-      RTB_ModManager.getObject(0).setText("Mod Manager - Barred from Authenticating");
-      $RTB::CModManager::Session::LoggedIn = false;
-      $RTB::CModManager::Session::LogInName = "";
-   }
-}
-
-//*********************************************************
-//* Support functions for gui generation
-//*********************************************************
-//- RTBMM_ConstructWindow (Set up frame to construct in)
-function RTBMM_ConstructWindow()
-{
    if(isObject(RTBMM_WindowSwatch))
-		RTBMM_WindowSwatch.delete();
-
-   $RTB::CModManager::GUI::LengthOverride = 0;
-	$RTB::CModManager::GUI::YSpacing = 1;
-	%swatch = new GuiSwatchCtrl(RTBMM_WindowSwatch)
-	{
-		position = "0 0";
-		color = "255 255 255 255";
-		extent = "498 421";
-	};
-	RTBMM_ModWindow.add(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		position = "0 0";
-		color = "255 255 255 255";
-		extent = RTBMM_ModWindow.extent;
-	};
-	RTBMM_WindowSwatch.add(%swatch);
-}
-//- RTBMM_PushWindowElement (Move created controls to main window and update y-pos)
-function RTBMM_PushWindowElement(%ctrl,%updateYSpacing)
-{
-   if(%ctrl.fixedPosition !$= "")
-      %ctrl.position = %ctrl.fixedPosition;
-   else
-      %ctrl.position = vectorAdd("0 "@$RTB::CModManager::GUI::YSpacing,%ctrl.offset);
+      RTBMM_WindowSwatch.delete();
       
-   if(%updateYSpacing)
+   RTBMM_WindowOverlay.clear();
+   RTBMM_WindowOverlay.setVisible(0);
+      
+   %swatch = new GuiSwatchCtrl(RTBMM_WindowSwatch)
    {
-      %cPosY = getWord(%ctrl.position,1);
-      %cExtY = getWord(%ctrl.extent,1);
-      $RTB::CModManager::GUI::YSpacing = %cPosY + %cExtY + 1; 
-   }
-   RTBMM_WindowSwatch.add(%ctrl);
-   RTBMM_ResizeSwatch();
+      position = "1 1";
+      extent = "679 555";
+      color = "255 255 255 255";
+   };
+   RTBMM_ModWindow.add(%swatch);
 }
-//- RTBMM_OffsetWindow (manual tweaking of Y offsets)
-function RTBMM_OffsetWindow(%ammount)
-{
-   $RTB::CModManager::GUI::YSpacing += %ammount+1;
-}
-//- RTBMM_ResizeSwatch (recalculating how far down scrollctrl should go)
-function RTBMM_ResizeSwatch()
-{
-	%PosX = getWord(RTBMM_ModWindow.position,0);
-	%PosY = getWord(RTBMM_ModWindow.position,1);
-	%ExtX = "498";
 
-   %targetExtent = 421;
-   for(%i=1;%i<RTBMM_WindowSwatch.getCount();%i++)
+//- RTBMM_GUI_PushControl (Adds control to the swatch)
+function RTBMM_GUI_PushControl(%ctrl,%recalc)
+{
+   if(!isObject(RTBMM_WindowSwatch))
+      RTBMM_GUI_Init();
+      
+   RTBMM_WindowSwatch.add(%ctrl);
+   
+   if(%recalc)
+   {
+      %totalOffset = getWord(%ctrl.position,1) + getWord(%ctrl.extent,1);
+      $RTB::CModManager::GUI::CurrentY = %totalOffset;
+      RTBMM_GUI_Resize();
+   }
+}
+
+//- RTBMM_GUI_Resize (Resizes swatch based on Y variable)
+function RTBMM_GUI_Resize()
+{
+	%PosX = getWord(RTBMM_WindowSwatch.position,0);
+	%PosY = getWord(RTBMM_WindowSwatch.position,1);
+	%ExtX = "679";
+   %ExtY = 555;
+   
+   if($RTB::CModManager::GUI::CurrentY > %ExtY)
+      %ExtY = $RTB::CModManager::GUI::CurrentY-1;
+      
+   RTBMM_WindowSwatch.resize(%PosX,%PosY,%ExtX,%ExtY);
+}
+
+//- RTBMM_GUI_AutoResize (Resizes swatch to fit gui inside)
+function RTBMM_GUI_AutoResize()
+{
+	%PosX = getWord(RTBMM_WindowSwatch.position,0);
+	%PosY = getWord(RTBMM_WindowSwatch.position,1);
+	%ExtX = "679";
+   %ExtY = 555;
+   
+   for(%i=0;%i<RTBMM_WindowSwatch.getCount();%i++)
    {
       %ctrl = RTBMM_WindowSwatch.getObject(%i);
-      %extent = getWord(%ctrl.position,1) + getWord(%ctrl.extent,1) + 1;
-      if(%extent > %targetExtent)
-         %targetExtent = %extent;
+      %extent = getWord(%ctrl.position,1) + getWord(%ctrl.extent,1);
+      if(%extent > %ExtY)
+         %ExtY = %extent+1;
    }
-   %targetExtent = %targetExtent + $RTB::CModManager::GUI::LengthOverride;
-	RTBMM_WindowSwatch.resize(%PosX, %PosY, %ExtX, %targetExtent);
+	RTBMM_WindowSwatch.resize(%PosX,%PosY,%ExtX,%ExtY);
+	
+	%ExtY = 1;
+   for(%i=0;%i<RTBMM_WindowSwatch.getCount();%i++)
+   {
+      %ctrl = RTBMM_WindowSwatch.getObject(%i);
+      %extent = getWord(%ctrl.position,1) + getWord(%ctrl.extent,1);
+      if(%extent > %ExtY)
+         %ExtY = %extent;
+   }	
+	$RTB::CModManager::GUI::CurrentY = %ExtY;
 }
 
-//*********************************************************
-//* Scripted GUI Generation - Libraries
-//*********************************************************
-function RTBMM_createLoadingContent(%text)
+//- RTBMM_GUI_Offset (Offsets GUI in either direction and updates controls)
+function RTBMM_GUI_Offset(%offset)
 {
+   $RTB::CModManager::GUI::CurrentY += %offset;
+   RTBMM_GUI_Resize();
+}
+
+//- RTBMM_GUI_FadeIn (Fades a swatch in)
+function RTBMM_GUI_FadeIn(%ctrl)
+{
+   if(!isObject(%ctrl))
+      return;
+      
+   %color = getWords(%ctrl.color,0,2);
+   %alpha = getWord(%ctrl.color,3);
+   %alpha += 20;
+   if(%alpha > 255)
+      %alpha = 255;
+   %ctrl.color = %color SPC %alpha;
+   
+   if(%alpha < 255)
+      schedule(50,0,"RTBMM_GUI_FadeIn",%ctrl);
+}
+
+//- RTBMM_GUI_FadeOut (Fades out a swatch)
+function RTBMM_GUI_FadeOut(%ctrl)
+{
+   if(!isObject(%ctrl))
+      return;
+      
+   %color = getWords(%ctrl.color,0,2);
+   %alpha = getWord(%ctrl.color,3);
+   %alpha -= 20;
+   if(%alpha < 0)
+      %alpha = 0;
+   %ctrl.color = %color SPC %alpha;
+   
+   if(%alpha > 0)
+      schedule(50,0,"RTBMM_GUI_FadeOut",%ctrl);
+}
+
+//- RTBMM_GUI_Load (Shows a loading gui)
+function RTBMM_GUI_Load(%text)
+{
+   RTBMM_WindowOverlay.clear();
+   RTBMM_WindowOverlay.setVisible(0);
+   
+   if(!isObject(RTBMM_WindowSwatch))
+   {
+      RTBMM_GUI_Init();
+      RTBMM_WindowSwatch.color = "0 0 0 0";
+   }
+      
+   if(isObject(RTBMM_LoadingContentSwatch))
+      RTBMM_LoadingContentSwatch.delete();
+      
    if(%text $= "")
-      %text = "Downloading Content";
+      %text = "Downloading Content...";
+      
+	%swatch = new GuiSwatchCtrl(RTBMM_LoadingContentSwatch)
+	{
+	   position = "100 35";
+		extent = "679 555";
+		color = "255 255 255 150";
+		
+		new GuiAnimatedBitmapCtrl()
+		{
+		   horizSizing = "center";
+		   vertSizing = "bottom";
+		   position = "324 240";
+		   extent = "31 31";
+		   bitmap = "./images/image_loadRing";
+		   framesPerSecond = 15;
+		   numFrames = 8;
+		};
+		
+		new GuiMLTextCtrl()
+		{
+		   horizSizing = "center";
+		   position = "140 275";
+		   extent = "400 12";
+		   profile = RTB_Verdana12Pt;
+		   text = "<just:center><color:555555>"@%text;
+		};
+	};
+   RTBMM_GUI_PushControl(%swatch);
+   RTB_ModManager.getObject(0).add(%swatch);
+}
+
+//- RTBMM_GUI_FailLoad (Shows a failed loading gui)
+function RTBMM_GUI_FailLoad(%text)
+{
+   if(isObject(RTBMM_LoadingContentSwatch))
+      RTBMM_LoadingContentSwatch.delete();
+      
+   if(%text $= "")
+      %text = "An Error Occurred";
       
 	%swatch = new GuiSwatchCtrl(RTBMM_LoadingContentSwatch)
 	{
 	   fixedPosition = "1 1";
-		extent = "498 419";
+		extent = "680 553";
 		color = "235 235 235 255";
 		
 		new GuiBitmapCtrl()
 		{
 		   horizSizing = "center";
 		   vertSizing = "bottom";
-		   position = "233 174";
+		   position = "324 240";
 		   extent = "31 31";
-		   bitmap = "./images/loadRing";
+		   bitmap = "./images/image_loadRing_fail";
 		};
 		
 		new GuiMLTextCtrl()
 		{
 		   horizSizing = "center";
-		   position = "190 209";
-		   extent = "400 12";
+		   position = "40 275";
+		   extent = "600 12";
 		   profile = RTB_Verdana12Pt;
-		   text = "<just:center><color:555555>Downloading Content...";
+		   text = "<just:center><color:555555>"@%text;
 		};
 	};
-   RTBMM_PushWindowElement(%swatch);
-   RTBMM_createLoadingRing(%swatch.getObject(0));
+   RTBMM_GUI_PushControl(%swatch);
 }
-function RTBMM_createCenterMessage(%message)
-{
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "498 27";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "7 3";
-		extent = "483 21";
-		text = "\c1"@%message;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch,1);
-}
-function RTBMM_overrideMainSwatchLength(%override)
-{
-   $RTB::CModManager::GUI::LengthOverride = %override;
-   RTBMM_ResizeSwatch();
-}
-function RTBMM_createGoBackButton()
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "498 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "216 3";
-		extent = "66 21";
-		text = "\c1<< Back >>";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
 
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 -1";
-		extent = "501 29";
-		color = "255 200 200 100";
-		visible = 0;
-	};
-	RTBMM_PushWindowElement(%swatch);
-	
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		offset = "1 0";
-		extent = "501 27";
-		
-		eventType = "backButtonSelect";
-		eventCallbacks = "0001";
-		
-		eventHover = 1;
-		eventSwatch = %swatch;
-	};
-	RTBMM_PushWindowElement(%mouseevent);
-
-   RTBMM_overrideMainSwatchLength(-1);
-   RTBMM_OffsetWindow(27);
-}
-function Event_backButtonSelect::onMouseUp(%this)
+//- RTBMM_GUI_AnimateStar_Init (Fills a star progressively)
+function RTBMM_GUI_AnimateStar_Init(%ctrl,%stage)
 {
-   RTBMM_goBack();
-}
-function RTBMM_moveBitmap(%gui)
-{
-	if(!isObject(%gui))
-		return;
-
-	%moves = %gui.moves+1;
-	if(%moves > 16)
-		%moves = 1;
-   %positionX = -16+%moves;
-   %gui.moves = %moves;
-   %gui.position = %positionX SPC getWord(%gui.position,1);
-
-	%gui.moveSchedule = schedule(30,0,"RTBMM_moveBitmap",%gui);
-}
-function RTBMM_runLoadingDots(%gui)
-{
-	if(!isObject(%gui))
-		return;
-
-	%dots = %gui.dots+1;
-	if(%dots > 3)
-		%dots = 1;
-	for(%i=0;%i<%dots;%i++)
-	{
-		%dotString = %dotString@".";
-	}
-
-	%gui.setText("\c1"@%gui.textVal@%dotString);
-	%gui.dots = %dots;
-	%gui.dotSchedule = schedule(500,0,"RTBMM_runLoadingDots",%gui);
-}
-function RTBMM_createLoadingRing(%gui)
-{
-   if(!isObject(%gui))
+   if(!isObject(%ctrl))
       return;
       
-   for(%i=1;%i<9;%i++)
+   if(!$RTB::Options::MM::AnimateGUI)
    {
-      %bmp = new GuiBitmapCtrl()
-      {
-         position = "0 0";
-         extent = "31 31";
-         bitmap = "./images/loadRing"@%i;
-         visible = 0;
-      };
-      %gui.add(%bmp);
+      %ctrl.setBitmap($RTB::Path @ "images/icon_star"@%stage);
+      return;
    }
-   RTBMM_animateLoadingRing(%gui);
+      
+   %ctrl.currStage = 0;
+   RTBMM_GUI_AnimateStar_Action(%ctrl,%stage);
 }
-function RTBMM_animateLoadingRing(%gui)
+
+//- RTBMM_GUI_AnimateStar_Action (Action for star filling)
+function RTBMM_GUI_AnimateStar_Action(%ctrl,%stage)
 {
-   if(!isObject(%gui))
+   if(!isObject(%ctrl))
       return;
       
-   if(%gui.ringNumber > 8 || %gui.ringNumber $= "")
-      %gui.ringNumber = 1;
-      
-   for(%i=0;%i<%gui.getCount();%i++)
+   %ctrl.setBitmap($RTB::Path @ "images/icon_star"@%ctrl.currStage);
+   
+   if(%ctrl.currStage >= %stage)
+      return;
+   
+   %ctrl.currStage++;
+   schedule(50,0,"RTBMM_GUI_AnimateStar_Action",%ctrl,%stage);
+}
+
+//- RTBMM_GUI_LoadRing_Clear (Clears loadring and schedule)
+function RTBMM_GUI_LoadRing_Clear(%ctrl)
+{
+   %bitmap = new GuiBitmapCtrl()
    {
-      %gui.getObject(%i).setVisible(0);
-   }
-   %gui.getObject(%gui.ringNumber-1).setVisible(1);
-   %gui.ringNumber++;
-   
-   %gui.ringSc = schedule(80,0,"RTBMM_animateLoadingRing",%gui);
+      position = %ctrl.position;
+      extent = %ctrl.extent;
+      bitmap = "./images/image_loadRing_clear";
+   };
+   %ctrl.getGroup().add(%bitmap);
+   %ctrl.delete();
 }
-function RTBMM_stopLoadingRing(%gui)
+
+//*********************************************************
+//* GUI Positioning Functions
+//*********************************************************
+//- RTBMM_GUI_CenterVert (Centers ctrlA inside ctrlB)
+function RTBMM_GUI_CenterVert(%ctrlA,%ctrlB)
 {
-   %gui.clear();
-   cancel(%gui.ringSc);
-}
-function RTBMM_Pagination(%this,%line)
-{
-   %numPages = getField(%line,0);
-   %currPage = getField(%line,1);
-   
-   if(%numPages <= 1)
-      return;
-   
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "498 27";
-		bitmap = "./images/cellpic3";
-		
-		new GuiMLTextCtrl()
-		{
-		   profile = RTBMM_PaginationProfile;
-		   vertSizing = "center";
-		   horizSizing = "center";
-		   extent = "496 14";
-		};
-	};
-	RTBMM_PushWindowElement(%bitmap,1);
-	
-	if(%currPage > 1)
-	   %pagination = "<a:pagination-"@%currPage-1@">Previous</a> ";
-	
-	for(%i=1;%i<%numPages+1;%i++)
-	{
-	   if(%i $= %currPage)
-	      %pagination = %pagination@"["@%i@"] ";
+   if(isObject(%ctrlB))
+   {
+      %maxArea = getWord(%ctrlB.extent,1);
+      %height = getWord(%ctrlA.extent,1);
+
+      %yPosition = (%maxArea/2)-(%height/2);
+      if(%ctrlB $= %ctrlA.getGroup())
+         %ctrlA.position = getWord(%ctrlA.position,0) SPC (%yPosition+getWord(%ctrlB.position,1));
       else
-         %pagination = %pagination@"<a:pagination-"@%i@">["@%i@"]</a> ";
-	}
-	%pagination = getSubStr(%pagination,0,strLen(%pagination)-1);
-	
-	if(%currPage !$= %numPages)
-	{
-	   %pagination = %pagination@" <a:pagination-"@%currPage+1@">Next</a>";
-	}
-	%bitmap.getObject(0).setText("<just:center>"@%pagination);
-}
-function RTBMM_handlePagination(%page)
-{
-   %lastCmd = RTBMM_SC.t_command[2];
-   %lastString = RTBMM_SC.t_string[2];
-   
-   if($RTB::CModManager::Cache::CurrentZone $= "allfilesview")
+         %ctrlA.position = getWord(%ctrlA.getCanvasPosition(),0) SPC (%yPosition+getWord(%ctrlB.getCanvasPosition(),1));
+   }
+   else
    {
-      RTBMM_ConstructWindow();
-      RTBMM_SectionView_createHeader();
-      RTBMM_createLoadingContent();
-      RTBMM_SC.sendRequest(%lastCmd,%string,2,"&p="@%page);
+      %ctrlB = %ctrlA.getGroup();
+      %maxArea = getWord(%ctrlB.extent,1);
+      %height = getWord(%ctrlA.extent,1);
+      
+      %yPosition = (%maxArea/2)-(%height/2);
+      %ctrlA.position = getWord(%ctrlA.position,0) SPC %yPosition;
    }
 }
 
-//*********************************************************
-//* Public GUI Handlers
-//*********************************************************
-function RTBMM_createCustomHeader(%title)
+//- RTBMM_GUI_CenterHoriz (Centers ctrlA inside ctrlB)
+function RTBMM_GUI_CenterHoriz(%ctrlA,%ctrlB)
 {
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "498 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 3";
-		extent = "498 21";
-		text = "\c1"@%title;
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
+   if(isObject(%ctrlB))
+   {
+      %maxArea = getWord(%ctrlB.extent,0);
+      %width = getWord(%ctrlA.extent,0);
+      
+      %xPosition = (%maxArea/2)-(%width/2);
+      if(%ctrlB $= %ctrlA.getGroup())
+         %ctrlA.position = (%xPosition+getWord(%ctrlB.position,0)) SPC getWord(%ctrlA.position,1);
+      else
+         %ctrlA.position = (%xPosition+getWord(%ctrlB.getCanvasPosition(),0)) SPC getWord(%ctrlA.getCanvasPosition(),1);
+   }
+   else
+   {
+      %ctrlB = %ctrlA.getGroup();
+      %maxArea = getWord(%ctrlB.extent,0);
+      %width = getWord(%ctrlA.extent,0);
+      
+      %xPosition = (%maxArea/2)-(%width/2);
+      %ctrlA.position = %xPosition SPC getWord(%ctrlA.position,1);
+   }
 }
-function RTBMM_createFooter()
+
+//- RTBMM_GUI_Center (Centers ctrlA inside ctrlB)
+function RTBMM_GUI_Center(%ctrlA,%ctrlB)
 {
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "498 27";
-		bitmap = "./images/cellpic3";
-	};
-	RTBMM_PushWindowElement(%bitmap,1);
+   RTBMM_GUI_CenterHoriz(%ctrlA,%ctrlB);
+   RTBMM_GUI_CenterVert(%ctrlA,%ctrlB);
 }
+
+//*********************************************************
+//* Public GUI Generation Functions
+//*********************************************************
+//- RTBMM_GUI_createWindow (Creates an imitation GuiWindowCtrl comprised of resizable bitmaps)
+function RTBMM_GUI_createWindow(%text)
+{
+   RTBMM_WindowOverlay.setVisible(1);
+   
+   %window = new GuiSwatchCtrl()
+   {
+      extent = "64 64";
+      color = "0 0 0 0";
+      
+      new GuiBitmapCtrl()
+      {
+         extent = "6 28";
+         minExtent = "1 1";
+         bitmap = $RTB::Path@"images/ui/window_topLeft";
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "6 0";
+         extent = "53 28";
+         horizSizing = "width";
+         bitmap = $RTB::Path@"images/ui/window_topLoop";
+         wrap = 1;
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "59 0";
+         extent = "5 28";
+         minExtent = "1 1";
+         horizSizing = "left";
+         bitmap = $RTB::Path@"images/ui/window_topRight";
+      };
+      
+      new GuiSwatchCtrl()
+      {
+         position = "4 31";
+         extent = "56 29";
+         horizSizing = "width";
+         vertSizing = "height";
+         color = "235 236 237 255";
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "0 28";
+         extent = "6 5";
+         minExtent = "1 1";
+         bitmap = $RTB::Path@"images/ui/content_topLeft";
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "6 28";
+         extent = "52 3";
+         minExtent = "1 1";
+         horizSizing = "width";
+         bitmap = $RTB::Path@"images/ui/content_top";
+         wrap = 1;
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "58 28";
+         extent = "6 5";
+         minExtent = "1 1";
+         horizSizing = "left";
+         bitmap = $RTB::Path@"images/ui/content_topRight";
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "0 33";
+         extent = "4 24";
+         minExtent = "1 1";
+         vertSizing = "height";
+         bitmap = $RTB::Path@"images/ui/content_left";
+         wrap = 1;
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "60 33";
+         extent = "4 24";
+         minExtent = "1 1";
+         horizSizing = "left";
+         vertSizing = "height";
+         bitmap = $RTB::Path@"images/ui/content_right";
+         wrap = 1;
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "0 57";
+         extent = "7 7";
+         minExtent = "1 1";
+         vertSizing = "top";
+         bitmap = $RTB::Path@"images/ui/content_bottomLeft";
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "57 57";
+         extent = "7 7";
+         minExtent = "1 1";
+         horizSizing = "left";
+         vertSizing = "top";
+         bitmap = $RTB::Path@"images/ui/content_bottomRight";
+      };
+      
+      new GuiBitmapCtrl()
+      {
+         position = "7 60";
+         extent = "50 4";
+         minExtent = "1 1";
+         horizSizing = "width";
+         vertSizing = "top";
+         bitmap = $RTB::Path@"images/ui/content_bottom";
+         wrap = 1;
+      };
+      
+      new GuiMLTextCtrl()
+      {
+         position = "3 5";
+         extent = "390 18";
+         text = "<color:FAFAFA><just:left><font:Impact:18>  "@%text;
+      };
+      
+      new GuiBitmapButtonCtrl()
+      {
+         position = "41 7";
+         extent = "16 16";
+         bitmap = $RTB::Path@"images/buttons/small/btnClose";
+         horizSizing = "left";
+         text = " ";
+      };
+   };
+   %window.canvas = %window.getObject(3);
+   
+   %window.getObject(%window.getCount()-1).command = "RTBMM_GUI_closeWindow("@%window@");";
+   %window.closeButton = %window.getObject(%window.getCount()-1);
+   RTBMM_WindowOverlay.add(%window);
+   
+   return %window;
+}
+
+//- RTBMM_GUI_closeWindow (Closes a generated window and removes the overlay if necessary)
+function RTBMM_GUI_closeWindow(%window)
+{
+   %window.delete();
+   if(RTBMM_WindowOverlay.getCount() <= 0)
+      RTBMM_WindowOverlay.setVisible(0);
+}
+
+//- RTBMM_GUI_createMessageBoxOK (Creates an OK message box from the above function)
+function RTBMM_GUI_createMessageBoxOK(%title,%message,%ok)
+{
+   %window = RTBMM_GUI_createWindow(%title);
+   %window.resize(0,0,300,100);
+   RTBMM_GUI_Center(%window);
+   
+   %text = new GuiMLTextCtrl()
+   {
+      position = "10 10";
+      extent = "275 12";
+      text = "<font:Verdana:12><color:555555>"@%message;
+   };
+   %window.canvas.add(%text);
+   %text.forceReflow();
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "0 35";
+      vertSizing = "top";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnOK";
+      command = %ok@"RTBMM_GUI_closeWindow("@%window@");";
+   };
+   %window.canvas.add(%button);
+   RTBMM_GUI_CenterHoriz(%button);
+   
+   %window.resize(0,0,300,getWord(%text.extent,1)+85);
+   RTBMM_GUI_Center(%window);
+}
+
+//- RTBMM_GUI_createMessageBoxOKCancel (Creates an OK/Cancel message box from the above function)
+function RTBMM_GUI_createMessageBoxOKCancel(%title,%message,%ok,%cancel)
+{
+   %window = RTBMM_GUI_createWindow(%title);
+   %window.resize(0,0,300,100);
+   RTBMM_GUI_Center(%window);
+   
+   %text = new GuiMLTextCtrl()
+   {
+      position = "10 10";
+      extent = "275 12";
+      text = "<font:Verdana:12><color:555555>"@%message;
+   };
+   %window.canvas.add(%text);
+   %text.forceReflow();
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "88 35";
+      vertSizing = "top";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnOK";
+      command = %ok@"RTBMM_GUI_closeWindow("@%window@");";
+   };
+   %window.canvas.add(%button);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "150 35";
+      vertSizing = "top";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnCancel";
+      command = %cancel@"RTBMM_GUI_closeWindow("@%window@");";
+   };
+   %window.canvas.add(%button);
+   
+   %window.resize(0,0,300,getWord(%text.extent,1)+85);
+   RTBMM_GUI_Center(%window);
+}
+
+//- RTBMM_GUI_createHeader (Creates a standard header with value)
+function RTBMM_GUI_createHeader(%value,%type)
+{
+   if(%type $= "")
+      %type = 1;
+      
+   if(%type $= 1)
+   {
+      %modifier = 1;
+      %color = "200 200 200 255";
+   }
+   else
+      %color = "255 255 255 225";
+      
+   %head = new GuiSwatchCtrl()
+   {
+      position = 0 SPC $RTB::CModManager::GUI::CurrentY;
+      extent = 680 SPC 28;
+      color = %color;
+      
+      new GuiSwatchCtrl()
+      {
+         position = "1 1";
+         extent = "679 27";
+         color = "180 185 191 255";
+         
+         horizSizing = "width";
+         vertSizing = "height";
+         
+         new GuiBitmapCtrl()
+         {
+            position = "0 0";
+            extent = 678+%modifier SPC 26+%modifier;
+            bitmap = "./images/header_cell"@%type;
+            wrap = 1;
+            
+            horizSizing = "width";
+            vertSizing = "height";
+         };
+      };
+   };
+   
+   if(%value $= "")
+   {
+      RTBMM_GUI_PushControl(%head,1);
+      return %head;
+   }
+   
+   %ml = new GuiMLTextCtrl()
+   {
+      profile = RTBMM_PaginationProfile;
+      position = "0 0";
+      horizSizing = "width";
+      vertSizing = "height";
+      extent = "678 27";
+      text = "<color:888888><font:Arial Bold:15><just:center>"@%value;
+   };
+   %head.add(%ml);
+   RTBMM_GUI_PushControl(%head,1);
+   
+   %ml.forceReflow();
+   RTBMM_GUI_CenterVert(%ml);
+   
+   return %head;
+}
+
+//- RTBMM_GUI_createSplitHeader (Creates a split header based on percent widths)
+function RTBMM_GUI_createSplitHeader(%cell,%width1,%text1,%width2,%text2,%width3,%text3,%width4,%text4,%width5,%text5,%width6,%text6,%width7,%text7,%width8,%text8)
+{
+   if(%cell $= "")
+      %cell = "cell1";
+      
+   %height = 28;
+   
+   if(%cell $= "cell1")
+   {
+      %modifier = 1;
+      %borderColor = "200 200 200 255";
+   }
+   else
+      %borderColor = "255 255 255 255";
+      
+   %i = 1;
+   while(%text[%i] !$= "")
+   {
+      %i++;
+   }
+   %count = %i-1;
+   %maxWidth = 680;
+
+   %currX = 0;
+   for(%i=1;%i<%count+1;%i++)
+   {
+      %width = (%maxWidth/100)*%width[%i];
+      
+      if(strPos(%width,".") >= 0)
+         %decimal = getSubStr(%width,strPos(%width,".")+1,strLen(%width));
+      %width = mFloor(%width);
+      %decimal = "0."@%decimal;
+
+      %remainder += %decimal;
+      %remainder = mFloatLength(%remainder,2);
+      if(%remainder >= 1)
+      {
+         %remainder -= 1;
+         %header.extent = getWord(%header.extent,0)+1 SPC %height;
+         %header.getObject(0).extent = getWord(%header.extent,0)+1 SPC %height-1;
+         if(isObject(%header.getObject(1)))
+            %header.getObject(1).extent = getWord(%header.extent,0) SPC getWord(%header.getObject(1).extent,1);
+         %header.getObject(0).getObject(0).extent = getWord(%header.extent,0)-2 SPC %height-2;
+         %currX += 1;
+      }
+
+      %header = new GuiSwatchCtrl()
+      {
+         position = %currX SPC $RTB::CModManager::GUI::CurrentY;
+         extent = %width SPC %height;
+         color = %borderColor;
+         
+         new GuiSwatchCtrl()
+         {
+            position = 1 SPC 1;
+            extent = %width-1 SPC %height-1;
+            color = "180 185 191 255";
+            
+            new GuiBitmapCtrl()
+            {
+               position = "0 0";
+               extent = (%width-2)+%modifier SPC (%height-2)+%modifier;
+               bitmap = "./images/header_"@%cell;
+               wrap = 1;
+            };
+         };
+      };
+      %currX += (%width);
+      if(%text[%i] !$= "")
+      {
+         %ml = new GuiMLTextCtrl()
+         {
+            profile = RTBMM_PaginationProfile;
+            position = "0 0";
+            vertSizing = "width";
+            extent = %width SPC %height;
+            text = "<color:888888><font:Arial Bold:15><just:center>"@%text[%i];
+         };
+         %header.add(%ml);
+      }
+      
+      if(%i $= %count)
+         %resize = 1;
+      RTBMM_GUI_PushControl(%header,%resize);
+      
+      if(isObject(%ml))
+      {
+         %ml.forceReflow();
+         RTBMM_GUI_CenterVert(%ml);
+      }
+   }
+   
+   if(mFloatLength(%remainder,0) >= 1)
+   {
+      %header.extent = getWord(%header.extent,0)+1 SPC %height;
+      %header.getObject(0).extent = getWord(%header.extent,0)+1 SPC %height-1;
+      %header.getObject(0).getObject(0).extent = getWord(%header.extent,0)-2 SPC %height-2;
+   }
+   
+   return %header;
+}
+
+//- RTBMM_GUI_createContent (Creates a split content row based on percent widths)
+function RTBMM_GUI_createContent(%cell,%height,%width1,%width2,%width3,%width4,%width5,%width6,%width7,%width8)
+{
+   if(%cell $= "")
+      %cell = "cell";
+      
+   %outerBorder = "255 255 255 255";
+   %innerBorder = "180 185 191 255";
+   %bgColor = "240 243 245 255";
+   if(%cell $= "cellY")
+   {
+      %outerBorder = "255 255 100 255";
+      %innerBorder = "200 200 0 255";
+      %bgColor = "247 241 178 255";
+   }
+   
+   if(%height $= "")
+      %height = 30;
+      
+   %i = 1;
+   while(%width[%i] !$= "")
+   {
+      %i++;
+   }
+   %count = %i-1;
+   %maxWidth = 680;
+
+   %container = new GuiSwatchCtrl()
+   {
+      position = "0" SPC $RTB::CModManager::GUI::CurrentY;
+      extent = "680 "@%height;
+      color = "0 0 0 0";
+   };
+
+   %currX = 0;
+   for(%i=1;%i<%count+1;%i++)
+   {
+      %width = (%maxWidth/100)*%width[%i];
+      if(strPos(%width,".") >= 0)
+         %decimal = getSubStr(%width,strPos(%width,".")+1,strLen(%width));
+      %width = mFloor(%width);
+      %decimal = "0."@%decimal;
+
+      %remainder += %decimal;
+      %remainder = mFloatLength(%remainder,2);
+      if(%remainder >= 1)
+      {
+         %remainder -= 1;
+         %header.extent = getWord(%header.extent,0)+1 SPC %height;
+         %header.getObject(0).extent = getWord(%header.extent,0)+1 SPC %height-1;
+         %header.getObject(0).getObject(0).extent = getWord(%header.extent,0)-2 SPC %height-2;
+         %currX += 1;
+      }
+
+      %header = new GuiSwatchCtrl()
+      {
+         horizSizing = "width";
+         vertSizing = "height";
+         position = %currX SPC 0;
+         extent = %width SPC %height;
+         color = %outerBorder;
+         
+         new GuiSwatchCtrl()
+         {
+            horizSizing = "width";
+            vertSizing = "height";
+            position = "1 1";
+            extent = %width-1 SPC %height-1;
+            color = %innerBorder;
+            
+            new GuiSwatchCtrl()
+            {
+               position = "0 0";
+               horizSizing = "width";
+               vertSizing = "height";
+               extent = %width-2 SPC %height-2;
+               color = %bgColor;
+
+               new GuiBitmapCtrl()
+               {
+                  horizSizing = "width";
+                  vertSizing = "bottom";
+                  position = "0 0";
+                  extent = %width-2 SPC 47;
+                  bitmap = "./images/background_"@%cell;
+               };
+            };
+         };
+      };
+      %currX += (%width);
+      %container.add(%header);
+   }
+   RTBMM_GUI_PushControl(%container,1);
+   
+   if(mFloatLength(%remainder,0) >= 1)
+   {
+      %header.extent = getWord(%header.extent,0)+1 SPC %height;
+      %header.getObject(0).extent = getWord(%header.extent,0)+1 SPC %height-1;
+      %header.getObject(0).getObject(0).extent = getWord(%header.extent,0)-2 SPC %height-2;
+   }
+   
+   return %container;
+}
+
+//- RTBMM_GUI_createFooter (Creates a footer, and adds pagination if necessary)
+function RTBMM_GUI_createFooter(%type)
+{
+   if(%type $= "")
+      %type = "cell2";
+      
+   if($RTB::CModManager::Cache::Pagination::NumPages >= 2)
+   {
+      %paginationText = "Goto Page ";
+      if($RTB::CModManager::Cache::Pagination::CurrPage > 1)
+         %paginationText = %paginationText@"<a:pagination-"@$RTB::CModManager::Cache::Pagination::CurrPage-1@">Previous</a> ";
+      for(%i=1;%i<$RTB::CModManager::Cache::Pagination::NumPages+1;%i++)
+      {
+         if(%i $= $RTB::CModManager::Cache::Pagination::CurrPage)
+            %paginationText = %paginationText@"<spush><color:666666><font:Verdana Bold:15>["@%i@"]<spop> ";
+         else
+            %paginationText = %paginationText@"<a:pagination-"@%i@">"@%i@"</a> ";
+      }
+      if($RTB::CModManager::Cache::Pagination::CurrPage < $RTB::CModManager::Cache::Pagination::NumPages)
+         %paginationText = %paginationText@"<a:pagination-"@$RTB::CModManager::Cache::Pagination::CurrPage+1@">Next</a>";
+      RTBMM_GUI_createHeader("<font:Verdana Bold:13><color:333333><just:right>"@%paginationText@"  ");
+   }
+   else
+      RTBMM_GUI_createSplitHeader(%type,"100"," ");
+}
+
+//- RTBMM_GUI_getXPlacement (Calculates next placement from supplied control)
+function RTBMM_GUI_getXPlacement(%ctrl)
+{
+   %xPlace = getWord(%ctrl.position,0)+(getWord(%ctrl.extent,0));
+   return %xPlace;
+}
+
+//- RTBMM_GUI_calcGUIContainer (Calculates extent of container to surround supplied controls)
+function RTBMM_GUI_calcGUIContainer(%ctrl1,%ctrl2,%ctrl3,%ctrl4,%ctrl5,%ctrl6,%ctrl7,%ctrl8)
+{
+   %i = 1;
+   while(%ctrl[%i] !$= "")
+   {
+      if(getWord(%ctrl[%i].position,0)+getWord(%ctrl[%i].extent,0) > %xMax)
+         %xMax = getWord(%ctrl[%i].position,0)+getWord(%ctrl[%i].extent,0);
+      if(getWord(%ctrl[%i].extent,1) > %yMax)
+         %yMax = getWord(%ctrl[%i].extent,1);
+         
+      %i++;
+   }
+   
+   %xMax++;
+   %yMax+=2;
+   return %xMax SPC %yMax;
+}
+
+//- RTBMM_GUI_calcWidthPercent (Calculates width from percentage)
+function RTBMM_GUI_calcWidthPercent(%target,%width1,%width2,%width3,%width4,%width5,%width6,%width7,%width8)
+{
+   %i = 1;
+   while(%width[%i] !$= "")
+   {
+      %i++;
+   }
+   %count = %i-1;
+   %maxWidth = 680-(%count+1);
+   
+   for(%i=1;%i<%count+1;%i++)
+   {
+      %actualWidth[%i] = (%maxWidth/100)*%width[%i];
+      if(strPos(%actualWidth[%i],".") >= 0)
+         %decimal = getSubStr(%actualWidth[%i],strPos(%actualWidth[%i],".")+1,strLen(%actualWidth[%i]));
+      %actualWidth[%i] = mFloor(%actualWidth[%i]);
+      
+      %decimal = "0."@%decimal;
+      %remainder += %decimal;
+      %remainder = mFloatLength(%remainder,1);
+      if(%remainder >= 1)
+      {
+         %remainder -= 1;
+         %actualWidth[%i-1] = %actualWidth[%i-1]+1;
+      }
+   }
+   return %actualWidth[%target];
+}
+
+//- RTBMM_GUI_createMessage (Creates a standard message with value)
+function RTBMM_GUI_createMessage(%value)
+{
+   %container = RTBMM_GUI_createContent("cell","30","100");
+   
+   %ml = new GuiMLTextCtrl()
+   {
+      position = "0 5";
+      extent = "678 27";
+      text = "<color:888888><font:Verdana:12><just:center>"@%value;
+   };
+   %container.getBottom(1).add(%ml);
+   
+   %ml.forceReflow();
+   %height = getWord(%ml.extent,1)+10;
+   %container.resize(getWord(%container.position,0),getWord(%container.position,1),getWord(%container.extent,0),%height);
+   RTBMM_GUI_AutoResize();
+   
+   return %container;
+}
+
+//- RTBMM_GUI_createRatingSwatch (Creates rating box 88x16 with animated loading stars)
+function RTBMM_GUI_createRatingSwatch(%rating)
+{
+   %swatch = new GuiSwatchCtrl()
+   {
+      extent = "88 50";
+      color = "0 0 0 0";
+   };
+   
+   if(strPos(%rating,"-") > 0)
+   {
+      %numRatings = getSubStr(%rating,strPos(%rating,"-")+1,strLen(%rating));
+      %rating = getSubStr(%rating,0,strPos(%rating,"-"));
+   }
+      
+   for(%i=0;%i<strLen(%rating);%i++)
+   {
+      %star = getSubStr(%rating,%i,1);
+      
+      %stctrl = new GuiBitmapCtrl()
+      {
+         position = (18*%i) SPC 0;
+         extent = "16 16";
+         bitmap = $RTB::Path@"images/icon_star0";
+      };
+      %swatch.add(%stctrl);
+      RTBMM_GUI_CenterVert(%stctrl);
+      schedule(%i*300,0,"RTBMM_GUI_AnimateStar_Init",%stctrl,%star);
+      if(%numRatings !$= "")
+         %stctrl.shift(0,-5);
+   }
+   if(%numRatings !$= "")
+   {
+      %s = (%numRatings == 1) ? "" : "s";
+      %mlTextCtrl = new GuiMLTextCtrl()
+      {
+         position = "0 30";
+         extent = "88";
+         text = "<just:center><font:Arial:12><color:BBBBBB>"@%numRatings@" rating"@%s;
+      };
+      %swatch.add(%mlTextCtrl);
+   }
+   return %swatch;
+}
+
+//- RTBMM_GUI_addToMods (Flashes a little plus icon on the YourMods tab to indicate you have a new add-on)
+function RTBMM_GUI_addToMods()
+{
+   %bitmap = new GuiBitmapCtrl()
+   {
+      extent = "16 16";
+      position = "10 320";
+      bitmap = $RTB::Path@"images/icon_add";
+   };
+   RTB_ModManager.getObject(0).add(%bitmap);
+   
+   %bitmap.setColor("1 1 1 0");
+   for(%i=1;%i<6;%i++)
+   {
+      %bitmap.schedule(%i*30,"setColor","1 1 1 "@%i/5);
+   }
+   
+   for(%i=1;%i<11;%i++)
+   {
+      %bitmap.schedule((%i*50)+700,"setColor","1 1 1 "@1-(%i/10));
+   }
+   %bitmap.schedule(2000,"delete");
+}
+
+//- RTBMM_GUI_setTransfers (Sets the number of transfers in the transfer queue and updates gui indicator)
+function RTBMM_GUI_setTransfers(%number)
+{
+   if(%number <= 0)
+      RTBMM_iconTransfers.setVisible(0);
+   else
+   {
+      RTBMM_iconTransfers.setVisible(1);
+      RTBMM_iconTransfers_cDigit.setVisible(0);
+      RTBMM_iconTransfers_lDigit.setVisible(0);
+      RTBMM_iconTransfers_rDigit.setVisible(0);
+      
+      if(%number > 9)
+      {
+         RTBMM_iconTransfers_lDigit.setVisible(1);
+         RTBMM_iconTransfers_rDigit.setVisible(1);
+         RTBMM_iconTransfers_lDigit.setValue("<color:FFFFFF><font:Verdana Bold:10><just:center>"@getSubStr(%number,0,1));
+         RTBMM_iconTransfers_rDigit.setValue("<color:FFFFFF><font:Verdana Bold:10><just:center>"@getSubStr(%number,1,1));
+      }
+      else
+      {
+         RTBMM_iconTransfers_cDigit.setVisible(1);
+         RTBMM_iconTransfers_cDigit.setValue("<color:FFFFFF><font:Verdana Bold:10><just:center>"@%number);
+      }
+   }
+}
+
+//#####################################################################################################
+//
+//                         _ _            _   _             
+//       /\               | (_)          | | (_)            
+//      /  \   _ __  _ __ | |_  ___  __ _| |_ _  ___  _ __  
+//     / /\ \ | '_ \| '_ \| | |/ __|/ _` | __| |/ _ \| '_ \ 
+//    / ____ \| |_) | |_) | | | (__| (_| | |_| | (_) | | | |
+//   /_/    \_\ .__/| .__/|_|_|\___|\__,_|\__|_|\___/|_| |_|
+//            | |   | |                                     
+//            |_|   |_|                                     
+//
+//##################################################################################################### 
 
 //#############################################################################
 //#
@@ -773,18 +1495,15 @@ function RTBMM_createFooter()
 //#
 //#############################################################################
 //#
-//# Layer 1: Authentication
-//# Layer 2: Browsing
-//# Layer 3: Download Queue Data Retrieval
-//# Layer 4: Rating Submitting
-//# Layer 5: Commenting
-//# Layer 6: File Update Checking
+//# Layer 1: Browsing
+//# Layer 2: Torquejax
+//# Layer 3: Transfer Data Gather
 //#
 //#############################################################################
 
 //#############################################################################
 //#
-//#   Functions for real-time system usage
+//#   Function manifest for real-time system usage
 //#
 //#############################################################################
 //#
@@ -792,4917 +1511,5401 @@ function RTBMM_createFooter()
 //# ---------------------------------------------------------------------------
 //# - RTBMM_onMessage()                      //> Center Message
 //# - RTBMM_onError()                        //> Error Box
-//# - RTBMM_onSQLError()                     //> Bug Report Push & Msg
 //# - RTBMM_onBarred()                       //> Incase you get barred (BAD!)
 //#
-//# + Category View                          //> Viewing categories of database
-//# ---------------------------------------------------------------------------
-//# - RTBMM_getCategoryView()                //> Action Call
-//# - RTBMM_CategoryView_onTransmit()        //> Handle return from Database
-//# - RTBMM_CategoryView_createHeader()      //> Header Call
-//# - RTBMM_CategoryView_createCatRow()      //> Category Row Generation
-//# - RTBMM_CategoryView_createSecRow()      //> Section Row Generation
-//# - RTBMM_CategoryView_onTransmitEnd()     //> Handle end of Database
+//# + General Handling                       //> General Callback Routing
+//# - RTBMM_onPagination()                   //> Pagination Callback
 //#
-//# + Section View                           //> Viewing sections of category
+//# + Auth                                   //> Logging into your RTB Profile
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getSectionView()                 //> Action Call
-//# - RTBMM_SectionView_onTransmit()         //> Handle return from Database
-//# - RTBMM_SectionView_createHeader()       //> Header Call
-//# - RTBMM_SectionView_createRow()          //> Add row to section listing
-//# - RTBMM_SectionView_onTransmitEnd()      //> Process back button
+//# - RTBMM_Auth_Init()                      //> Entrance
+//# - RTBMM_Auth_onReply()                   //> Reply
+//# - RTBMM_Auth_onFail()                    //> Failure
 //#
-//# + File View                              //> Viewing files of section
+//# + News Feed View                         //> News Feed View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getFileView()                    //> Action Call
-//# - RTBMM_FileView_onTransmit()            //> Handle return from Database
-//# - RTBMM_FileView_createGenericField()    //> Generic field property
-//# - RTBMM_FileView_createAuthorField()     //> Author field with mousectrl
-//# - RTBMM_FileView_createScreenshotField() //> Screenshot field with weblink
-//# - RTBMM_FileView_createRatingField()     //> Rating Field with stars
-//# - RTBMM_FileView_createFileOptions()     //> File options (download/rate)
-//# - RTBMM_FileView_createCommentHeader()   //> Comment header for comments
-//# - RTBMM_FileView_createCommentLine()     //> Comment line for file
-//# - RTBMM_FileView_onTransmitEnd()         //> End Transmit from Database
+//# - RTBMM_NewsFeedView_Init()              //> Entrance
+//# - RTBMM_NewsFeedView_onReplyStart()      //> Reply Start
+//# - RTBMM_NewsFeedView_onReply()           //> Reply
+//# - RTBMM_NewsFeedView_onFail()            //> Failure
 //#
-//# + Presets View                           //> View preset listing
+//# + Category View                          //> Category View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getPresetsView()                 //> Action Call
-//# - RTBMM_PresetsView_onTransmit()         //> Handle return from Database
-//# - RTBMM_PresetsView_createHeader()       //> Header Call
-//# - RTBMM_PresetsView_createRow()          //> Preset Row Generation
-//# - RTBMM_PresetsView_onTransmitEnd()      //> Handle end of return
+//# - RTBMM_CategoryView_Init()              //> Entrance
+//# - RTBMM_CategoryView_onReplyStart()      //> Reply Start
+//# - RTBMM_CategoryView_onReply()           //> Reply
+//# - RTBMM_CategoryView_onReplyStop()       //> Reply Stop
+//# - RTBMM_CategoryView_onFail()            //> Failure
 //#
-//# + Preset View                            //> View single preset
+//# + Section View                           //> Section View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getPresetView()                  //> Action Call
-//# - RTBMM_PresetView_onTransmit()          //> Handle info from Database
-//# - RTBMM_PresetView_onTransmitRow()       //> Handle row from Database
-//# - RTBMM_PresetView_createRow()           //> Preset Row Generation
-//# - RTBMM_PresetView_createOptions()       //> Create Options Listing
-//# - RTBMM_PresetView_onTransmitEnd()       //> Handle return from Database
-//# - RTBMM_PresetView_DownloadPreset()      //> Download Preset Handling
+//# - RTBMM_SectionView_Init()               //> Entrance
+//# - RTBMM_SectionView_onReplyStart()       //> Reply Start
+//# - RTBMM_SectionView_onReply()            //> Reply
+//# - RTBMM_SectionView_onReplyStop()        //> Reply Stop
+//# - RTBMM_SectionView_onFail()             //> Failure
 //#
-//# + View All Files                         //> View all files in Database
+//# + File View                              //> File View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getAllFilesView()                //> Action Call
-//# - RTBMM_AllFilesView_onTransmit()        //> Handle return from Database
-//# - RTBMM_AllFilesView_onTransmitEnd()     //> Handle end of return
+//# - RTBMM_FileView_Init()                  //> Entrance
+//# - RTBMM_FileView_onReplyStart()          //> Reply Start
+//# - RTBMM_FileView_onReply()               //> Reply
+//# - RTBMM_FileView_onReplyStop()           //> Reply Stop
+//# - RTBMM_FileView_onFail()                //> Failure
+//# - RTBMM_FileView_Rate()                  //> Submit Rating
+//# - RTBMM_FileView_onRateReply()           //> Rating Reply
+//# - RTBMM_FileView_Report()                //> Report File
+//# - RTBMM_FileView_SendReport()            //> Submits Report
+//# - RTBMM_FileView_onReportReply()         //> Report Reply
+//# - RTBMM_FileView_onReportFail()          //> Report Fail
 //#
-//# + View User Favourites                   //> View top 10 rated in database
+//# + Packs View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getUserFavouritesView()          //> Action Call
-//# - RTBMM_FavsView_onTransmit()            //> Handle return from Database
-//# - RTBMM_FavsView_onTransmitEnd()         //> Handle end of return
+//# - RTBMM_PacksView_Init()                 //> Entrance
+//# - RTBMM_PacksView_onReplyStart()         //> Reply Start
+//# - RTBMM_PacksView_onReply()              //> Reply
+//# - RTMBM_PacksView_onFail()               //> Failure
 //#
-//# + Search View                            //> Window for doing a search
+//# + Top List View                          //> Top List View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getSearchView()                  //> Action Call
-//# - RTBMM_SearchView_onTransmit()          //> Handle return from database
-//# - RTBMM_SearchView_createSearchGui()     //> Create gui with return from db
-//# - RTBMM_SearchView_populateLists()       //> Populate search lists from db
-//# - RTBMM_SearchView_performSearch()       //> Begin search
-//# - RTBMM_SearchView_onResult()            //> Handle database return
-//# - RTBMM_SearchView_createNoResults()     //> Handle no results
-//# - RTBMM_SearchView_onResultEnd()         //> Handle end of return
+//# - RTBMM_TopListView_Init()               //> Entrance
+//# - RTBMM_TopListView_onReplyStart()       //> Reply Start
+//# - RTBMM_TopListView_onReply()            //> Reply
+//# - RTBMM_TopListView_onReplyStop()        //> Reply Stop
+//# - RTBMM_TopListView_onFail()             //> Failure
 //#
-//# + News Feed View                         //> News Feed
+//# + Search View                            //> Search View
 //# ---------------------------------------------------------------------------
-//# - RTBMM_getNewsFeedView()                //> Action Call
-//# - RTBMM_NewsFeedView_onTransmit()        //> Handle return from database
-//# - RTBMM_NewsFeedView_createFeedItem()    //> Creates news feed item
+//# - RTBMM_SearchView_Init()                //> Entrance
+//# - RTBMM_SearchView_onReplyStart()        //> Reply Start
+//# - RTBMM_SearchView_onReply()             //> Reply
+//# - RTBMM_SearchView_onReplyStop()         //> Reply Stop
+//# - RTBMM_SearchView_onFail()              //> Failure
+//# - RTBMM_SearchView_doSearch()            //> Makes a search request
+//# - RTBMM_SearchView_onSearchReplyStart()  //> Reply Start
+//# - RTBMM_SearchView_onSearchReply()       //> Reply
+//# - RTBMM_SearchView_onSearchReplyStop()   //> Reply End
+//# - RTBMM_SearchView_onSearchReplyFail()   //> Failure
+//#
+//# + Recent View                            //> Recent View
+//# ---------------------------------------------------------------------------
+//# - RTBMM_RecentView_Init()                //> Entrance
+//# - RTBMM_RecentView_onReplyStart()        //> Reply Start
+//# - RTBMM_RecentView_onReply()             //> Reply
+//# - RTBMM_RecentView_onReplyStop()         //> Reply Stop
+//# - RTBMM_RecentView_onFail()              //> Failure
+//#
+//# + All Files View                         //> All Files View
+//# ---------------------------------------------------------------------------
+//# - RTBMM_AllFilesView_Init()              //> Entrance
+//# - RTBMM_AllFilesView_onReplyStart()      //> Reply Start
+//# - RTBMM_AllFilesView_onReply()           //> Reply
+//# - RTBMM_AllFilesView_onReplyStop()       //> Reply Stop
+//# - RTBMM_AllFilesView_onFail()            //> Failure
 //#
 //#############################################################################
 
 //*********************************************************
 //* Error Handling
 //*********************************************************
-function RTBMM_onMessage(%this, %line)
+//- RTBMM_onMessage (General message handler)
+function RTBMM_onMessage(%tcp,%line)
 {
-   RTBMM_createCenterMessage(getField(%line,0));
-}
-function RTBMM_onError(%this, %line)
-{
-   MessageBoxOK(getField(%line,0),getField(%line,1));
-   MessagePopup("","",0);
-}
-function RTBMM_onSQLError(%this, %line)
-{
-   RTBBT_pushBugReporter("Mod Manager","SQL Error",2,%line);
-   MessageBoxOK("ERROR","There has been a critical error. We would appreciate it if you could send this Bug Report so it can be fixed ASAP.");
-}
-function RTBMM_onBarred(%this, %line)
-{
-   canvas.pushDialog(RTB_BarredScreen);
-   if(getField(%line,1) $= "")
-      RTBB_Text.setText("No reason has been specified.");
-   else
-      RTBB_Text.setText(getField(%line,1));
-      
-   RTBMM_ConstructWindow();
-   RTBMM_WindowSwatch.color = "0 0 0 0";
-   RTBMM_WindowSwatch.getObject(0).color = "0 0 0 0";
-   RTB_ModManager.getObject(0).setText("Mod Manager - Barred");
 }
 
-//*********************************************************
-//* CategoryView: View Mod Categories+Sections
-//*********************************************************
-function RTBMM_getCategoryView()
+//- RTBMM_onError (Error handling)
+%RTBMM_SB.registerResponseHandler("ERROR","RTBMM_onError",1);
+function RTBMM_onError(%tcp,%line)
 {
-	RTBMM_ConstructWindow();
-	RTBMM_CategoryView_createHeader();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETCATEGORIES",2);
-	RTBMM_trackZone("categoryview","RTBMM_getCategoryView();");
-}
-function RTBMM_CategoryView_onTransmit(%this, %line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "categoryview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   if(getField(%line,0) $= "CAT")
+   if(isObject(RTBMM_LoadingContentSwatch))
    {
-      RTBMM_CategoryView_createCatRow(getField(%line,2));
-   }
-	else if(getField(%line,0) $= "SEC")
-	{
-		RTBMM_CategoryView_createSecRow(getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5));
-	}
-}
-function RTBMM_CategoryView_createHeader()
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "348 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "111 3";
-		extent = "55 21";
-		text = "\c1Category";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "350 0";
-		extent = "44 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "8 3";
-		extent = "28 21";
-		text = "\c1Files";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "395 0";
-		extent = "102 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "5 3";
-		extent = "95 21";
-		text = "\c1Last Submission";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_CategoryView_createCatRow(%name)
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "496 30";
-		bitmap = "./images/cellpic1";
-	};
-	%text = new GuiTextCtrl()
-	{
-		profile = RTBMM_MainText;
-		position = "4 4";
-		horizSizing = "right";
-		vertsizing = "center";
-		extent = "430 22";
-		text = "\c0"@%name;
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_CategoryView_createSecRow(%sectionid,%name,%description,%files,%lastsubmit)
-{
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "32 32";
-		color = "235 235 235 255";
-	};
-	%icon = new GuiBitmapCtrl()
-	{
-		position = "3 3";
-		extent = "25 25";
-		bitmap = "./images/folder_new";
-	};
-	%swatch.add(%icon);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "34 0";
-		extent = "315 32";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "1 -1";
-		extent = "307 18";
-		text = "\c0"@%name;
-		profile = "RTBMM_MainText";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "3 14";
-		extent = "307 18";
-		text = "\c0"@%description;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "350 0";
-		extent = "44 32";
-		color = "200 200 200 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 7";
-		extent = "44 18";
-		text = "\c1"@%files;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "395 0";
-		extent = "102 32";
-		color = "200 200 200 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 7";
-		extent = "102 18";
-		text = "\c1"@%lastsubmit;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "0 -1";
-		extent = "501 34";
-		color = "255 200 200 100";
-		visible = 0;
-	};
-	RTBMM_PushWindowElement(%swatch);
-	
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		offset = "1 0";
-		extent = "501 32";
-		
-		eventType = "sectionSelect";
-		eventCallbacks = "0001";
-		
-		eventHover = 1;
-		eventSwatch = %swatch;
-		
-		sectionID = %sectionid;
-	};
-	RTBMM_PushWindowElement(%mouseevent);
-	RTBMM_OffsetWindow(32);
-}
-function RTBMM_CategoryView_onTransmitEnd(%this)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "categoryview")
-      return;
-      
-   RTBMM_createFooter();
-}
-function Event_sectionSelect::onMouseUp(%this)
-{
-   RTBMM_getSectionView(%this.sectionID);
-}
-
-//*********************************************************
-//* SectionView: Viewing a specific section, looking at files
-//*********************************************************
-function RTBMM_getSectionView(%section)
-{
-   //Init Temp Vars
-   $RTB::CModManager::Cache::TotalSectionFiles = 0;
-   
-   RTBMM_ConstructWindow();
-	RTBMM_SectionView_createHeader();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETSECTION",2,%section);
-	RTBMM_trackZone("sectionview","RTBMM_getSectionView("@%section@");");
-}
-function RTBMM_SectionView_onTransmit(%this, %line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "sectionview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   RTBMM_SectionView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6));
-}
-function RTBMM_SectionView_createHeader()
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "326 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "137 3";
-		extent = "51 21";
-		text = "\c1File Title";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "328 0";
-		extent = "73 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "17 3";
-		extent = "38 21";
-		text = "\c1Author";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "402 0";
-		extent = "95 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "28 3";
-		extent = "39 21";
-		text = "\c1Rating";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_SectionView_createRow(%fileid,%name,%description,%image,%author,%rating,%approved)
-{
-   if(strLen(%description) > 110)
-      %description = getSubStr(%description,0,110)@"...";
-      
-   if(%approved $= 2)
-   {
-      %name = "\c1"@%name;
-      %description = "This file failed inspection by moderators.";
-      %image = "./images/exclamation";
+      RTBMM_GUI_FailLoad(%line);
+      %tcp.neutralise();
    }
    else
-      %image = "./images/icons/"@%image;
-      
-   $RTB::CModManager::Cache::TotalSectionFiles++;
-	%rating1 = getSubStr(%rating,0,1);
-	%rating2 = getSubStr(%rating,1,1);
-	%rating3 = getSubStr(%rating,2,1);
-	%rating4 = getSubStr(%rating,3,1);
-	%rating5 = getSubStr(%rating,4,1);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "25 46";
-		color = "235 235 235 255";
-	};
-	%icon = new GuiBitmapCtrl()
-	{
-		position = "4 15";
-		extent = "16 16";
-		bitmap = %image;
-	};
-	%swatch.add(%icon);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "27 0";
-		extent = "300 46";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "2 0";
-		extent = "307 18";
-		text = "\c0"@%name;
-		profile = "RTBMM_MainText";
-	};
-	%swatch.add(%text);
-	
-	%text = new GuiMLTextCtrl()
-	{
-		position = "2 18";
-		extent = "295 26";
-		text = "\c0"@%description;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "328 0";
-		extent = "73 46";
-		color = "200 200 200 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 14";
-		extent = "73 18";
-		text = "\c1"@%author;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "402 0";
-		extent = "95 46";
-		color = "230 230 230 255";
-	};
-	%star1 = new GuiBitmapCtrl()
-	{
-		position = "3 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating1;
-	};
-	%swatch.add(%star1);
-	%star2 = new GuiBitmapCtrl()
-	{
-		position = "21 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating2;
-	};
-	%swatch.add(%star2);
-	%star3 = new GuiBitmapCtrl()
-	{
-		position = "39 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating3;
-	};
-	%swatch.add(%star3);
-	%star4 = new GuiBitmapCtrl()
-	{
-		position = "57 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating4;
-	};
-	%swatch.add(%star4);
-	%star5 = new GuiBitmapCtrl()
-	{
-		position = "75 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating5;
-	};
-	%swatch.add(%star5);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 -1";
-		extent = "501 48";
-		color = "255 200 200 100";
-		visible = 0;
-	};
-	RTBMM_PushWindowElement(%swatch);
-	
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		offset = "1 0";
-		extent = "501 46";
-		
-		eventType = "fileSelect";
-		eventCallbacks = "0001";
-		
-		eventHover = 1;
-		eventSwatch = %swatch;
-		
-		fileID = %fileid;
-	};
-	RTBMM_PushWindowElement(%mouseevent);
-   RTBMM_OffsetWindow(46);
+   {
+      %tcp.neutralise();
+      RTBMM_GUI_Init();
+      RTBMM_GUI_createMessageBoxOK("Error","<just:center>"@%line);
+   }
 }
-function RTBMM_SectionView_onTransmitEnd(%this, %line)
+
+//- RTBMM_onBarred (Barred)
+function RTBMM_onBarred(%tcp,%line)
 {
-   if($RTB::CModManager::Cache::CurrentZone !$= "sectionview")
-      return;
-      
-   RTBMM_createGoBackButton("RTBMM_getCategoryView();");
-}
-function Event_fileSelect::onMouseUp(%this)
-{
-   RTBMM_getFileView(%this.fileID);
 }
 
 //*********************************************************
-//* FileView: Viewing an individual file
+//* General Handling
 //*********************************************************
-function RTBMM_getFileView(%file)
+//- RTBMM_onPagination (Pagination Callback)
+%RTBMM_SB.registerResponseHandler("PAGINATION","RTBMM_onPagination",1);
+function RTBMM_onPagination(%tcp,%line)
 {
-   RTBMM_ConstructWindow();
-	RTBMM_createLoadingContent();
-	$RTB::CModManager::Cache::CurrentFile = %file;
-	
-	RTBMM_SendRequest("GETFILE",2,%file);
-	RTBMM_trackZone("fileview","RTBMM_getFileView("@%file@");");
-	
-   $RTB::CModManager::Cache::CurrentMusic = %file;
-   $RTB::CModManager::Cache::TotalMusic = 0;
+   $RTB::CModManager::Cache::Pagination::NumPages = getField(%line,0);
+   $RTB::CModManager::Cache::Pagination::CurrPage = getField(%line,1);
 }
-function RTBMM_FileView_onTransmit(%this, %line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "fileview")
-      return;
-      
-   %transType = getField(%line,0);
-   if(%transType $= 0)
-   {
-      RTBMM_stopLoadingRing(RTBMM_LoadingContentSwatch.getObject(0));
-      RTBMM_LoadingContentSwatch.getObject(0).setBitmap($RTB::Path@"images/loadRingFail");
-      RTBMM_LoadingContentSwatch.getObject(1).setText("<just:center><color:555555>File not Found");
-      return;
-   }
-   
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-   
-   switch$(%transType)
-   {
-      case "HEADER":
-      RTBMM_createCustomHeader(getField(%line,1));
-      case "FIELD":
-      RTBMM_FileView_createGenericField(getField(%line,1),getField(%line,2));
-      case "AUTHOR":
-      RTBMM_FileView_createAuthorField(getField(%line,1),getField(%line,2),getField(%line,3));
-      case "SCREENSHOTS":
-      RTBMM_FileView_createScreenshotsField(getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6),getField(%line,7),getField(%line,8),getField(%line,9),getField(%line,10),getField(%line,11),getField(%line,12),getField(%line,13),getField(%line,14),getField(%line,15));
-      case "FOOTER":
-      RTBMM_createFooter();
-      case "RATING":
-      RTBMM_FileView_createRatingField(getField(%line,1),getField(%line,2),getField(%line,3));
-      case "BEGINOLDVERS":
-      RTBMM_OffsetWindow(10);
-      RTBMM_createCustomHeader("Outdated Versions");
-      case "OLDVERS":
-      RTBMM_SectionView_createRow(getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6));
-      case "ENDOLDVERS":
-      RTBMM_createFooter();
-      case "BEGINCOMMENTS":
-      RTBMM_OffsetWindow(10);
-      RTBMM_createCustomHeader("Comments");
-      RTBMM_FileView_createCommentHeader();
-      case "COMMENT":
-      RTBMM_FileView_createCommentLine(getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6),getField(%line,7),getField(%line,8),getField(%line,9),getField(%line,10));
-      case "ENDCOMMENTS":
-      RTBMM_createGoBackButton();
-      case "MUSIC":
-      RTBMM_FileView_createMusicRow(getField(%line,1),getField(%line,2),getField(%line,3));
-   }
-}
-function RTBMM_FileView_createGenericField(%name,%value)
-{
-	%swatch2 = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1"@%name@":";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch2.add(%text);
-	RTBMM_PushWindowElement(%swatch2);
 
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%text = new GuiMLTextCtrl()
-	{
-		position = "4 5";
-		extent = "305 14";
-		text = "\c1"@%value;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%text.forcereflow();
-	%newheight = getWord(%text.extent,1)+11;
-	%swatch.extent = "315 "@%newheight;
-	%swatch2.extent = "180 "@%newheight;
-	
-	RTBMM_OffsetWindow(%newheight);
-}
-function RTBMM_FileView_createAuthorField(%image,%author,%totals)
+//*********************************************************
+//* Auth
+//*********************************************************
+//- RTBMM_Auth_Init (Entrance)
+function RTBMM_Auth_Init()
 {
-   $RTB::CModManager::Cache::FileAuthor = %author;
-	$RTB::CModManager::CurrentAuthorCount = %totals;
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1Author:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%bitmap = new GuiBitmapCtrl()
-	{
-		position = "4 4";
-		extent = "16 16";
-		bitmap = "./images/linkman"@%image;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%text = new GuiMLTextCtrl()
-	{
-		position = "24 6";
-		extent = "305 14";
-		text = %author;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.linkText = %text;
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	
-   RTBMM_OffsetWindow(25);
-}
-function RTBMM_FileView_createScreenshotsField(%presence,%collage,%crc,%ss1,%caption1,%crc1,%ss2,%caption2,%crc2,%ss3,%caption3,%crc3,%ss4,%caption4,%crc4)
-{
-   if(!$RTB::Options::DownloadScreenshots)
-      return;
-      
-   if(%presence $= "0000")
-      return;
-      
-   $RTB::CModManager::Cache::FileCollage = %collage;
-   $RTB::CModManager::Cache::FileSSPresence = %presence;
-   RTBMM_createCustomHeader("Screenshots");
-   
-   %numSS = 0;
-   for(%i=0;%i<4;%i++)
+   if($RTB::CModManager::Session::LoggedIn)
    {
-      if(getSubStr(%presence,%i,1) $= 1)
-      {
-         %screen[%numSS] = %i+1;
-         %numSS++;
-      }
+      RTB_ModManager.getObject(0).setText("Mod Manager - Logged in as "@$RTB::CModManager::Session::LoginName);
+      return;
    }
-   
-   for(%i=0;%i<%numSS;%i++)
-   {
-      %screenID = %screen[%i];
-      %screenBitmap = "RTBMM_FileThumb"@%i;
-      %eventName = "RTBMM_FileThumbME"@%i;
-      %swatch = new GuiSwatchCtrl()
-      {
-		   offset = 1+%i*mFloor(495/%numSS)+(%i*1) SPC "0";
-		   extent = mFloor(495/%numSS) SPC "92";
-		   color = "240 240 240 255";
-		   
-		   new GuiSwatchCtrl()
-		   {
-		      horizSizing = "center";
-		      vertSizing = "center";
-		      extent = "116 88";
-		      color = "100 100 100 255";
-            
-            new GuiSwatchCtrl()
-            {
-               horizSizing = "center";
-               vertSizing = "center";
-               extent = "114 86";
-               color = "255 255 255 255";
-               
-               new GuiSwatchCtrl(%screenBitmap)
-               {
-                  horizSizing = "center";
-                  vertSizing = "center";
-                  extent = "112 84";
-                  color = "0 0 0 0";
-                  visible = 0;
-                  
-                  new GuiBitmapCtrl()
-                  {
-                     position = "0 0";
-                     extent = "224 168";
-                  };
-               };
-               
-               new GuiSwatchCtrl(%eventName)
-               {
-                  position = "0 0";
-                  extent = "114 86";
-                  color = "0 0 0 0";
-               };
-               
-               new GuiMouseEventCtrl()
-               {
-                  position = "0 0";
-                  extent = "114 86";
-		            eventType = "screenSelect";
-            		eventCallbacks = "0001";
-		
-		            eventHover = 1;
-		            eventSwatch = %eventName;
-		            
-		            ssCaption = %caption[%screenID];
-		            ssPath = %ss[%screenID];
-		            ssCRC = %crc[%screenID];
-               };
-            };
-		   };
-      };
-      if(%i $= %numSS-1)
-         %add = 1;
-      RTBMM_PushWindowElement(%swatch,%add);
       
-      if(getFileCRC("config/client/RTB/cache/screenCollage.png") $= %crc)
-      {
-         %k=0;
-         for(%j=0;%j<4;%j++)
-         {
-            %pres = getSubStr($RTB::CModManager::Cache::FileSSPresence,%j,1);
-            if(%pres)
-            {
-               %ctrl = "RTBMM_FileThumb"@%k;
-               if(isObject(%ctrl))
-               {
-                  %ctrl.setVisible(1);
-                  %ctrl.getObject(0).setBitmap("config/client/RTB/cache/screenCollage");
-                  
-                  if(%j $= 1)
-                     %ctrl.getObject(0).position = "-112 0";
-                  else if(%j $= 2)
-                     %ctrl.getObject(0).position = "0 -84";
-                  else if(%j $= 3)
-                     %ctrl.getObject(0).position = "-112 -84";
-                  %k++;
-               }
-            }
-         }
-      }
+   if($RTB::Barred::Download)
+   {
+      RTB_ModManager.getObject(0).setText("Mod Manager - Barred from Use");
+      return;
+   }
+      
+   RTBMM_SendRequest("AUTH",2);
+   RTB_ModManager.getObject(0).setText("Mod Manager - Logging In...");
+}
+
+//- RTBMM_Auth_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("AUTH","RTBMM_Auth_onReply");
+function RTBMM_Auth_onReply(%tcp,%line)
+{
+   if(getField(%line,0) $= "1")
+   {
+      $RTB::CModManager::Session::LoggedIn = 1;
+      $RTB::CModManager::Session::LoginName = getField(%line,1);
+      RTB_ModManager.getObject(0).setText("Mod Manager - Logged in as "@$RTB::CModManager::Session::LoginName);
+   }
+   else if(getField(%line,0) $= "0")
+   {
+      if(getField(%line,1) $= "2")
+         RTB_ModManager.getObject(0).setText("Mod Manager - No Account");
       else
-      {
-         %loadingSwatch = new GuiSwatchCtrl()
-         {
-            horizSizing = "center";
-            vertSizing = "center";
-            extent = "112 84";
-            color = "220 220 220 255";
-            
-            new GuiBitmapCtrl()
-            {
-               horizSizing = "center";
-               vertSizing = "center";
-               extent = "31 31";
-               bitmap = "./images/loadRing";
-            };
-         };
-         %screenBitmap.loadSwatch = %loadingSwatch;
-         %screenBitmap.getGroup().add(%loadingSwatch);
-         
-         RTBMM_createLoadingRing(%loadingSwatch.getObject(0));
-      }
+         RTB_ModManager.getObject(0).setText("Mod Manager - Error Occurred");
    }
-   RTBMM_ScreenshotGrabber.getCollage();
 }
-function Event_screenSelect::onMouseUp(%this)
+
+//- RTBMM_Auth_onFail (Failure)
+%RTBMM_SB.registerFailHandler("AUTH","RTBMM_Auth_onFail");
+function RTBMM_Auth_onFail(%tcp,%error)
 {
-   RTBMM_PushScreenshotViewer(%this.ssPath,%this.ssCaption,%this.ssCRC);
+   RTB_ModManager.getObject(0).setText("Mod Manager - Connection Failed");
 }
-function RTBMM_FileView_createRatingField(%rating,%total,%user)
+
+//*********************************************************
+//* News Feed View
+//*********************************************************
+//- RTBMM_NewsFeedView_Init (Entrance)
+function RTBMM_NewsFeedView_Init(%page)
 {
-	%star1 = getSubStr(%rating,0,1);
-	%star2 = getSubStr(%rating,1,1);
-	%star3 = getSubStr(%rating,2,1);
-	%star4 = getSubStr(%rating,3,1);
-	%star5 = getSubStr(%rating,4,1);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1Current Rating:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		position = "4 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star1;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%bitmap = new GuiBitmapCtrl()
-	{
-		position = "22 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star2;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%bitmap = new GuiBitmapCtrl()
-	{
-		position = "40 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star3;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%bitmap = new GuiBitmapCtrl()
-	{
-		position = "58 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star4;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%bitmap = new GuiBitmapCtrl()
-	{
-		position = "76 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star5;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%text = new GuiTextCtrl()
-	{
-		position = "100 4";
-		extent = "150 18";
-		text = "\c1("@%total@" Ratings)";
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-   if(%user !$= "")
-      %text.setText("\c1("@%total@" Ratings - You gave a "@%user@")");
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl(RTBMM_FileRatingApply)
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%swatch.setVisible(0);
-	%bitmap = new GuiBitmapCtrl(RTBMM_FileStar1)
-	{
-		position = "4 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star1;
-		oldBitmap = %star1;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		position = "3 4";
-		extent = "18 16";
-		
-		eventType = "ratingAdd";
-		eventCallbacks = "1101";
-		
-		eventNumber = 1;
-		eventOld = %star1;
-	};
-	%swatch.add(%mouseevent);
-	%bitmap = new GuiBitmapCtrl(RTBMM_FileStar2)
-	{
-		position = "22 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star2;
-		oldBitmap = %star2;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		position = "21 4";
-		extent = "18 16";
-		
-		eventType = "ratingAdd";
-		eventCallbacks = "1101";
-		
-		eventNumber = 2;
-		eventOld = %star2;
-	};
-	%swatch.add(%mouseevent);
-	%bitmap = new GuiBitmapCtrl(RTBMM_FileStar3)
-	{
-		position = "40 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star3;
-		oldBitmap = %star3;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		position = "39 4";
-		extent = "18 16";
-		
-		eventType = "ratingAdd";
-		eventCallbacks = "1101";
-		
-		eventNumber = 3;
-		eventOld = %star3;
-	};
-	%swatch.add(%mouseevent);	
-	%bitmap = new GuiBitmapCtrl(RTBMM_FileStar4)
-	{
-		position = "58 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star4;
-		oldBitmap = %star4;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		position = "57 4";
-		extent = "18 16";
-		
-		eventType = "ratingAdd";
-		eventCallbacks = "1101";
-		
-		eventNumber = 4;
-		eventOld = %star4;
-	};
-	%swatch.add(%mouseevent);
-	%bitmap = new GuiBitmapCtrl(RTBMM_FileStar5)
-	{
-		position = "76 4";
-		extent = "16 16";
-		bitmap = "./images/star"@%star5;
-		oldBitmap = %star5;
-		profile = "GuiDefaultProfile";
-	};
-	%swatch.add(%bitmap);
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		position = "75 4";
-		extent = "18 16";
-		
-		eventType = "ratingAdd";
-		eventCallbacks = "1101";
-		
-		eventNumber = 5;
-		eventOld = %star5;
-	};
-	%swatch.add(%mouseevent);
-	%text = new GuiTextCtrl()
-	{
-		position = "100 4";
-		extent = "200 18";
-		text = "\c2 << Click a Star to give a Rating";
-		profile = "RTBMM_BlockText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch,1);
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETNEWS",1,%page);
+   RTBMM_Zones_Track("NewsFeedView","RTBMM_NewsFeedView_Init("@%page@");","RTBMM_NewsFeedView_Init(%%page%%);");
 }
-function Event_ratingAdd::onMouseEnter(%this)
+
+//- RTBMM_NewsFeedView_onReplyStart (Reply)
+function RTBMM_NewsFeedView_onReplyStart(%tcp)
 {
-   for(%i=1;%i<6;%i++)
+   RTBMM_GUI_Init();
+   //%content = RTBMM_GUI_createContent("cell",35,100);
+   //
+   //%checkbox = new GuiCheckboxCtrl()
+   //{
+      //position = "6 2";
+      //text = " ";
+      //extent = "172 30";
+   //};
+   //%text = new GuiMLTextCtrl()
+   //{
+      //position = "22 11";
+      //extent = "172 12";
+      //text = "<color:222222><font:Verdana:12>Show Add-On Announcements";
+   //};
+   //%content.add(%text);
+   //%content.add(%checkbox);   
+}
+
+//- RTBMM_NewsFeedView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETNEWS","RTBMM_NewsFeedView_onReply");
+function RTBMM_NewsFeedView_onReply(%tcp,%line)
+{
+   if(getField(%line,0) $= "NEWS")
    {
-      %starBitmap = "RTBMM_FileStar"@%i;
-      if(%this.eventNumber < %i)
-         %starBitmap.setBitmap($RTB::Path@"images/star0");
-      else
-         %starBitmap.setBitmap($RTB::Path@"images/star4");
-   }
-}
-function Event_ratingAdd::onMouseLeave(%this)
-{
-   for(%i=1;%i<6;%i++)
-   {
-      %starBitmap = "RTBMM_FileStar"@%i;
-      %starBitmap.setBitmap($RTB::Path@"images/star"@%starBitmap.oldBitmap);
-   }
-}
-function Event_ratingAdd::onMouseUp(%this)
-{
-   %rating = %this.eventNumber;
-   RTBMM_SendRequest("ADDRATING",4,$RTB::CModManager::Cache::CurrentFile,%rating);
-   MessagePopup("Transmitting...","Your Rating of "@%rating@" is being Submitted...");
-}
-function RTBMM_FileView_createFileOptions(%disableDL,%canRate,%canComment)
-{
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "500 40";
-		color = "240 240 240 255";
-	};
-	
-	if($RTB::CModManager::Cache::TotalMusic >= 1)
-	{
-      %btn = new GuiBitmapButtonCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "206 7";
-         extent = "82 25";
-         bitmap = "./images/buttons/link_download";
-         text = "";
-         command = "RTBMM_FileView_downloadMusic();";
-      };
-	}
-	else
-	{
-      %btn = new GuiBitmapButtonCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "206 7";
-         extent = "82 25";
-         bitmap = "./images/buttons/link_download";
-         text = "";
-         command = "RTBMM_DownloadsView_addDownload("@$RTB::CModManager::Cache::CurrentFile@");";
-      };
-	}
-	%swatch.add(%btn);
-	
-   if(%disableDL $= 2)
-   {
-      %btn.command = "MessageBoxOK(\"Whoops!\",\"You cannot Download this File since it failed inspection by our Add-On Moderators.\");";
-      %btn.setColor("0.8 0.8 0.8 1");
-   }
-	
-	if($RTB::CModManager::Session::LoggedIn)
-	{
-      %btn = new GuiBitmapButtonCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "58 7";
-         extent = "82 25";
-         bitmap = "./images/buttons/link_rating";
-         text = "";
-         command = "RTBMM_FileRatingApply.setVisible(1);";
-      };
-      %swatch.add(%btn);
-
-      if($RTB::CModManager::Session::LogInName $= $RTB::CModManager::Cache::FileAuthor)
-      {
-         %btn.command = "MessageBoxOK(\"Whoops!\",\"You cannot rate your own Files!\");";
-         %btn.setColor("0.8 0.8 0.8 1");
-      }
-	   if(!%canRate)
-	   {
-         %btn.command = "MessageBoxOK(\"Whoops!\",\"You have been barred from rating files.\");";
-         %btn.setColor("0.8 0.8 0.8 1");
-	   }
+      %news_id = getField(%line,1);
+      %news_type = getField(%line,2);
+      %news_subject = getField(%line,3);
+      %news_date = getField(%line,4);
+      %news_message = getField(%line,5);
+      %news_author = getField(%line,6);
+      %news_comments = getField(%line,7);
       
-      %btn = new GuiBitmapButtonCtrl()
+      %control = new GuiSwatchCtrl()
       {
-         profile = GuiDefaultProfile;
-         position = "358 7";
-         extent = "82 25";
-         bitmap = "./images/buttons/link_comment";
-         text = "";
-         command = "canvas.pushDialog(RTBMM_AddComment);RTBMM_SendCommentBtn.command = \"RTBMM_SendComment();\";";
+         position = "5" SPC 5+$RTB::CModManager::GUI::CurrentY;
+         extent = "669 228";
+         color = "180 185 191 255";
       };
-      %swatch.add(%btn);
       
-      if(!%canComment)
-      {
-         %btn.command = "MessageBoxOK(\"Whoops!\",\"You have been barred from commenting on files.\");";
-         %btn.setColor("0.8 0.8 0.8 1");
-      }
-	}
-	RTBMM_PushWindowElement(%swatch,1);
-}
-function RTBMM_FileView_createCommentHeader()
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "149 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "54 3";
-		extent = "40 21";
-		text = "\c1Author";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-	
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "151 0";
-		extent = "346 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "144 3";
-		extent = "57 21";
-		text = "\c1Comment";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_FileView_createCommentLine(%oddEven,%name,%title,%blid,%posts,%reppoints,%date,%comment,%canedit,%commentid)
-{
-   $RTB::CModManager::Cache::NumCommentQuotes = 0;
-   if(%oddEven $= 1)
-      %bgColor = "240 240 240 255";
-   else
-      %bgColor = "220 220 220 255";
+      %header = RTBMM_GUI_createHeader(" ",2);
+      %control.add(%header);
+      %header.resize(1,1,668,28);
       
-   %comment = RTBMM_parseComment(%comment,%oddEven);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "149 96";
-		color = %bgColor;
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "3 2";
-		extent = "142 18";
-		text = "\c1"@%name;
-		profile = "RTBMM_BlockText";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "4 18";
-		extent = "142 18";
-		text = "\c1"@%title;
-		profile = "RTBMM_GenText";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "4 45";
-		extent = "66 18";
-		text = "\c1Posts:";
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "37 45";
-		extent = "66 18";
-		text = "\c1"@%posts;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "4 60";
-		extent = "70 18";
-		text = "\c1Blockland ID:";
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "73 60";
-		extent = "66 18";
-		text = "\c1"@%blid;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "4 75";
-		extent = "66 18";
-		text = "\c1Rep Points:";
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	%text = new GuiTextCtrl()
-	{
-		position = "62 75";
-		extent = "66 18";
-		text = "\c1"@%reppoints;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatchB = new GuiSwatchCtrl()
-	{
-		offset = "151 0";
-		extent = "346 96";
-		color = %bgColor;
-	};
-	%horiz = new GuiSwatchCtrl()
-	{
-		position = "0 21";
-		extent = "350 1";
-		minExtent = "8 1";
-		color = "255 255 255 255";
-		profile = "GuiDefaultProfile";
-	};
-	%swatchB.add(%horiz);
-	%text = new GuiTextCtrl()
-	{
-		position = "3 1";
-		extent = "250 18";
-		text = "\c1Date: "@%date;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatchB.add(%text);
-	%text = new GuiMLTextCtrl()
-	{
-		position = "3 25";
-		extent = "339 18";
-		text = "<color:777777>"@%comment;
-		profile = "GuiMLTextCtrl";
-	};
-	%swatchB.add(%text);
-	
-	if(%canedit)
-   {
-      %bitmap = new GuiBitmapButtonCtrl()
-      {
-         position = "266 1";
-         extent = "59 18";
-         bitmap = "./images/buttons/btnEdit";
-         profile = GuiDefaultProfile;
-         text = "\c1";
-         command = "RTBMM_EditComment("@%commentid@");";
-      };
-      %swatchB.add(%bitmap);
+      %header_text = %header.getObject(1);
+      %header_text.setText("<color:888888><font:Arial Bold:15>"@%news_subject);
+      %header_text.shift(25,0);
+      
+      if(%news_type $= 1)
+         %icon = "icon_newaddon";
+      else if(%news_type $= 3)
+         %icon = "icon_feed";
       
       %bitmap = new GuiBitmapCtrl()
       {
-         position = "328 1";
-         extent = "16 18";
-         bitmap = "./images/icon_delete";
-         profile = GuiDefaultProfile;
+         position = "0 0";
+         extent = "16 16";
+         bitmap = $RTB::Path@"images/"@%icon;
       };
-      %swatchB.add(%bitmap);
-   }
-	RTBMM_PushWindowElement(%swatchB);
-	
-	for(%i=0;%i<$RTB::CModManager::Cache::NumCommentQuotes;%i++)
-	{
-	   %sw = new GuiSwatchCtrl()
-	   {
-	      position = "8" SPC 25+$RTB::CModManager::Cache::QuoteStart[%i];
-	      extent = "330 40";
-	      color = "150 150 150 255";
-	   };
-	   %swatchB.add(%sw);
-	   
-	   %sw2 = new GuiSwatchCtrl()
-	   {
-	      position = "1 1";
-	      extent = "328 38";
-	      color = "255 255 255 255";
-	   };
-	   %sw.add(%sw2);
-	   
-      %ml = new GuiMLTextCtrl()
+      %header.getBottom().add(%bitmap);
+      RTBMM_GUI_CenterVert(%bitmap);
+      %bitmap.shift(3,-1);
+      
+      %date = new GuiMLTextCtrl()
       {
-         position = "3 3";
-         extent = "320 2";
-         text = "<color:777777>"@RTBMM_parseComment($RTB::CModManager::Cache::QuoteText[%i]);
+         profile = "";
+         position = "0 6";
+         extent = "668 15";
+         text = "<color:888888><font:Verdana:12><just:right>"@%news_date;
       };
-      %sw2.add(%ml);
+      %header.add(%date);
+      %date.shift(-5,1);
       
-      %ml.forceReflow();      
-      %sw2.resize(1,1,328,getWord(%ml.extent,1)+3);
-      %sw.resize(8,getWord(%sw.position,1),330,getWord(%ml.extent,1)+5);
-	}
-	
-	%text.forcereflow();
-	%newheight = getWord(%text.extent,1)+30;
-	if(%newheight < 96)
-	   %newheight = 96;
-	%swatch.extent = "149 "@%newheight;
-	%swatchB.extent = "356 "@%newheight;
-
-	RTBMM_OffsetWindow(%newheight);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-	   offset = "1 0";
-	   extent = "500 12";
-	   color = "220 220 220 255";
-	   profile = GuiDefaultProfile;
-	};
-	RTBMM_PushWindowElement(%swatch,1);
+      %content = RTBMM_GUI_createContent("cell",171,100);
+      %control.add(%content);
+      
+      %news_message = strreplace(%news_message,"<spcr>","<bitmap:"@$RTB::Path@"images/bullet_news>");
+      %message = new GuiMLTextCtrl()
+      {
+         profile = "RTBMM_NewsContentProfile";
+         position = "2 4";
+         extent = "668 0";
+         text = "<color:888888><font:Verdana:12><just:left>"@%news_message@"<br>";
+      };
+      %content.getBottom(1).add(%message);
+      
+      RTBMM_GUI_PushControl(%control);
+      %message.forceReflow();
+      
+      %spacer = new GuiSwatchCtrl()
+      {
+         position = "0 "@getWord(%message.extent,1)+getWord(%message.position,1)-5;
+         extent = "665 1";
+         minExtent = "1 1";
+         color = "255 255 255 255";
+      };
+      %content.getBottom(1).add(%spacer);
+      %spacer = new GuiSwatchCtrl()
+      {
+         position = "0 "@getWord(%message.extent,1)+getWord(%message.position,1)-6;
+         extent = "665 1";
+         minExtent = "1 1";
+         color = "200 200 200 255";
+      };
+      %content.getBottom(1).add(%spacer);
+      %message.setText(%message.getText()@"<br> <font:Verdana Bold:12>by "@%news_author@"<just:right>"@%news_comments@" comments   ");
+      %message.forceReflow();
+      
+      %content.resize(1,29,668,getWord(%message.extent,1)+12);
+      
+      %control.extent = "669" SPC getWord(%content.extent,1) + getWord(%content.position,1);
+      
+      $RTB::CModManager::GUI::CurrentY = getWord(%control.extent,1) + getWord(%control.position,1) + 5;
+      RTBMM_GUI_Resize();
+   }
 }
-function RTBMM_FileView_onTransmitFileEnd(%this,%line)
+
+//- RTBMM_NewsFeedView_onReplyStop (Reply)
+function RTBMM_NewsFeedView_onReplyStop(%tcp)
 {
-   if($RTB::CModManager::Cache::CurrentZone !$= "fileview")
-      return;
-      
-   RTBMM_createCustomHeader("File Menu");
-   if(getField(%line,0) $= 1)
+   $RTB::CModManager::GUI::CurrentY += 5;
+   RTBMM_GUI_Resize();
+}
+
+//- RTBMM_NewsFeedView_onFail (Failure)
+%RTBMM_SB.registerFailHandler("GETNEWS","RTBMM_NewsFeedView_onFail");
+function RTBMM_NewsFeedView_onFail(%tcp,%error)
+{
+   RTBMM_GUI_FailLoad();
+}
+
+//*********************************************************
+//* Category View
+//*********************************************************
+//- RTBMM_CategoryView_Init (Entrance)
+function RTBMM_CategoryView_Init()
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETCATEGORIES",1);
+   RTBMM_Zones_Track("CategoryView","RTBMM_CategoryView_Init();");
+}
+
+//- RTBMM_CategoryView_onReplyStart (Reply)
+function RTBMM_CategoryView_onReplyStart(%tcp)
+{
+   RTBMM_GUI_Init();
+}
+
+//- RTBMM_CategoryView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETCATEGORIES","RTBMM_CategoryView_onReply");
+function RTBMM_CategoryView_onReply(%tcp,%line)
+{
+   if(getField(%line,0) $= "CATEGORY")
    {
+      RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  "@getField(%line,1));
+      RTBMM_GUI_createSplitHeader("cell2","70","<font:Arial Bold:15>Section","7","<font:Arial Bold:15>Files","23","<font:Arial Bold:15>Latest Addition");
+   }
+   else if(getField(%line,0) $= "SECTION")
+   {
+      %container = RTBMM_GUI_createContent("cell",38,6,64,7,23);
+      
+      %c_icon = %container.getObject(0).getBottom(1);      
+      %c_information = %container.getObject(1).getBottom(1);
+      %c_files = %container.getObject(2).getBottom(1);
+      %c_latest = %container.getObject(3).getBottom(1);
+      
       %swatch = new GuiSwatchCtrl()
       {
-         offset = "1 0";
-         extent = "498 27";
-         color = "240 240 240 255";
+         position = %c_icon.position;
+         extent = %c_icon.extent;
+         color = "255 255 255 100";
+         visible = 0;
       };
-      %text = new GuiMLTextCtrl()
+      %c_icon.add(%swatch);
+      %icon = new GuiBitmapCtrl()
       {
-         position = "7 3";
-         extent = "483 21";
-         text = "\c1<just:center>This file has <spush><font:Verdana Bold:12>not<spop> been approved by our download moderators.\n\nUnapproved add-ons are not guaranteed to work properly or be safe to your Blockland folder until they are tested by our moderators.";
-         profile = "RTB_Verdana12PtCenter";
+         extent = "26 26";
+         bitmap = "./images/icon_section";
       };
-      %swatch.add(%text);
-      RTBMM_PushWindowElement(%swatch);
-      
-	   %text.forcereflow();
-	   %newheight = getWord(%text.extent,1)+11;
-	   %swatch.extent = "498 "@%newheight;
-      RTBMM_OffsetWindow(%newheight);
-   }
-   else if(getField(%line,0) $= 0)
-   {
+      %c_icon.add(%icon);
+      RTBMM_GUI_Center(%icon,%c_icon);
+
       %swatch = new GuiSwatchCtrl()
       {
-         offset = "1 0";
-         extent = "495 28";
-         color = "50 240 50 255";
+         position = %c_information.position;
+         extent = %c_information.extent;
+         color = "255 255 255 100";
+         visible = 0;
       };
-      %swatch2 = new GuiSwatchCtrl()
-      {
-         position = "1 1";
-         extent = "493 26";
-         color = "200 240 200 255";
-      };
+      %c_information.add(%swatch);
       %text = new GuiMLTextCtrl()
       {
-         position = "7 3";
-         extent = "483 21";
-         text = "\c1<just:center>This file has been approved by a member of our moderation team. Approved add-ons work properly, and appear to be safe when installed.";
-         profile = "RTB_Verdana12PtCenter";
+         position = "1 3";
+         extent = "307 18";
+         text = "<font:Arial Bold:15><color:888888> "@getField(%line,2);
       };
-      %swatch2.add(%text);
-      %swatch.add(%swatch2);
-      RTBMM_PushWindowElement(%swatch);
+      %c_information.add(%text);
       
-	   %text.forcereflow();
-	   %newheight = getWord(%text.extent,1)+11;
-	   %swatch.extent = "495 "@%newheight;
-	   %swatch2.extent = "493 "@%newheight-2;
-      RTBMM_OffsetWindow(%newheight);
-   }
-   else if(getField(%line,0) $= 2)
-   {
+      %text = new GuiMLTextCtrl()
+      {
+         position = "3 19";
+         extent = "450 18";
+         text = "<font:Verdana:12><color:444444>"@getField(%line,3);
+      };
+      %c_information.add(%text);
+      
       %swatch = new GuiSwatchCtrl()
       {
-         offset = "1 0";
-         extent = "495 28";
-         color = "240 50 50 255";
+         position = %c_files.position;
+         extent = %c_files.extent;
+         color = "255 255 255 100";
+         visible = 0;
       };
-      %swatch2 = new GuiSwatchCtrl()
+      %c_files.add(%swatch);
+      %text = new GuiTextCtrl()
       {
-         position = "1 1";
-         extent = "493 26";
-         color = "240 200 200 255";
+         profile = RTB_Verdana12PtCenter;
+         position = "0 7";
+         extent = 100 SPC 18;
+         text = "\c1"@getField(%line,5);
       };
+      %c_files.add(%text);
+      RTBMM_GUI_Center(%text,%c_files);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         position = %c_latest.position;
+         extent = %c_latest.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_latest.add(%swatch);
       %text = new GuiMLTextCtrl()
       {
-         position = "7 3";
-         extent = "483 21";
-         text = "\c1<just:center>Approval of this file has been denied by a member of our moderation team. This means the add-on was either broken or unsafe to run.\n\nSee file comments.";
-         profile = "RTB_Verdana12PtCenter";
+         position = "0 7";
+         extent = 150 SPC 18;
+         text = "<just:center><font:Verdana:12><color:888888>"@getField(%line,4);
       };
-      %swatch2.add(%text);
-      %swatch.add(%swatch2);
-      RTBMM_PushWindowElement(%swatch);
+      %c_latest.add(%text);
+      %text.forceReflow();
+      RTBMM_GUI_Center(%text,%c_latest);
       
-	   %text.forcereflow();
-	   %newheight = getWord(%text.extent,1)+11;
-	   %swatch.extent = "495 "@%newheight;
-	   %swatch2.extent = "493 "@%newheight-2;
-      RTBMM_OffsetWindow(%newheight);
-   }
-   RTBMM_FileView_createFileOptions(getField(%line,0),getField(%line,1),getField(%line,2));
-   RTBMM_createGoBackButton();
-}
-function RTBMM_FileView_createMusicRow(%index,%name,%filesize)
-{
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "25 32";
-		color = "235 235 235 255";
-	};
-	%icon = new GuiBitmapCtrl()
-	{
-		position = "4 8";
-		extent = "16 16";
-		bitmap = "./images/music";
-	};
-	%swatch.add(%icon);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "27 0";
-		extent = "278 32";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 7";
-		extent = "272 18";
-		text = "\c0"@%name;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "306 0";
-		extent = "73 32";
-		color = "222 222 222 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 7";
-		extent = "73 18";
-		text = "\c1"@%filesize;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "380 0";
-		extent = "95 32";
-		color = "230 230 230 255";
-		
-      new GuiBitmapButtonCtrl()
+      %mouseCtrl = new GuiMouseEventCtrl()
       {
-         profile = GuiDefaultProfile;
-         position = "5 3";
-         extent = "82 25";
-         bitmap = "./images/buttons/link_download";
-         text = "";
-         command = "RTBMM_DownloadsView_addMusic("@$RTB::CModManager::Cache::CurrentMusic@","@%index@");";
+         position = %container.position;
+         extent = %container.extent;
+         
+         eventType = "sectionSelect";
+         eventCallbacks = "1111";
+         
+         sectionID = getField(%line,1);
+         container = %container;
       };
-	};
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "476 0";
-		extent = "22 32";
-		color = "222 222 222 255";
-	};
-	%cbox = new GuiCheckBoxCtrl()
-	{
-		position = "4 1";
-		extent = "140 30";
-		text = " ";
-		profile = "GuiCheckBoxProfile";
-		variable = "$RTB::CModManager::MusicDL"@$RTB::CModManager::Cache::TotalMusic;
-	};
-	%swatch.add(%cbox);
-	%cbox.setValue(1);
-	RTBMM_PushWindowElement(%swatch,1);
-   
-   $RTB::CModManager::Cache::MusicIndex[$RTB::CModManager::Cache::TotalMusic] = %index;
-   $RTB::CModManager::Cache::MusicDL[$RTB::CModManager::Cache::TotalMusic] = 1;
-   $RTB::CModManager::Cache::TotalMusic++;
+      RTBMM_GUI_PushControl(%mouseCtrl,1);
+   }
 }
-function RTBMM_FileView_downloadMusic()
+
+//- Event_sectionSelect::onMouseEnter (MouseEnter Callback)
+function Event_sectionSelect::onMouseEnter(%ctrl)
 {
-   if($RTB::CModManager::Cache::TotalMusic <= 0)
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
    {
-      MessageBoxOK("Ooops","There is no music available to download.");
-      return;
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.visible = 1;
    }
-   
-   for(%i=0;%i<$RTB::CModManager::Cache::TotalMusic;%i++)
+}
+
+//- Event_sectionSelect::onMouseLeave (MouseLeave Callback)
+function Event_sectionSelect::onMouseLeave(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
    {
-      %fileID = $RTB::CModManager::Cache::MusicIndex[%i];
-      %selected = $RTB::CModManager::Cache::MusicDL[%i];
-      if(%selected $= 1)
-      {
-         %totalSelections++;
-         RTBMM_DownloadQueue.pushMusic($RTB::CModManager::Cache::CurrentMusic,%fileID);
-      }
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.visible = 0;
+      %swatch.color = "255 255 255 100";
    }
-   
-   if(%totalSelections >= 1)
-      MessageBoxYesNo("Whoopee","A total of "@%totalSelections@" music files have been added to your downloads queue.\n\nWould you like to view it now?","RTBMM_getDownloadsView();","");
+}
+
+//- Event_sectionSelect::onMouseDown (MouseDown Callback)
+function Event_sectionSelect::onMouseDown(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.color = "255 230 230 150";
+   }
+}
+
+//- Event_sectionSelect::onMouseUp (MouseUp Callback)
+function Event_sectionSelect::onMouseUp(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.color = "255 255 255 100";
+   }   
+   RTBMM_SectionView_Init(%ctrl.sectionID);
+}
+
+//- RTBMM_CategoryView_onReplyStop (Reply)
+function RTBMM_CategoryView_onReplyStop(%tcp)
+{
+   RTBMM_GUI_createHeader();
+}
+
+//- RTBMM_CategoryView_onFail (Failure)
+%RTBMM_SB.registerFailHandler("GETCATEGORIES","RTBMM_CategoryView_onFail");
+function RTBMM_CategoryView_onFail(%tcp,%error)
+{
+   if(%error $= "DNS")
+      RTBMM_GUI_FailLoad("Connection Failed");
    else
-      MessageBoxOK("Whoops","No music files have been added to your download queue. You should try ticking some maybe.");
+      RTBMM_GUI_FailLoad("Connection Failed");
 }
 
 //*********************************************************
-//* PresetsView: View of presets
+//* Section View
 //*********************************************************
-function RTBMM_getPresetsView()
+//- RTBMM_SectionView_Init (Entrance)
+function RTBMM_SectionView_Init(%section,%page)
 {
-	RTBMM_ConstructWindow();
-	RTBMM_PresetsView_createHeader();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETPRESETS",2);
-	RTBMM_trackZone("presetsview","RTBMM_getPresetsView();");
-}
-function RTBMM_PresetsView_onTransmit(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "presetsview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   RTBMM_PresetsView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5));
-}
-function RTBMM_PresetsView_createHeader()
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "300 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "117 3";
-		extent = "65 21";
-		text = "\c1Preset Title";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "302 0";
-		extent = "73 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "7 3";
-		extent = "58 21";
-		text = "\c1File Count";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "376 0";
-		extent = "121 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "28 3";
-		extent = "65 21";
-		text = "\c1Date Added";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_PresetsView_createRow(%presetId,%name,%icon,%description,%date,%filecount)
-{
-   if(strLen(%description) > 110)
-      %description = getSubStr(%description,0,110)@"...";
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "25 46";
-		color = "235 235 235 255";
-	};
-	%icon = new GuiBitmapCtrl()
-	{
-		position = "4 15";
-		extent = "16 16";
-		bitmap = "./images/icons/"@%icon;
-	};
-	%swatch.add(%icon);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "27 0";
-		extent = "274 46";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "2 0";
-		extent = "307 18";
-		text = "\c0"@%name;
-		profile = "RTBMM_MainText";
-	};
-	%swatch.add(%text);
-	%text = new GuiMLTextCtrl()
-	{
-		position = "2 18";
-		extent = "295 26";
-		text = "\c0"@%description;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "302 0";
-		extent = "73 46";
-		color = "200 200 200 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 14";
-		extent = "73 18";
-		text = "\c1"@%filecount;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "376 0";
-		extent = "123 46";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 14";
-		extent = "114 18";
-		text = "\c1"@%date;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 -1";
-		extent = "501 48";
-		color = "255 200 200 100";
-		visible = 0;
-	};
-	RTBMM_PushWindowElement(%swatch);
-	
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		offset = "1 0";
-		extent = "501 46";
-
-		eventType = "presetSelect";
-		eventCallbacks = "0001";
-		
-		eventHover = 1;
-		eventSwatch = %swatch;
-		
-		presetID = %presetId;
-	};
-	RTBMM_PushWindowElement(%mouseevent);
-   RTBMM_OffsetWindow(46);
-}
-function RTBMM_PresetsView_onTransmitEnd()
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "presetsview")
-      return;
-      
-   RTBMM_createFooter();
-}
-function Event_presetSelect::onMouseUp(%this)
-{
-   RTBMM_getPresetView(%this.presetID);
-}
-
-//*********************************************************
-//* PresetView: Single Preset
-//*********************************************************
-function RTBMM_getPresetView(%id)
-{
-   RTBMM_ConstructWindow();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETPRESET",2,%id);
-	RTBMM_trackZone("presetview","RTBMM_getPresetView("@%id@");");
-   $RTB::CModManager::Cache::CurrentPreset = %id;
-   $RTB::CModManager::Cache::TotalPresets = 0;
-}
-function RTBMM_PresetView_onTransmit(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "presetview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   RTBMM_createCustomHeader("Preset Information");
-   RTBMM_FileView_createGenericField("Name",getField(%line,0));
-   RTBMM_FileView_createGenericField("Description",getField(%line,1));
-   RTBMM_FileView_createGenericField("Date of Submission",getField(%line,2));
-   RTBMM_createCustomHeader("Preset Items");
-   RTBMM_createCenterMessage("You can untick files you do not wish to download, and then click the Download Button.");
-}
-function RTBMM_PresetView_onTransmitRow(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "presetview")
-      return;
-      
-   RTBMM_PresetView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5));
-}
-function RTBMM_PresetView_createRow(%fileid,%name,%description,%image,%author,%rating)
-{
-   if(strLen(%description) > 110)
-      %description = getSubStr(%description,0,110)@"...";
-
-	%rating1 = getSubStr(%rating,0,1);
-	%rating2 = getSubStr(%rating,1,1);
-	%rating3 = getSubStr(%rating,2,1);
-	%rating4 = getSubStr(%rating,3,1);
-	%rating5 = getSubStr(%rating,4,1);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "25 46";
-		color = "235 235 235 255";
-	};
-	%icon = new GuiBitmapCtrl()
-	{
-		position = "4 15";
-		extent = "16 16";
-		bitmap = "./images/icons/"@%image;
-	};
-	%swatch.add(%icon);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "27 0";
-		extent = "278 46";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "2 0";
-		extent = "272 18";
-		text = "\c0"@%name;
-		profile = "RTBMM_MainText";
-	};
-	%swatch.add(%text);
-	%text = new GuiMLTextCtrl()
-	{
-		position = "2 18";
-		extent = "272 26";
-		text = "\c0"@%description;
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "306 0";
-		extent = "73 46";
-		color = "200 200 200 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "0 14";
-		extent = "73 18";
-		text = "\c1"@%author;
-		profile = "RTB_Verdana12PtCenter";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "380 0";
-		extent = "95 46";
-		color = "230 230 230 255";
-	};
-	%star1 = new GuiBitmapCtrl()
-	{
-		position = "3 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating1;
-	};
-	%swatch.add(%star1);
-	%star2 = new GuiBitmapCtrl()
-	{
-		position = "21 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating2;
-	};
-	%swatch.add(%star2);
-	%star3 = new GuiBitmapCtrl()
-	{
-		position = "39 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating3;
-	};
-	%swatch.add(%star3);
-	%star4 = new GuiBitmapCtrl()
-	{
-		position = "57 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating4;
-	};
-	%swatch.add(%star4);
-	%star5 = new GuiBitmapCtrl()
-	{
-		position = "75 15";
-		extent = "16 16";
-		bitmap = "./images/star"@%rating5;
-	};
-	%swatch.add(%star5);
-	RTBMM_PushWindowElement(%swatch);
-	
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "476 0";
-		extent = "22 46";
-		color = "200 200 200 255";
-	};
-	%cbox = new GuiCheckBoxCtrl()
-	{
-		position = "4 9";
-		extent = "140 30";
-		text = " ";
-		profile = "GuiCheckBoxProfile";
-		variable = "$RTB::CModManager::Cache::PresetDL"@$RTB::CModManager::Cache::TotalPresets;
-	};
-	%swatch.add(%cbox);
-	%cbox.setValue(1);
-	RTBMM_PushWindowElement(%swatch);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 -1";
-		extent = "475 48";
-		color = "255 200 200 100";
-		visible = 0;
-	};
-	RTBMM_PushWindowElement(%swatch);
-	
-	%mouseevent = new GuiMouseEventCtrl()
-	{
-		offset = "1 0";
-		extent = "475 46";
-		linkSwatch = %swatch;
-		linkType = "file";
-		linkValue = %fileid;
-	};
-	RTBMM_PushWindowElement(%mouseevent);
-   RTBMM_OffsetWindow(46);
+   RTBMM_GUI_Load();
    
-   $RTB::CModManager::Cache::Preset[$RTB::CModManager::Cache::TotalPresets] = %fileid;
-   $RTB::CModManager::Cache::PresetDL[$RTB::CModManager::Cache::TotalPresets] = 1;
-   $RTB::CModManager::Cache::TotalPresets++;
+   $RTB::CModManager::Cache::CurrentSection = %section;
+   
+   RTBMM_SendRequest("GETSECTION",1,%section,%page);
+   RTBMM_Zones_Track("SectionView","RTBMM_SectionView_Init("@%section@",\""@%page@"\");","RTBMM_SectionView_Init("@%section@",%%page%%);");
 }
-function RTBMM_PresetView_createOptions()
+
+//- RTBMM_SectionView_onReplyStart (Reply)
+function RTBMM_SectionView_onReplyStart(%tcp)
 {
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "500 40";
-		color = "215 215 215 255";
-	};
-	%btn = new GuiBitmapButtonCtrl()
-	{
-	   profile = GuiDefaultProfile;
-	   position = "205 7";
-	   extent = "82 25";
-	   bitmap = "./images/buttons/link_download";
-	   text = "";
-	   command = "RTBMM_PresetView_DownloadPreset();";
-	};
-	%swatch.add(%btn);
-	RTBMM_PushWindowElement(%swatch,1);
+   RTBMM_GUI_Init();
 }
-function RTBMM_PresetView_onTransmitEnd()
+
+//- RTBMM_SectionView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETSECTION","RTBMM_SectionView_onReply");
+function RTBMM_SectionView_onReply(%tcp,%line)
 {
-   if($RTB::CModManager::Cache::CurrentZone !$= "presetview")
-      return;
-      
-   RTBMM_PresetView_createOptions();
-   RTBMM_createGoBackButton();
-}
-function RTBMM_PresetView_DownloadPreset()
-{
-   if($RTB::CModManager::Cache::TotalPresets <= 0)
+   if(getWord(%line,0) $= "HEADER")
    {
-      MessageBoxOK("Ooops","There are no items in this Preset that are available for download.");
-      return;
+      RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  "@getField(%line,1));
+      RTBMM_GUI_createSplitHeader("cell2","58","<font:Arial Bold:15>File","15","<font:Arial Bold:15>Submitter","12","<font:Arial Bold:15>Downloads","15","<font:Arial Bold:15>Rating");
    }
-   
-   for(%i=0;%i<$RTB::CModManager::Cache::TotalPresets;%i++)
-   {
-      %fileID = $RTB::CModManager::Cache::Preset[%i];
-      %selected = $RTB::CModManager::Cache::PresetDL[%i];
-      if(%selected $= 1)
+   else if(getWord(%line,0) $= "FILE")
+   {  
+      $RTB::CModManager::Cache::ElementsAdded++;
+      
+      if(getField(%line,2) $= 1)
+         %container = RTBMM_GUI_createContent("cellY",50,6,52,15,12,15);
+      else
+         %container = RTBMM_GUI_createContent("cell",50,6,52,15,12,15);
+      
+      %c_icon = %container.getObject(0).getBottom(1);      
+      %c_information = %container.getObject(1).getBottom(1);
+      %c_submitter = %container.getObject(2).getBottom(1);
+      %c_downloads = %container.getObject(3).getBottom(1);
+      %c_rating = %container.getObject(4).getBottom(1);
+      
+      if(getField(%line,2) $= 1)
       {
-         %totalSelections++;
-         RTBMM_DownloadQueue.pushFile(%fileID);
-      }
-   }
-   
-   if(%totalSelections >= 1)
-      MessageBoxYesNo("Whoopee","A total of "@%totalSelections@" files have been added to your downloads queue.\n\nWould you like to view it now?","RTBMM_getDownloadsView();","");
-   else
-      MessageBoxOK("Whoops","No files have been added to your download queue. Either you already have them, or you did not tick them.");
-}
-
-//*********************************************************
-//* Grab all files in downloads system
-//*********************************************************
-function RTBMM_getAllFilesView()
-{
-	RTBMM_ConstructWindow();
-	RTBMM_SectionView_createHeader();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETALLFILES",2);
-	RTBMM_trackZone("allfilesview","RTBMM_getAllFilesView();");
-}
-function RTBMM_AllFilesView_onTransmit(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "allfilesview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   RTBMM_SectionView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6));
-}
-function RTBMM_AllFilesView_onTransmitEnd(%this)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "allfilesview")
-      return;
-      
-   RTBMM_createFooter();
-}
-
-//*********************************************************
-//* Grab list of top 10 high-rated files
-//*********************************************************
-function RTBMM_getUserFavouritesView()
-{
-	RTBMM_ConstructWindow();
-	RTBMM_SectionView_createHeader();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETUSERFAVS",2);
-	RTBMM_trackZone("favouritesview","RTBMM_getUserFavouritesView();");
-}
-function RTBMM_FavsView_onTransmit(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "favouritesview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   RTBMM_SectionView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5));
-}
-function RTBMM_FavsView_onTransmitEnd(%this)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "favouritesview")
-      return;
-      
-   RTBMM_createFooter();
-}
-
-//*********************************************************
-//* Search window generation
-//*********************************************************
-function RTBMM_getSearchView(%oldData)
-{
-   if(%oldData)
-   {
-      RTBMM_ConstructWindow();
-      RTBMM_createCustomHeader("Search Results");
-      RTBMM_SectionView_createHeader();
-      for(%i=0;%i<$RTB::CModManager::Cache::TotalSearchResults;%i++)
-      {
-         %line = $RTB::CModManager::Cache::SearchResultLine[%i];
-         RTBMM_SectionView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5));
-      }
-      RTBMM_trackZone("searchresultsview","RTBMM_getSearchView(1);");
-      RTBMM_createGoBackButton();
-      return;
-   }
-   
-   $RTB::CModManager::Cache::TotalSearchResults = 0;
-   $RTB::CModManager::Search::CategoryListCount = 0;
-   $RTB::CModManager::Search::SectionListCount = 0;
-   
-	RTBMM_ConstructWindow();
-	RTBMM_createLoadingContent();
-	
-	RTBMM_SendRequest("GETSEARCHDATA",2);
-	RTBMM_trackZone("searchview","RTBMM_getSearchView();");
-}
-function RTBMM_SearchView_onTransmit(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "searchview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   if(getField(%line,0) $= "CAT")
-   {
-      $RTB::CModManager::Search::CategoryListID[$RTB::CModManager::Search::CategoryListCount] = getField(%line,1);
-      $RTB::CModManager::Search::CategoryListName[$RTB::CModManager::Search::CategoryListCount] = getField(%line,2);
-      $RTB::CModManager::Search::CategoryListCount++;
-   }
-   else if(getField(%line,0) $= "SEC")
-   {
-      $RTB::CModManager::Search::SectionListID[$RTB::CModManager::Search::SectionListCount] = getField(%line,1);
-      $RTB::CModManager::Search::SectionListName[$RTB::CModManager::Search::SectionListCount] = getField(%line,2);
-      $RTB::CModManager::Search::SectionListCat[$RTB::CModManager::Search::SectionListCount] = getField(%line,3);
-      $RTB::CModManager::Search::SectionListCount++;
-   }
-}
-function RTBMM_SearchView_createSearchGui()
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "495 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "72 3";
-		extent = "351 21";
-		text = "\c1Search MOD Database";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1Search for Keywords:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%edit = new GuiTextEditCtrl(RTBMM_SearchView_Keywords)
-	{
-		position = "4 3";
-		extent = "309 18";
-		profile = "GuiTextEditProfile";
-	};
-	%swatch.add(%edit);
-	RTBMM_PushWindowElement(%swatch,1);
-   
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1Search for Author:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%edit = new GuiTextEditCtrl(RTBMM_SearchView_Author)
-	{
-		position = "4 3";
-		extent = "309 18";
-		profile = "GuiTextEditProfile";
-	};
-	%swatch.add(%edit);
-	RTBMM_PushWindowElement(%swatch,1);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "495 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "72 3";
-		extent = "351 21";
-		text = "\c1Search Options";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1File Category:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%menu = new GuiPopupMenuCtrl(RTBMM_SearchView_Category)
-	{
-		position = "4 3";
-		extent = "309 18";
-		profile = "GuiPopupMenuProfile";
-	};
-	%swatch.add(%menu);
-	RTBMM_PushWindowElement(%swatch,1);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1File Section:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%menu = new GuiPopupMenuCtrl(RTBMM_SearchView_Section)
-	{
-		position = "4 3";
-		extent = "309 18";
-		profile = "GuiPopupMenuProfile";
-	};
-	%swatch.add(%menu);
-	RTBMM_PushWindowElement(%swatch,1);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1Search Alternatives:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%check = new GuiCheckBoxCtrl(RTBMM_SearchView_ShortDesc)
-	{
-		position = "4 -2";
-		extent = "140 30";
-		profile = "GuiCheckBoxProfile";
-		text = "Search Short Description";
-	};
-	%swatch.add(%check);
-	%check = new GuiCheckBoxCtrl(RTBMM_SearchView_LongDesc)
-	{
-		position = "178 -2";
-		extent = "140 30";
-		profile = "GuiCheckBoxProfile";
-		text = "Search Long Description";
-	};
-	%swatch.add(%check);
-	RTBMM_PushWindowElement(%swatch,1);
-
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "180 25";
-		color = "240 240 240 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "4 3";
-		extent = "171 18";
-		text = "\c1Sort By:";
-		profile = "RTBMM_FieldText";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "182 0";
-		extent = "315 25";
-		color = "222 222 222 255";
-	};
-	%menu = new GuiPopupMenuCtrl(RTBMM_SearchView_SortBy)
-	{
-		position = "4 3";
-		extent = "148 18";
-		profile = "GuiPopupMenuProfile";
-	};
-	%swatch.add(%menu);
-	%radio = new GuiRadioCtrl(RTBMM_SearchView_SortDir_Asc)
-	{
-		position = "161 -3";
-		extent = "140 30";
-		profile = "GuiRadioProfile";
-		text = "Ascending";
-	};
-	%swatch.add(%radio);
-	%radio = new GuiRadioCtrl(RTBMM_SearchView_SortDir_Desc)
-	{
-		position = "236 -3";
-		extent = "140 30";
-		profile = "GuiRadioProfile";
-		text = "Descending";
-	};
-	%swatch.add(%radio);
-	RTBMM_PushWindowElement(%swatch,1);
-	RTBMM_createFooter();
-	
-	%button = new GuiBitmapButtonCtrl()
-	{
-	   profile = BlockButtonProfile;
-	   fixedPosition = "174 246";
-	   extent = "149 30";
-	   text = "Perform Search";
-	   command = "RTBMM_SearchView_PerformSearch();";
-	   bitmap = "base/client/ui/button1";
-	   mColor = "100 255 100 255";
-	};
-	RTBMM_PushWindowElement(%button);
-	
-	RTBMM_SearchView_populateLists();
-	
-	RTBMM_SearchView_SortBy.add("Name",0);
-	RTBMM_SearchView_SortBy.add("Rating",1);
-	RTBMM_SearchView_SortBy.add("Downloads",2);
-	RTBMM_SearchView_SortBy.add("Date Submitted",3);
-   //RTBMM_Search_SortBy.setSelected(0);
-	RTBMM_SearchView_SortBy.setSelected(1);
-	RTBMM_SearchView_SortDir_Desc.setValue(1);
-	//RTBMM_Search_SortDir_Asc.setValue(1);
-	RTBMM_Searchview_ShortDesc.setValue(1);
-	RTBMM_SearchView_Keywords.makeFirstResponder(1);
-}
-function RTBMM_SearchView_populateLists()
-{
-   %catList = RTBMM_SearchView_Category;
-   %secList = RTBMM_SearchView_Section;
-   if(%catList.size() $= 0 && %secList.size() $= 0)
-   {
-      %catList.add("All Available",0);
-      for(%i=0;%i<$RTB::CModManager::Search::CategoryListCount;%i++)
-      {
-         %ID = $RTB::CModManager::Search::CategoryListID[%i];
-         %name = $RTB::CModManager::Search::CategoryListName[%i];
-         %catList.add(%name,%ID);
-      }
-      
-      %secList.add("All Available",0);
-      for(%i=0;%i<$RTB::CModManager::Search::SectionListCount;%i++)
-      {
-         %ID = $RTB::CModManager::Search::SectionListID[%i];
-         %name = $RTB::CModManager::Search::SectionListName[%i];
-         %secList.add(%name,%ID);
-      }
-      
-      %catList.setSelected(0);
-      %secList.setSelected(0);
-   }
-   else
-   {
-      %catSelection = %catList.getSelected();
-      if(%catSelection $= 0)
-      {
-         %secList.clear();
-         %secList.add("All Available",0);
-         for(%i=0;%i<$RTB::CModManager::Search::SectionListCount;%i++)
+         %swatch = new GuiSwatchCtrl()
          {
-            %ID = $RTB::CModManager::Search::SectionListID[%i];
-            %name = $RTB::CModManager::Search::SectionListName[%i];
-            %secList.add(%name,%ID);
-         }
-         %secList.setSelected(0);
+            vertSizing = "height";
+            position = %c_icon.position;
+            extent = %c_icon.extent;
+            color = "255 255 255 100";
+            visible = 0;
+         };
+         %c_icon.add(%swatch);
+         %swatch = new GuiSwatchCtrl()
+         {
+            vertSizing = "center";
+            extent = "16 32";
+            color = "0 0 0 0";
+         };
+         %c_icon.add(%swatch);
+         %icon = new GuiBitmapCtrl()
+         {
+            position = "0 3";
+            extent = "16 16";
+            bitmap = "./images/icons/"@getField(%line,3);
+         };
+         %swatch.add(%icon);
+         %icon = new GuiBitmapCtrl()
+         {
+            position = "0 19";
+            extent = "16 16";
+            bitmap = "./images/icon_new";
+         };
+         %swatch.add(%icon);
+         RTBMM_GUI_Center(%swatch,%c_icon);
       }
       else
       {
-         %secList.clear();
-         %secList.add("All Available",0);
-         for(%i=0;%i<$RTB::CModManager::Search::SectionListCount;%i++)
+         %swatch = new GuiSwatchCtrl()
          {
-            %ID = $RTB::CModManager::Search::SectionListID[%i];
-            %name = $RTB::CModManager::Search::SectionListName[%i];
-            %catID = $RTB::CModManager::Search::SectionListCat[%i];
-            if(%catID $= %catSelection)
-               %secList.add(%name,%ID);
-         }
-         %secList.setSelected(0);
+            vertSizing = "height";
+            position = %c_icon.position;
+            extent = %c_icon.extent;
+            color = "255 255 255 100";
+            visible = 0;
+         };
+         %c_icon.add(%swatch);
+         %icon = new GuiBitmapCtrl()
+         {
+            vertSizing = "center";
+            position = "0 0";
+            extent = "16 16";
+            bitmap = "./images/icons/"@getField(%line,3);
+         };
+         %c_icon.add(%icon);
+         RTBMM_GUI_Center(%icon,%c_icon);
       }
-   }
-}
-function RTBMM_SearchView_onTransmitEnd(%this)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "searchview")
-      return;
-      
-   RTBMM_SearchView_createSearchGui();
-}
-function RTBMM_SearchView_Category::onSelect(%this,%text,%id)
-{
-   RTBMM_SearchView_populateLists();
-}
-function RTBMM_SearchView_PerformSearch()
-{
-   %keywords = RTBMM_SearchView_Keywords.getValue();
-   if(%keywords $= "")
-   {
-      MessageBoxOK("Ooops","You haven't entered any Keywords to Search for. Use * to find all Mods in the Database.");
-      return;
-   }
-   %author = RTBMM_SearchView_Author.getValue();
-   
-   %category = RTBMM_SearchView_Category.getSelected();
-   if(%category $= 0)
-      %category = "ALL";
-   %section = RTBMM_SearchView_Section.getSelected();
-   if(%section $= 0)
-      %section = "ALL";
-   %searchShortDesc = RTBMM_SearchView_ShortDesc.getValue();
-   %searchLongDesc = RTBMM_SearchView_LongDesc.getValue();
-   %sortBy = RTBMM_SearchView_SortBy.getSelected();
-   if(%sortBy $= 0)
-      %sortBy = "file_title";
-   else if(%sortBy $= 1)
-      %sortBy = "rating";
-   else if(%sortBy $= 2)
-      %sortBy = "file_downloads";
-   else if(%sortBy $= 3)
-      %sortBy = "file_date";
-   if(RTBMM_SearchView_SortDir_Asc.getValue() $= 1)
-      %sortDir = "ASC";
-   else
-      %sortDir = "DESC";
-
-   RTBMM_ConstructWindow();
-   RTBMM_createCustomHeader("Search Results");
-   RTBMM_SectionView_createHeader();
-   RTBMM_createLoadingContent("Performing Search");
-   RTBMM_SendRequest("GETSEARCHRESULTS",2,%keywords,%author,%category,%section,%searchShortDesc,%searchLongDesc,%sortBy,%sortDir);
-	RTBMM_trackZone("searchresultsview","RTBMM_getSearchView(1);");
-}
-function RTBMM_SearchView_OnResult(%this,%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "searchresultsview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   $RTB::CModManager::Cache::SearchResultLine[$RTB::CModManager::Cache::TotalSearchResults] = getField(%line,0)TAB getField(%line,1) TAB getField(%line,2) TAB getField(%line,3) TAB getField(%line,4) TAB getField(%line,5);
-   $RTB::CModManager::Cache::TotalSearchResults++;
-   RTBMM_SectionView_createRow(getField(%line,0),getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5));
-}
-function RTBMM_SearchView_createNoResults()
-{
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-		
-	%swatch = new GuiSwatchCtrl()
-	{
-		offset = "1 0";
-		extent = "498 27";
-		color = "235 235 235 255";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "166 3";
-		extent = "165 21";
-		text = "\c1Your Search returned no Results.";
-		profile = "RTB_Verdana12Pt";
-	};
-	%swatch.add(%text);
-	RTBMM_PushWindowElement(%swatch,1);
-}
-function RTBMM_SearchView_OnResultEnd(%line)
-{
-   if($RTB::CModManager::Cache::CurrentZone !$= "searchresultsview")
-      return;
-      
-	if(isObject(RTBMM_LoadingContentSwatch))
-		RTBMM_LoadingContentSwatch.delete();
-      
-   if($RTB::CModManager::Cache::TotalSearchResults <= 0)
-      RTBMM_SearchView_createNoResults();
-   RTBMM_createGoBackButton();
-}
-
-//*********************************************************
-//* News Feeder
-//*********************************************************
-function RTBMM_getNewsFeedView(%nocheck)
-{
-   RTBMM_ConstructWindow();
-   RTBMM_WindowSwatch.color = "0 0 0 0";
-   RTBMM_WindowSwatch.getObject(0).color = "0 0 0 0";
-   
-   RTBMM_NewsFeedView_createStatusBar(%nocheck);
-   
-   RTBMM_NewsFeedView_createExistingFeeds();
-   
-   RTBMM_btnNewsFeed.setBitmap($RTB::Path@"images/buttons/link_newsFeed");
-   RTBMM_trackZone("newsfeedview","RTBMM_getNewsFeedView();");
-   
-   if(%nocheck)
-      return;
-      
-   RTBMM_SendRequest("GETNEWSFEED",6,RTBMM_getDelimitedMods(),RTBMM_FeedControl.latestFeed);
-   $RTB::CModManager::Cache::NumNewFeeds = 0;
-}
-function RTBMM_NewsFeedView_onTransmit(%this,%line)
-{
-   if(%line $= "END")
-   {
-      if(isObject(RTBMM_FeedCheck))
-         RTBMM_FeedCheck.delete();
-      return;
-   }
-      
-   %feedId = getField(%line,0);
-   %feedType = getField(%line,1);
-   %feedDate = getField(%line,2);
-   %feedSubject = getField(%line,3);
-   %feedMessage = getField(%line,4);
-   
-   %feed = new ScriptObject()
-   {
-      class = RTBMM_NewsFeedItem;
-      feed_id = %feedId;
-      feed_type = %feedType;
-      feed_date = %feedDate;
-      feed_subject = %feedSubject;
-      feed_message = %feedMessage;
-      feed_read = false;
-   };
-   RTBMM_FeedControl.add(%feed);
-   RTBMM_FeedControl_Save(RTBMM_FeedControl);
-   
-   if(!isObject(RTBMM_NumNewFeeds))
-      RTBMM_btnNewsFeed.setBitmap($RTB::Path@"images/buttons/link_newsFeedNew");
-   else
-   {
-      RTBMM_NewsFeedView_createFeedItem(%feedId);
-      
-      if(%feedId > RTBMM_FeedControl.latestFeed)
+      if(RTBMM_FileCache.get(getField(%line,1)))
       {
-         $RTB::CModManager::Cache::NumNewFeeds++;
-         RTBMM_NumNewFeeds.setText("New: "@$RTB::CModManager::Cache::NumNewFeeds);
+         %star = new GuiBitmapCtrl()
+         {
+            position = "24 -2";
+            extent = "16 16";
+            bitmap = "./images/bullet_star";
+         };
+         %c_icon.add(%star);
       }
-   }
-   
-   if(%feedId > RTBMM_FeedControl.latestFeed)
-      RTBMM_FeedControl.latestFeed = %feedId;
-}
-function RTBMM_NewsFeedView_createStatusBar(%noload)
-{
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "400 27";
-		bitmap = "./images/cellpic3";
-	};
-	
-   if(!%noload)
-   {
-      %text = new GuiTextCtrl(RTBMM_FeedCheck)
+
+      %swatch = new GuiSwatchCtrl()
       {
-         position = "3 3";
-         extent = "200 21";
-         text = "\c1Checking for News";
-         profile = "RTBMM_BlockText";
-         textVal = "\c1Checking for News";
+         vertSizing = "height";
+         position = %c_information.position;
+         extent = %c_information.extent;
+         color = "255 255 255 100";
+         visible = 0;
       };
-      %bitmap.add(%text);
-      RTBMM_runLoadingDots(%text);
+      %c_information.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "1 3";
+         extent = "327 18";
+         text = "<font:Arial Bold:15><color:888888> "@getField(%line,4);
+      };
+      %c_information.add(%text);
+      
+      %mltext = new GuiMLTextCtrl()
+      {
+         position = "3 18";
+         extent = "325 18";
+         text = "<font:Verdana:12><color:444444>"@getField(%line,5);
+      };
+      %c_information.add(%mltext);
+      %text = new GuiMLTextCtrl()
+      {
+         vertSizing = "top";
+         position = "3 32";
+         extent = "325 18";
+         text = "<font:Verdana:12><color:666666>\xBB <color:888888>By "@getField(%line,6);
+      };
+      %c_information.add(%text);
+      
+      %mltext.forceReflow();
+      %extent = getWord(%mltext.extent,1);
+      %container.resize(getWord(%container.position,0),getWord(%container.position,1),getWord(%container.extent,0),%extent+36);
+      RTBMM_GUI_AutoResize();
+
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_submitter.position;
+         extent = %c_submitter.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_submitter.add(%swatch);
+      %text = new GuiTextCtrl()
+      {
+         profile = RTB_Verdana12PtCenter;
+         position = "0 7";
+         extent = 100 SPC 18;
+         text = "\c1"@getField(%line,7);
+      };
+      %c_submitter.add(%text);
+      RTBMM_GUI_Center(%text,%c_submitter);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_downloads.position;
+         extent = %c_downloads.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_downloads.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "0 7";
+         extent = 150 SPC 18;
+         text = "<just:center><font:Verdana:12><color:888888>"@getField(%line,8);
+      };
+      %c_downloads.add(%text);
+      %text.forceReflow();
+      RTBMM_GUI_Center(%text,%c_downloads);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_rating.position;
+         extent = %c_rating.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_rating.add(%swatch);
+      %swatch = RTBMM_GUI_createRatingSwatch(getField(%line,9));
+      %c_rating.add(%swatch);
+      RTBMM_GUI_Center(%swatch,%c_rating);
+      
+      %mouseCtrl = new GuiMouseEventCtrl()
+      {
+         position = %container.position;
+         extent = %container.extent;
+         
+         eventType = "fileSelect";
+         eventCallbacks = "1111";
+         
+         persistent = 1;
+         
+         fileID = getField(%line,1);
+         fileRecent = getField(%line,2);
+         container = %container;
+      };
+      RTBMM_GUI_PushControl(%mouseCtrl,1);
+      
+      %downloadBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "375 1";
+         extent = "16 16";
+         visible = 0;
+         bitmap = $RTB::Path@"images/buttons/small/btnDownload";
+         text = " ";
+         command = "RTBMM_TransferView_Add("@getField(%line,1)@");";
+      };
+      %mouseCtrl.add(%downloadBtn);
+      %container.dlIcon = %downloadBtn;
+      
+      %screenBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "375 15";
+         extent = "16 16";
+         visible = 0;
+         bitmap = $RTB::Path@"images/buttons/small/btnScreenshots";
+         text = " ";
+      };
+      %mouseCtrl.add(%screenBtn);
+      %container.scIcon = %screenBtn;
+      
+      %reportBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "375" SPC getWord(%mouseCtrl.extent,1)-19;
+         extent = "16 16";
+         visible = 0;
+         bitmap = $RTB::Path@"images/buttons/small/btnReport";
+         text = " ";
+         command = "RTBMM_FileView_Report("@getField(%line,1)@");";
+      };
+      %mouseCtrl.add(%reportBtn);
+      %container.rpIcon = %reportBtn;
    }
+}  
+
+function Event_drag::onMouseDown(%ctrl)
+{
+   %offset = getWords(vectorSub(Canvas.getCursorPos(),%ctrl.drag.getCanvasPosition()),0,1);
+   beginDrag(%ctrl,%offset);
+}
+
+function beginDrag(%ctrl,%offset)
+{
+   if(isEventPending(%ctrl.sch))
+      cancel(%ctrl.sch);
+   if(!isObject(%ctrl))
+      return;
+      
+   %ctrl.drag.position = getWords(vectorSub(Canvas.getCursorPos(),%offset),0,1);
+   %ctrl.sch = schedule(10,0,"beginDrag",%ctrl,%offset);
+}
+
+function returntoplace(%ctrl,%time,%x_pos,%y_pos,%x_chng,%y_chng,%duration)
+{
+   if(%time $= "")
+   {
+      %duration = 500;
+      %time = 0;
+      %x_targ = "50";
+      %y_targ = "50";
+      %x_pos = getWord(%ctrl.drag.position,0);
+      %y_pos = getWord(%ctrl.drag.position,1);
+      %x_chng = firstWord(vectorSub(%x_targ,%x_pos));
+      %y_chng = firstWord(vectorSub(%y_targ,%y_pos));
+   }
+
+   %new_x = mfloor(Anim_EaseInOut(%time,%x_pos,%x_chng,%duration));
+   %new_y = mfloor(Anim_EaseInOut(%time,%y_pos,%y_chng,%duration));
+   //return;
+   %ctrl.drag.position = %new_x SPC %new_y;
+   
+   //if(%new_x $= 50 && %new_y $= 50)
+     // return;   
+   if(%time > %duration)
+   {
+      return;
+   }
+   
+   $sch = schedule(10,0,"returntoplace",%ctrl,%time+10,%x_pos,%y_pos,%x_chng,%y_chng,%duration);
+}
+
+function Event_drag::onMouseLeave(%ctrl)
+{
+
+}
+
+function Event_drag::onMouseUp(%ctrl)
+{
+   cancel(%ctrl.sch);
+   returntoplace(%ctrl);
+}
+
+//- Event_fileSelect::onMouseEnter (MouseEnter Callback)
+function Event_fileSelect::onMouseEnter(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount()&&(%i<%ctrl.recurseHover||!%ctrl.recurseHover);%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.visible = 1;
+   }
+   %container.dlIcon.setVisible(1);
+   %container.scIcon.setVisible(1);
+   %container.rpIcon.setVisible(1);
+}
+
+//- Event_fileSelect::onMouseLeave (MouseLeave Callback)
+function Event_fileSelect::onMouseLeave(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount()&&(%i<%ctrl.recurseHover||!%ctrl.recurseHover);%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.visible = 0;
+      %swatch.color = "255 255 255 100";
+   }
+   %container.dlIcon.setVisible(0);
+   %container.scIcon.setVisible(0);
+   %container.rpIcon.setVisible(0);
+}
+
+//- Event_fileSelect::onMouseDown (MouseDown Callback)
+function Event_fileSelect::onMouseDown(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount()&&(%i<%ctrl.recurseHover||!%ctrl.recurseHover);%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.color = "255 230 230 150";
+   }
+}
+
+//- Event_fileSelect::onMouseUp (MouseUp Callback)
+function Event_fileSelect::onMouseUp(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount()&&(%i<%ctrl.recurseHover||!%ctrl.recurseHover);%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.color = "255 255 255 100";
+   }   
+   RTBMM_FileView_Init(%ctrl.fileID);
+}
+
+//- RTBMM_SectionView_onReplyStop (Reply)
+function RTBMM_SectionView_onReplyStop(%tcp)
+{
+   if($RTB::CModManager::Cache::ElementsAdded <= 0)
+   {
+      RTBMM_GUI_createMessage("<br>There are no files in this section.<br>");
+   }
+      
+   RTBMM_GUI_createFooter("cell2");
+}
+
+//- RTBMM_SectionView_onFail (Failure)
+%RTBMM_SB.registerFailHandler("GETSECTION","RTBMM_SectionView_onFail");
+function RTBMM_SectionView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* File View
+//*********************************************************
+//- RTBMM_FileView_Init (Entrance)
+function RTBMM_FileView_Init(%id)
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETFILE",1,%id);
+   RTBMM_Zones_Track("FileView","RTBMM_FileView_Init(\""@%id@"\");");
+}
+
+//- RTBMM_FileView_onReplyStart (Start)
+function RTBMM_FileView_onReplyStart(%tcp)
+{
+   RTBMM_GUI_Init();
+}
+
+//- RTBMM_FileView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETFILE","RTBMM_FileView_onReply");
+function RTBMM_FileView_onReply(%tcp,%line)
+{
+   if(getField(%line,0) $= "HEAD")
+   {
+      RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  "@getField(%line,1));
+   }
+   else if(getField(%line,0) $= "DEFS")
+   {
+      $RTB::CModManager::Cache::CurrentFile = getField(%line,1);
+   }
+   else if(getField(%line,0) $= "INFO")
+   {
+      %info = RTBMM_GUI_createContent("cell",30,20,80);
+      %label = %info.getObject(0);
+      %content = %info.getObject(1);
+      
+      %label_txt = new GuiMLTextCtrl()
+      {
+         position = "6 7";
+         extent = "128 30";
+         text = "<font:Arial Bold:15><color:444444>"@getField(%line,1);
+      };
+      %label.add(%label_txt);
+      
+      %content_txt = new GuiMLTextCtrl()
+      {
+         position = "6 9";
+         extent = "530 30";
+         text = "<font:Verdana:12><color:666666>"@strTrim(RTBMM_parseBBCode(getField(%line,2)));
+      };
+      %content.add(%content_txt);
+      %content_txt.forceReflow();
+      %extent = getWord(%content_txt.extent,1);
+      %info.resize(getWord(%info.position,0),getWord(%info.position,1),getWord(%info.extent,0),%extent+18);
+      RTBMM_GUI_AutoResize();
+   }
+   else if(getField(%line,0) $= "RATE")
+   {
+      %info = RTBMM_GUI_createContent("cell",30,20,80);
+      %label = %info.getObject(0);
+      %content = %info.getObject(1);
+      
+      %label_txt = new GuiMLTextCtrl()
+      {
+         position = "6 7";
+         extent = "128 30";
+         text = "<font:Arial Bold:15><color:444444>Rating:";
+      };
+      %label.add(%label_txt);
+      
+      %rating = getSubStr(getField(%line,1),0,5);
+      %rating = RTBMM_GUI_createRatingSwatch(%rating);
+      %content.getBottom(1).add(%rating);
+      RTBMM_GUI_CenterVert(%rating);
+      
+      %numRatings = getSubStr(getField(%line,1),6,strLen(getField(%line,1)));
+      %s = (%numRatings == 1) ? "" : "s";
+      %mlTextCtrl = new GuiMLTextCtrl()
+      {
+         position = "95 0";
+         extent = "88";
+         text = "<just:left><font:Arial:12><color:AAAAAA>"@%numRatings@" rating"@%s;
+      };
+      %content.getBottom(1).add(%mlTextCtrl);
+      %mlTextCtrl.forceReflow();
+      RTBMM_GUI_CenterVert(%mlTextCtrl);
+      %mlTextCtrl.shift(0,1);
+      
+      $RTB::CModManager::Cache::FileRatingSwatch = %rating;
+      $RTB::CModManager::Cache::FileRatingText = %mlTextCtrl;
+   }
+   else if(getField(%line,0) $= "SCREENSHOTS")
+   {
+      %collage = getField(%line,5);
+      %container = RTBMM_GUI_createContent("cell",140,100).getObject(0);
+      
+      %sCount = 0;
+      %screenMask = (getField(%line,1) !$= "")@(getField(%line,2) !$= "")@(getField(%line,3) !$= "")@(getField(%line,4) !$= "");
+      for(%i=0;%i<4;%i++)
+      {
+         if(getSubStr(%screenMask,%i,1) $= "1")
+         {
+            %s[%sCount] = %i+1;
+            %sCount++;
+         }
+      }
+      
+      %ssCon = new GuiSwatchCtrl()
+      {
+         position = "0 0";
+         extent = (118*%sCount)+(%sCount*40)-40 SPC "90";
+         color = "0 0 0 0";
+      };
+      %container.add(%ssCon);
+      RTBMM_GUI_Center(%ssCon,%container);
+      
+      for(%i=0;%i<%sCount;%i++)
+      {
+         %ss = new GuiSwatchCtrl()
+         {
+            position = (118*%i)+(%i*40) SPC 0;
+            extent = "118 90";
+            color = "100 100 100 255";
+            
+            new GuiSwatchCtrl()
+            {
+               position = "1 1";
+               extent = "116 88";
+               color = "255 255 255 255";
+               
+               new GuiBitmapCtrl()
+               {
+                  position = "2 2";
+                  extent = "112 84";
+                  bitmap = "Add-Ons/System_ReturnToBlockland/images/image_checker";
+                  wrap = 1;
+                  
+                  new GuiSwatchCtrl()
+                  {
+                     position = "0 0";
+                     extent = "112 84";
+                     color = "255 255 255 200";
+                  };
+               };
+            };
+         };
+         %ssCon.add(%ss);
+         
+         $RTB::CModManager::Cache::Screen[%i] = %s[%i];
+         $RTB::CModManager::Cache::ScreenControl[%i] = %ss.getObject(0);
+         $RTB::CModManager::Cache::ScreenURL[%i] = getField(%line,%i+1);
+      }
+      $RTB::CModManager::Cache::ScreenCount = %sCount;
+      
+      if($RTB::CModManager::PCache::CollageSHA $= getField(%line,5))
+      {
+         for(%i=0;%i<$RTB::CModManager::Cache::ScreenCount;%i++)
+         {
+            %id = $RTB::CModManager::Cache::Screen[%i];
+            %ctrl = $RTB::CModManager::Cache::ScreenControl[%i];
+            
+            %img = new GuiSwatchCtrl()
+            {
+               position = "2 2";
+               extent = "112 84";
+               color = "255 255 255 255";
+               
+               new GuiBitmapCtrl()
+               {
+                  position = "0 0";
+                  extent = "224 168";
+                  bitmap = "config/client/rtb/cache/collage.png";
+               };
+
+               new GuiSwatchCtrl()
+               {
+                  position = "0 0";
+                  extent = "112 84";
+                  color = "255 255 255 255";
+               };
+            };
+            %ctrl.clear();
+            %ctrl.add(%img);
+            
+            %swatch = new GuiSwatchCtrl()
+            {
+               position = "0 0";
+               extent = "112 84";
+               color = "255 255 255 0";
+            };
+            %img.add(%swatch);
+            
+            %mouseCtrl = new GuiMouseEventCtrl()
+            {
+               position = "0 0";
+               extent = "112 84";
+               
+               eventType = "screenshotSelect";
+               eventCallbacks = "1111";
+               
+               screenID = %i;
+               swatch = %swatch;
+            };
+            %img.add(%mouseCtrl);
+            
+            if(%i $= 1)
+               %img.getObject(0).position = "-112 0";
+            else if(%i $= 2)
+               %img.getObject(0).position = "0 -84";
+            else if(%i $= 3)
+               %img.getObject(0).position = "-112 -84";
+               
+            RTBMM_GUI_FadeOut(%img.getObject(1));
+         }
+      }
+      else
+      {
+         RTBMM_ScreenGrabber.getCollage("/uploads/images/"@%collage@".png");
+         $RTB::CModManager::PCache::CollageSHA = %collage;
+      }
+   }
+   else if(getField(%line,0) $= "OPTS")
+   {
+      %content = RTBMM_GUI_createContent("cell",48,45,55);
+      %blurb = %content.getObject(0);
+      %buttons = %content.getObject(1);
+      
+      if(getField(%line,1) $= 0)
+      {
+         %bitmap = "image_skull";
+      }
+      else if(getField(%line,1) $= 1)
+      {
+         %bitmap = "image_medal";
+         %text = "This file has been approved by our moderators.<br>This means it appears to be safe to use.";
+      }
+      else if(getField(%line,1) $= 2)
+      {
+         %bitmap = "image_pirate";
+      }
+         
+      %bmp = new GuiBitmapCtrl()
+      {
+         position = "15 7";
+         extent = "32 32";
+         bitmap = "./images/"@%bitmap;
+      };
+      %blurb.add(%bmp);
+      
+      %txt = new GuiMLTextCtrl()
+      {
+         position = "40 9";
+         extent = "272 24";
+         text = "<just:center><font:Verdana:12><color:444444>"@%text;
+      };
+      %blurb.add(%txt);
+      RTBMM_GUI_CenterVert(%bmp);
+      RTBMM_GUI_CenterVert(%txt);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         position = "0 0";
+         extent = "82 25";
+         color = "0 0 0 0";
+      };
+      %currExtent = 182;
+      %currPos = 90;
+      
+      %download = new GuiBitmapButtonCtrl()
+      {
+         position = "0 0";
+         extent = "82 25";
+         bitmap = "./images/buttons/large/gray/btnDownload";
+         text = " ";
+         command = "RTBMM_FileView_Download();";
+      };
+      %swatch.add(%download);
+      
+      if(!$RTB::Barred::Rate)
+      {
+         %rate = new GuiBitmapButtonCtrl()
+         {
+            position = %currPos@" 0";
+            extent = "82 25";
+            bitmap = "./images/buttons/large/gray/btnAddRating";
+            text = " ";
+            command = "RTBMM_FileView_Rate();";
+         };
+         %swatch.add(%rate);
+         %swatch.extent = %currExtent-8 SPC 25;
+         %currExtent += 90;
+         %currPos += 90;
+      }
+      
+      if(!$RTB::Barred::Comment)
+      {
+         %comment = new GuiBitmapButtonCtrl()
+         {
+            position = %currPos@" 0";
+            extent = "82 25";
+            bitmap = "./images/buttons/large/gray/btnComment";
+            text = " ";
+            command = "RTBMM_FileView_openCommentBox();";
+         };
+         %swatch.add(%comment);
+         %swatch.extent = %currExtent-8 SPC 25;
+         %currExtent += 90;
+         %currPos += 90;
+      }
+      
+      if($RTB::CModManager::Session::LoggedIn)
+      {
+         %report = new GuiBitmapButtonCtrl()
+         {
+            position = %currPos@" 0";
+            extent = "82 25";
+            bitmap = "./images/buttons/large/gray/btnReport";
+            text = " ";
+            command = "RTBMM_FileView_Report();";
+         };
+         %swatch.add(%report);
+         %swatch.extent = %currExtent-8 SPC 25;
+      }
+      
+      %buttons.add(%swatch);
+      RTBMM_GUI_Center(%swatch);
+   }
+   else if(getField(%line,0) $= "COMMENTS")
+   {
+      if(getField(%line,1) <= 0)
+         RTBMM_GUI_createHeader();
+      else
+      {
+         $RTB::CModManager::Cache::Comments = getField(%line,1);
+         $RTB::CModManager::Cache::CommentPages = getField(%line,2);
+         $RTB::CModManager::Cache::CommentCurrPage = 1;
+         $RTB::CModManager::Cache::CommentHeader = RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  Comments <font:Arial:12>"@getField(%line,1)@" comments");
+      }
+      
+      %container = new GuiSwatchCtrl()
+      {
+         position = "0 "@$RTB::CModManager::GUI::CurrentY;
+         extent = "680 250";
+         color = "255 0 0 255";
+      };
+      RTBMM_GUI_PushControl(%container,1);
+      
+      $RTB::CModManager::Cache::CommentContainer = %container;
+   }
+   else if(getField(%line,0) $= "COMMENT")
+   {
+      RTBMM_FileView_createComment(getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6));
+      $RTB::CModManager::Cache::CommentContainer.extent = "680" SPC $RTB::CModManager::Cache::CommentContainer.getLowestPoint();
+      RTBMM_GUI_AutoResize();
+   }
+   else if(getField(%line,0) $= "ENDCOMMENTS")
+   {
+      $RTB::CModManager::Cache::CommentFooter = RTBMM_GUI_createHeader();
+      RTBMM_FileView_drawCommentPagination();
+   }
+}
+
+//- RTBMM_FileView_drawCommentPagination (i am not proud of this horrible, horrible hack)
+function RTBMM_FileView_drawCommentPagination()
+{
+   if(isObject($RTB::CModManager::Cache::CommentHeader.pagination))
+      $RTB::CModManager::Cache::CommentHeader.pagination.delete();
+   if(isObject($RTB::CModManager::Cache::CommentFooter.pagination))
+      $RTB::CModManager::Cache::CommentFooter.pagination.delete();
+
+   if($RTB::CModManager::Cache::CommentPages > 1)
+   {
+      if($RTB::CModManager::Cache::CommentCurrPage < $RTB::CModManager::Cache::CommentPages)
+      {
+         %text = "<font:Verdana Bold:13><a:comment-pagination-prev>Previous</a>";
+      }
+      if($RTB::CModManager::Cache::CommentCurrPage > 1)
+      {
+         if(%text $= "")
+            %text = "<font:Verdana Bold:13><a:comment-pagination-next>Next</a> ";
+         else
+            %text = "<font:Verdana Bold:13><a:comment-pagination-next>Next</a> | <a:comment-pagination-prev>Previous</a>";
+      }
+      
+      %ctrl = new GuiMLTextCtrl()
+      {
+         profile = RTBMM_PaginationProfile;
+         position = "477 7";
+         extent = "200 13";
+         text = "<just:right>"@%text;
+      };
+      $RTB::CModManager::Cache::CommentHeader.add(%ctrl);
+      $RTB::CModManager::Cache::CommentHeader.pagination = %ctrl;
+
+      %ctrl = new GuiMLTextCtrl()
+      {
+         profile = RTBMM_PaginationProfile;
+         position = "477 7";
+         extent = "200 13";
+         text = "<just:right>"@%text;
+      };
+      $RTB::CModManager::Cache::CommentFooter.add(%ctrl);
+      $RTB::CModManager::Cache::CommentFooter.pagination = %ctrl;      
+   }
+}
+
+//- RTBMM_FileView_openCommentBox (opens a comment box for users to post comments)
+function RTBMM_FileView_openCommentBox()
+{
+   %window = RTBMM_GUI_createWindow("Post a Comment");
+   %window.resize(0,0,350,200);
+   RTBMM_GUI_Center(%window);
+   
+   %textedit = new GuiScrollCtrl()
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "5 5";
+      extent = "332 120";
+      hScrollBar = "alwaysOff";
+      vScrollBar = "alwaysOff";
+      
+      new GuiMLTextEditCtrl(RTBMM_FileView_Comment)
+      {
+         profile = RTBMM_MLEditProfile;
+         position = "3 1";
+         extent = "332 120";
+         lineSpacing = 2;
+         allowColorChars = 0;
+         maxChars = "-1";
+         maxBitmapHeight = "-1";
+      };
+   };
+   %window.canvas.add(%textedit);
+   
+   %textedit.getObject(0).makeFirstResponder(1);
    
    %button = new GuiBitmapButtonCtrl()
    {
-      position = "321 3";
-      extent = "73 20";
-      profile = "BlockButtonProfile";
-      text = "Clear All";
-      bitmap = "base/client/ui/button1";
-      command = "RTBMM_NewsFeedView_clearFeeds();";
+      position = "280 133";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnOK";
+      command = "RTBMM_FileView_sendComment("@%window@");";
    };
-   %bitmap.add(%button);
+   %window.canvas.add(%button);
    
-   RTBMM_PushWindowElement(%bitmap);
-	
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "402 0";
-		extent = "100 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl(RTBMM_NumNewFeeds)
-	{
-		position = "0 3";
-		extent = "100 21";
-		text = "\c1New: 0";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_NewsFeedView_createExistingFeeds(%onlyLive)
-{
-   for(%i=0;%i<RTBMM_FeedControl.getCount();%i++)
+   %button = new GuiBitmapButtonCtrl()
    {
-      if(%onlyLive && RTBMM_FeedControl.getObject(%i).feed_loaded)
-         continue;
-      RTBMM_NewsFeedView_createFeedItem(RTBMM_FeedControl.getObject(%i).feed_id);
-   }
+      position = "220 133";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnCancel";
+      command = %window.closeButton.command;
+   };
+   %window.canvas.add(%button);
 }
-function RTBMM_NewsFeedView_deleteFeed(%feed)
+
+//- RTBMM_FileView_sendComment (sends a comment for a file)
+function RTBMM_FileView_sendComment(%window)
 {
-   if(isObject(%feed))
+   if(RTBMM_FileView_Comment.getValue() $= "")
    {
-      %feed.delete();
-      RTBMM_FeedControl_reqSave(RTBMM_FeedControl);
-      schedule(10,0,"RTBMM_getNewsFeedView",1);
-   }
-}
-function RTBMM_NewsFeedView_clearFeeds()
-{
-   RTBMM_FeedControl.clear();
-   RTBMM_FeedControl_reqSave(RTBMM_FeedControl);
-   schedule(10,0,"RTBMM_getNewsFeedView",1);
-}
-function RTBMM_NewsFeedView_createFeedItem(%feedId)
-{
-   for(%i=0;%i<RTBMM_FeedControl.getCount();%i++)
-   {
-      %feed = RTBMM_FeedControl.getObject(%i);
-      if(%feed.feed_id $= %feedId)
-         break;
+      RTBMM_GUI_createMessageBoxOK("Ooops","<just:center><br>You have not entered a comment.<br>");
+      return;
    }
    
-   if(%feed.feed_type $= 1)
+   %overlay = new GuiSwatchCtrl()
    {
-      %borderColor = "100 100 250 255";
-      %backgroundColor = "70 70 255 50";
-      %feedIcon = "feed";
-   }
-   else if(%feed.feed_type $= 2)
-   {
-      %borderColor = "255 100 100 255";
-      %backgroundColor = "255 70 70 50";
-      %feedIcon = "exclamation";
-   }
-   else if(%feed.feed_type $= 3)
-   {
-      %borderColor = "100 255 100 255";
-      %backgroundColor = "70 255 70 50";
-      %feedIcon = "newaddon";
-   }
-   else if(%feed.feed_type $= 4)
-   {
-      %borderColor = "200 200 50 255";
-      %backgroundColor = "255 255 70 50";
-      %feedIcon = "newupdate";
-   }
+      position = "0 0";
+      extent = %window.canvas.extent;
+      color = "255 255 255 200";
+   };
+   %window.canvas.add(%overlay);
    
-	%container = new GuiSwatchCtrl()
-	{
-		position = "3 32";
-		extent = "491 100";
-		color = %backgroundColor;
-		
-		isContainer = 1;
-	};
-	%topswatch = new GuiSwatchCtrl()
-	{
-	   position = "0 0";
-	   extent = "491 1";
-	   minExtent = "1 1";
-	   color = %borderColor;
-	};
-	%container.add(%topswatch);
-	%bottomswatch = new GuiSwatchCtrl()
-	{
-	   position = "0 99";
-	   extent = "491 1";
-	   minExtent = "1 1";
-	   color = %borderColor;
-	};
-	%container.add(%bottomswatch);
-	%leftswatch = new GuiSwatchCtrl()
-	{
-	   position = "0 0";
-	   extent = "1 100";
-	   minExtent = "1 1";
-	   color = %borderColor;
-	};
-	%container.add(%leftswatch);
-	%rightswatch = new GuiSwatchCtrl()
-	{
-	   position = "490 0";
-	   extent = "1 100";
-	   minExtent = "1 1";
-	   color = %borderColor;
-	};
-	%container.add(%rightswatch);
-	%swatch = new GuiSwatchCtrl()
-	{
-	   position = "3 27";
-	   extent = "485 1";
-	   minExtent = "1 1";
-	   color = %borderColor;
-	};
-	%container.add(%swatch);
-	%icon = new GuiBitmapCtrl()
-	{
-	   position = "6 6";
-	   extent = "16 16";
-	   bitmap = $RTB::Path@"images/"@%feedIcon;
-	};
-	%container.add(%icon);
-	%subject = new GuiTextCtrl()
-	{
-	   profile = RTB_Verdana12PtAuto;
-	   position = "26 6";
-	   text = %feed.feed_subject;
-	};
-	%container.add(%subject);
-	%date = new GuiMLTextCtrl()
-	{
-	   profile = RTB_Verdana12Pt;
-	   position = "190 6";
-	   extent = "297 16";
-	   text = "<just:right>"@%feed.feed_date;
-	};
-	%container.add(%date);
-	//RTBMM_PushWindowElement(%container);
-	
-   RTBMM_WindowSwatch.add(%container);
-   RTBMM_ResizeSwatch();
-	
-	if(!%feed.feed_read)
-	{
-      %icon = new GuiBitmapCtrl()
+   %bitmap = new GuiAnimatedBitmapCtrl()
+   {
+      extent = "31 31";
+      bitmap = "./images/image_loadRing";
+      framesPerSecond = 15;
+      numFrames = 8;
+   };
+   %overlay.add(%bitmap);
+   RTBMM_GUI_Center(%bitmap);
+   %bitmap.shift(0,-10);
+   
+   %mlCtrl = new GuiMLTextCtrl()
+   {
+      extent = "200 0";
+      text = "<just:center><font:Verdana:12><color:666666>Submitting Comment...";
+   };
+   %overlay.add(%mlCtrl);
+   RTBMM_GUI_Center(%mlCtrl);
+   %mlCtrl.shift(0,12);
+   
+   $RTB::CModManager::Cache::LoadRing = %bitmap;
+   $RTB::CModManager::Cache::LoadText = %mlCtrl;
+   
+   RTBMM_SendRequest("POSTCOMMENT",2,$RTB::CModManager::Cache::CurrentFile,RTBMM_FileView_Comment.getValue());
+}
+
+//- RTBMM_FileView_onCommentPosted (a callback when the comment is sent)
+%RTBMM_SB.registerResponseHandler("POSTCOMMENT","RTBMM_FileView_onCommentPosted");
+function RTBMM_FileView_onCommentPosted(%tcp,%line)
+{
+   RTBMM_GUI_LoadRing_Clear($RTB::CModManager::Cache::LoadRing);
+   if(getField(%line,0) $= 1)
+   {
+      $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Your comment has been submitted.");
+      RTBMM_FileView_getCommentPage(1);
+   }
+   else
+   {
+      $RTB::CModManager::Cache::LoadRing.setBitmap($RTB::Path@"images/image_loadRingFail");
+      if(getField(%line,1) $= 1)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>You are not logged in!");
+      else if(getField(%line,1) $= 2)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>File not found.");
+      else if(getField(%line,1) $= 3)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>You did not write a comment.");
+      else
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Unknown Error Occurred.");
+   }
+}
+
+//- RTBMM_FileView_onCommentFail (Fail result from sending a report)
+%RTBMM_SB.registerFailHandler("SENDCOMMENT","RTBMM_FileView_onCommentFail");
+function RTBMM_FileView_onCommentFail(%tcp,%fail)
+{
+   RTBMM_GUI_LoadRing_Clear($RTB::CModManager::Cache::LoadRing);
+   $RTB::CModManager::Cache::LoadRing.setBitmap($RTB::Path@"images/image_loadRingFail");
+   $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Connection Failed. Please try again later.");
+}
+
+//- RTBMM_FileView_getCommentPage (gets a page of comments for display)
+function RTBMM_FileView_getCommentPage(%page)
+{
+   RTBMM_FileView_collapseComments();
+   
+   if(isObject($RTB::CModManager::Cache::CommentHeader.pagination))
+      $RTB::CModManager::Cache::CommentHeader.pagination.delete();
+   if(isObject($RTB::CModManager::Cache::CommentFooter.pagination))
+      $RTB::CModManager::Cache::CommentFooter.pagination.delete();
+      
+   $RTB::CModManager::Cache::CommentCurrPage = %page;
+   
+   RTBMM_SendRequest("GETCOMMENTPAGE",2,$RTB::CModManager::Cache::CurrentFile,%page);
+}
+
+//- RTBMM_FileView_onCommentReply (handler for comment replies)
+%RTBMM_SB.registerResponseHandler("GETCOMMENTPAGE","RTBMM_FileView_onCommentReply");
+function RTBMM_FileView_onCommentReply(%tcp,%line)
+{
+   if(getField(%line,0) $= "COMMENT")
+   {
+      RTBMM_FileView_createComment(getField(%line,1),getField(%line,2),getField(%line,3),getField(%line,4),getField(%line,5),getField(%line,6));
+      $RTB::CModManager::Cache::CommentContainer.extent = "680" SPC $RTB::CModManager::Cache::CommentContainer.getLowestPoint();
+   }
+}
+
+//- RTBMM_FileView_onCommentReplyStop (callback when comments are done downloading)
+function RTBMM_FileView_onCommentReplyStop()
+{
+   RTBMM_GUI_FadeOut($RTB::CModManager::Cache::CommentCover);
+   $RTB::CModManager::Cache::CommentCover.clear();
+   RTBMM_FileView_sizeupComments(0,200,getWord($RTB::CModManager::Cache::CommentContainer.extent,1)-200,1000);
+   
+   RTBMM_FileView_drawCommentPagination();
+}
+
+//- RTBMM_FileView_createComment (creates content container for comments)
+function RTBMM_FileView_createComment(%author,%title,%comments,%blid,%date,%message)
+{
+   %container = RTBMM_GUI_createContent("cell",120,25,75);
+   %info = %container.getObject(0);
+   %content = %container.getObject(1);      
+
+   %author = new GuiMLTextCtrl()
+   {
+      position = "6 7";
+      extent = "128 30";
+      text = "<font:Arial Bold:15><color:666666>"@%author;
+   };
+   %info.add(%author);
+
+   %title = new GuiMLTextCtrl()
+   {
+      position = "5 23";
+      extent = "128 30";
+      text = "<font:Verdana:12><color:888888>"@%title;
+   };
+   %info.add(%title);
+
+   %data = new GuiMLTextCtrl()
+   {
+      position = "5 53";
+      extent = "128 30";
+      text = "<font:Verdana Bold:12><color:888888>Comments: <font:Verdana:12>"@%comments;
+   };
+   %info.add(%data);
+
+   %data = new GuiMLTextCtrl()
+   {
+      position = "5 66";
+      extent = "128 30";
+      text = "<font:Verdana Bold:12><color:888888>Blockland ID: <font:Verdana:12>"@%blid;
+   };
+   %info.add(%data);
+
+   %date = new GuiMLTextCtrl()
+   {
+      position = "7 7";
+      extent = "300 30";
+      text = "<font:Verdana:12><color:AAAAAA>\xBB "@%date;
+   };
+   %content.add(%date);
+
+   %div = new GuiSwatchCtrl()
+   {
+      position = "2 25";
+      extent = "505 1";
+      minExtent = "1 1";
+      color = "255 255 255 255";
+   };
+   %content.add(%div);
+
+   %div = new GuiSwatchCtrl()
+   {
+      position = "2 24";
+      extent = "505 1";
+      minExtent = "1 1";
+      color = "200 200 200 255";
+   };
+   %content.add(%div);
+
+   %comment = new GuiMLTextCtrl()
+   {
+      position = "6 31";
+      extent = "500 30";
+      text = "<font:Verdana:12><color:666666>"@%message;
+   };
+   %content.add(%comment);
+   
+   %comment.forceReflow();
+   if((getWord(%comment.extent,1)+50) > 120)
+      %container.resize(getWord(%container.position,0),getWord(%container.position,1),getWord(%container.extent,0),getWord(%comment.extent,1)+50);
+
+   %container.vertSizing = "top";
+   %container.position = "0" SPC $RTB::CModManager::Cache::CommentContainer.getLowestPoint();
+   $RTB::CModManager::Cache::CommentContainer.add(%container);
+   
+   return %container;
+}
+
+//- RTBMM_FileView_collapseComments (creates a loading window over the comments area and collapses it)
+function RTBMM_FileView_collapseComments()
+{
+   %container = $RTB::CModManager::Cache::CommentContainer;
+   
+   %cover = new GuiSwatchCtrl()
+   {
+      position = %container.position;
+      extent = %container.extent;
+      color = "255 255 255 0";
+      
+      new GuiAnimatedBitmapCtrl()
       {
-         position = getWord(%subject.extent,0)+32 SPC 7;
-         extent = "16 16";
-         bitmap = $RTB::Path@"images/new";
+         vertSizing = "center";
+         horizSizing = "center";
+         extent = "31 31";
+         bitmap = "./images/image_loadRing";
+         framesPerSecond = 15;
+         numFrames = 8;
       };
-      %container.add(%icon);
-	}
-	
-	%message = new GuiMLTextCtrl(RTBMM_FeedMessage)
-	{
-	   profile = RTB_Verdana12Pt;
-	   position = "4 32";
-	   extent = "482 65";
-	   text = "<color:444444>"@%feed.feed_message;
-	};
-	%container.add(%message);
-	%message.forceReflow();
-	
-	%container.extent = getWord(%container.extent,0) SPC getWord(%message.extent,1)+38;
-	%bottomswatch.position = getWord(%bottomswatch.position,0) SPC getWord(%message.extent,1)+37;
-	%rightswatch.extent = "1" SPC getWord(%container.extent,1);
-	%leftswatch.extent = "1" SPC getWord(%container.extent,1);
-	
-	%delBtn = new GuiBitmapButtonCtrl()
-	{
-	   extent = "11 11";
-	   position = "476" SPC getWord(%message.extent,1)+getWord(%message.position,1)-8;
-	   bitmap = "./images/buttons/btnDelete";
-	   command = "RTBMM_NewsFeedView_DeleteFeed("@%feed@");";
-	};
-	%container.add(%delBtn);
-	
-	for(%i=0;%i<RTBMM_WindowSwatch.getCount();%i++)
-	{
-	   %ctrl = RTBMM_WindowSwatch.getObject(%i);
-	   if(%ctrl.isContainer && %ctrl !$= %container)
-	      %ctrl.position = getWord(%ctrl.position,0) SPC getWord(%ctrl.position,1)+getWord(%container.extent,1)+4;
-	}
-   RTBMM_overrideMainSwatchLength(2);
+   };
+   RTBMM_GUI_PushControl(%cover);
    
-   %feed.feed_read = 1;
-   RTBMM_FeedControl_Save(RTBMM_FeedControl);
+   RTBMM_GUI_FadeIn(%cover);
+   $RTB::CModManager::Cache::CommentCover = %cover;
+   RTBMM_FileView_sizedownComments(0,getWord(%container.extent,1),"-"@getWord(%container.extent,1)-200,300);
 }
-function RTBMM_FeedMessage::onURL(%this,%url)
+
+//- RTBMM_FileView_sizedownComments (resizes the comments area to go real small)
+function RTBMM_FileView_sizedownComments(%time,%begin,%change,%duration)
 {
-   if(strPos(%url,"file-") $= 0)
-      schedule(1,0,"RTBMM_getFileView",getSubStr(%url,5,strLen(%url)));
-   if(strPos(%url,"download-") $= 0)
-      schedule(1,0,"RTBMM_DownloadsView_AddDownload",getSubStr(%url,9,strLen(%url)));
+   if(%time $= %duration)
+   {
+      RTBMM_GUI_Offset(-1);
+      $RTB::CModManager::Cache::CommentCover.color = "255 255 255 255";
+      $RTB::CModManager::Cache::CommentContainer.clear();
+      return;
+   }
+   
+   %ctrl_con = $RTB::CModManager::Cache::CommentContainer;   
+   %oldExtent = getWord(%ctrl_con.extent,1);
+   %newExtent = mceil(Anim_EaseInOut(%time,%begin,%change,%duration));
+   %ctrl_con.resize(getWord(%ctrl_con.position,0),getWord(%ctrl_con.position,1),getWord(%ctrl_con.extent,0),%newExtent);
+   %ctrl_con.expColSch = schedule(10,0,"RTBMM_FileView_sizedownComments",%time+10,%begin,%change,%duration);
+   
+   %ctrl = $RTB::CModManager::Cache::CommentFooter;
+   %ctrl.position = vectorAdd(%ctrl.position,"0" SPC %newExtent-%oldExtent);
+   
+   %ctrl = $RTB::CModManager::Cache::CommentCover;
+   %ctrl.resize(getWord(%ctrl_con.position,0),getWord(%ctrl_con.position,1),getWord(%ctrl_con.extent,0),getWord(%ctrl_con.extent,1));
+   RTBMM_GUI_AutoResize();
+}
+
+//- RTBMM_FileView_sizeupComments (resizes the comments area to go bigger)
+function RTBMM_FileView_sizeupComments(%time,%begin,%change,%duration)
+{
+   if(%time $= %duration)
+   {
+      RTBMM_GUI_Offset(-1);
+      $RTB::CModManager::Cache::CommentCover.delete();
+      return;
+   }
+   
+   %ctrl = $RTB::CModManager::Cache::CommentContainer;   
+   %oldExtent = getWord(%ctrl.extent,1);
+   %newExtent = mceil(Anim_EaseInOut(%time,%begin,%change,%duration));
+   %ctrl.resize(getWord(%ctrl.position,0),getWord(%ctrl.position,1),getWord(%ctrl.extent,0),%newExtent);
+   %ctrl.expColSch = schedule(10,0,"RTBMM_FileView_sizeupComments",%time+10,%begin,%change,%duration);
+   
+   %ctrlF = $RTB::CModManager::Cache::CommentFooter;
+   %ctrlF.position = vectorAdd(%ctrl.position,"0" SPC %newExtent);
+   RTBMM_GUI_AutoResize();
+}
+
+//- Event_screenshotSelect::onMouseEnter (MouseEnter Callback)
+function Event_screenshotSelect::onMouseEnter(%ctrl)
+{
+   %ctrl.swatch.color = "255 255 255 100";
+}
+
+//- Event_screenshotSelect::onMouseLeave (MouseLeave Callback)
+function Event_screenshotSelect::onMouseLeave(%ctrl)
+{
+   %ctrl.swatch.color = "255 255 255 0";
+}
+
+//- Event_screenshotSelect::onMouseDown (MouseDown Callback)
+function Event_screenshotSelect::onMouseDown(%ctrl)
+{
+   %ctrl.swatch.color = "255 255 255 150";
+}
+
+//- Event_screenshotSelect::onMouseUp (MouseUp Callback)
+function Event_screenshotSelect::onMouseUp(%ctrl)
+{
+   %ctrl.swatch.color = "255 255 255 100";
+   RTBMM_FileView_ShowScreenshot(%ctrl.screenID);
+}
+
+//- RTBMM_FileView_Download (Downloads the file)
+function RTBMM_FileView_Download()
+{
+   %file_id = $RTB::CModManager::Cache::CurrentFile;
+   
+   RTBMM_TransferQueue.addItem(%file_id);
+}
+
+//- RTBMM_FileView_Rate (Opens a window to submit a rating for a file)
+function RTBMM_FileView_Rate()
+{
+   %window = RTBMM_GUI_createWindow("Rate");
+   %window.resize(0,0,200,80);
+   RTBMM_GUI_Center(%window);
+   
+   %swatch = new GuiSwatchCtrl()
+   {
+      position = "0 8";
+      color = "0 0 0 0";
+      extent = "16 16";
+   };
+   
+   %mlTextCtrl = new GuiMLTextCtrl()
+   {
+      position = "0 28";
+      extent = "200";
+      text = "<just:center><font:Arial:12><color:AAAAAA>Click a star to rate";
+   };
+   %window.canvas.add(%mlTextCtrl);
+   %mlTextCtrl.forceReflow();
+   RTBMM_GUI_CenterHoriz(%mlTextCtrl);
+   
+   $RTB::CModManager::Cache::RatingText = %mlTextCtrl;
+   
+   for(%i=0;%i<5;%i++)
+   {
+      %star = new GuiBitmapCtrl()
+      {
+         position = (20*%i) SPC 0;
+         extent = "16 16";
+         bitmap = "./images/icon_star0";
+      };
+      %swatch.add(%star);
+      %swatch.extent = getWord(%star.position,0)+16;
+      
+      %mouseEvent = new GuiMouseEventCtrl()
+      {
+         position = vectorSub(%star.position,"2 2");
+         extent = "20 20";
+         
+         eventType = "rateStarSelect";
+         eventCallbacks = "1101";
+         
+         text = %mlTextCtrl;
+         id = %i+1;
+         starSwatch = %swatch;
+      };
+      %swatch.add(%mouseEvent);
+   }
+   %window.canvas.add(%swatch);
+   
+   RTBMM_GUI_CenterHoriz(%swatch);
+}
+
+//- Event_rateStarSelect::onMouseEnter (MouseEnter Callback)
+function Event_rateStarSelect::onMouseEnter(%ctrl)
+{
+   %swatch = %ctrl.starSwatch;
+   
+   for(%i=0;%i<%swatch.getCount();%i++)
+   {
+      if(%swatch.getObject(%i).getClassName() !$= "GuiBitmapCtrl")
+         continue;
+         
+      if(%numDone $= %ctrl.id)
+         break;
+      
+      %numDone++;
+      %swatch.getObject(%i).setBitmap($RTB::Path@"images/icon_star4");
+   }
+}
+
+//- Event_rateStarSelect::onMouseLeave (MouseLeave Callback)
+function Event_rateStarSelect::onMouseLeave(%ctrl)
+{
+   %swatch = %ctrl.starSwatch;
+   
+   for(%i=0;%i<%swatch.getCount();%i++)
+   {
+      if(%swatch.getObject(%i).getClassName() !$= "GuiBitmapCtrl")
+         continue;
+
+      %swatch.getObject(%i).setBitmap($RTB::Path@"images/icon_star0");
+   }
+}
+
+//- Event_rateStarSelect::onMouseUp (MouseUp Callback)
+function Event_rateStarSelect::onMouseUp(%ctrl)
+{
+   %swatch = %ctrl.starSwatch;
+   
+   for(%i=0;%i<%swatch.getCount();%i++)
+   {
+      if(%swatch.getObject(%i).getClassName() !$= "GuiBitmapCtrl")
+         continue;
+
+      if(%numDone $= %ctrl.id)
+         break;
+      
+      %numDone++;
+      %swatch.getObject(%i).setBitmap($RTB::Path@"images/icon_starS");
+   }
+   %ctrl.text.setValue("<just:center><font:Arial:12><color:AAAAAA>Submitting your rating of "@%ctrl.id@"...");
+   
+   RTBMM_SendRequest("ADDRATING",3,$RTB::CModManager::Cache::CurrentFile,%ctrl.id);
+   
+   for(%i=0;%i<%swatch.getCount();%i++)
+   {
+      if(%swatch.getObject(%i).getClassName() !$= "GuiBitmapCtrl")
+      {
+         %swatch.getObject(%i).delete();
+         %i--;
+      }
+   }
+}
+
+//- RTBMM_FileView_onRatingReply (Reply from server when submitting a rating)
+%RTBMM_SB.registerResponseHandler("ADDRATING","RTBMM_FileView_onRatingReply");
+function RTBMM_FileView_onRatingReply(%tcp,%line)
+{
+   %text = $RTB::CModManager::Cache::RatingText;
+   %success = getField(%line,0);
+   if(%success)
+   {
+      %swatch = $RTB::CModManager::Cache::FileRatingSwatch;
+      if(isObject(%swatch))
+      {
+         %rating = getSubStr(getField(%line,2),0,5);
+         %rating = RTBMM_GUI_createRatingSwatch(%rating);
+         %swatch.getGroup().add(%rating);
+         RTBMM_GUI_CenterVert(%rating);
+         %swatch.delete();
+         
+         $RTB::CModManager::Cache::FileRatingSwatch = %rating;
+         
+         %numRatings = getSubStr(getField(%line,2),6,strLen(getField(%line,2)));
+         %s = (%numRatings == 1) ? "" : "s";
+         
+         $RTB::CModManager::Cache::FileRatingText.setValue("<just:left><font:Arial:12><color:AAAAAA>"@%numRatings@" rating"@%s);
+      }
+
+      if(isObject(%text))
+      {
+         %update = getField(%line,1);
+         if(%update $= 2)
+            %text.setValue("<just:center><font:Arial:12><color:AAAAAA>Your rating has been changed. Thanks!");
+         else
+            %text.setValue("<just:center><font:Arial:12><color:AAAAAA>Your rating has been saved. Thanks!");
+      }
+   }
+   else
+   {
+      if(!isObject(%text))
+         return;
+         
+      %error = getField(%line,1);
+      if(%error $= 1)
+         %text.setValue("<just:center><font:Arial:12><color:AAAAAA>You are not logged in!");
+      else if(%error $= 2)
+         %text.setValue("<just:center><font:Arial:12><color:AAAAAA>File not found!");
+      else if(%error $= 3)
+         %text.setValue("<just:center><font:Arial:12><color:AAAAAA>You can't rate your own stuff!");
+   }
+}
+
+//- RTBMM_FileView_Screenshot (Opens a window to show an enlarged screenshot)
+function RTBMM_FileView_ShowScreenshot(%id)
+{
+   %window = RTBMM_GUI_createWindow("Screenshot");
+   %window.resize(0,0,500,375);
+   RTBMM_GUI_Center(%window);
+   
+   %img = new GuiBitmapCtrl()
+   {
+      extent = %window.canvas.extent;
+      bitmap = "";
+      visible = 0;
+   };
+   %window.canvas.add(%img);   
+   
+   %loading = new GuiAnimatedBitmapCtrl()
+   {
+      extent = "31 31";
+      bitmap = "./images/image_loadRing";
+      bitmap = "./images/image_loadRing";
+      framesPerSecond = 15;
+      numFrames = 8;
+   };
+   %window.canvas.add(%loading);
+   RTBMM_GUI_Center(%loading);
+   
+   %url = "/uploads/images/"@$RTB::CModManager::Cache::ScreenURL[%id]@".png";
+   RTBMM_ScreenGrabber.getScreenshot(%url,%window);
+}
+
+//- RTBMM_FileView_Report (Opens a form to allow the user to report the file to Mod Reviewers)
+function RTBMM_FileView_Report(%id)
+{
+   if(%id $= "")
+      %id = $RTB::CModManager::Cache::CurrentFile;
+   if(%id $= "")
+      %id = 0;
+      
+   %window = RTBMM_GUI_createWindow("Report File");
+   %window.resize(0,0,400,230);
+   RTBMM_GUI_Center(%window);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 12";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Reason:";
+   };
+   %window.canvas.add(%label);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_Report_Reason)
+   {
+      profile = RTBMM_PopupProfile;
+      position = "54 9";
+      extent = "130 17";
+   };
+   %window.canvas.add(%popup);
+   %popup.add("Stolen",1);
+   %popup.add("Abusive",2);
+   %popup.add("Doesn't Work",3);
+   %popup.add("Breaks Stuff",4);
+   %popup.add("Contains Exploits",5);
+   %popup.add("Other",6);
+   %popup.setSelected(1);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "202 12";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Severity:";
+   };
+   %window.canvas.add(%label);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_Report_Severity)
+   {
+      profile = RTBMM_PopupProfile;
+      position = "252 9";
+      extent = "130 17";
+   };
+   %window.canvas.add(%popup);
+   %popup.add("Normal",1);
+   %popup.add("High",2);
+   %popup.add("Critical",3);
+   %popup.setSelected(1);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 40";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Summary:";
+   };
+   %window.canvas.add(%label);
+   $RTB::CModManager::Cache::Report::Summary = %label;
+   
+   %textedit = new GuiTextEditCtrl(RTBMM_Report_Summary)
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "66 38";
+      extent = "316 16";
+   };
+   %window.canvas.add(%textedit);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 64";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Description:";
+   };
+   %window.canvas.add(%label);
+   $RTB::CModManager::Cache::Report::Description = %label;
+   
+   %textedit = new GuiScrollCtrl()
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "9 82";
+      extent = "373 73";
+      hScrollBar = "alwaysOff";
+      vScrollBar = "alwaysOff";
+      
+      new GuiMLTextEditCtrl(RTBMM_Report_Description)
+      {
+         profile = RTBMM_MLEditProfile;
+         position = "3 1";
+         extent = "364 73";
+      };
+   };
+   %window.canvas.add(%textedit);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "324 163";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnOK";
+      command = "RTBMM_FileView_SendReport("@%window@","@%id@");";
+   };
+   %window.canvas.add(%button);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "260 163";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnCancel";
+      command = %window.closeButton.command;
+   };
+   %window.canvas.add(%button);
+   
+   %buglink = new GuiMLTextCtrl()
+   {
+      profile = "RTBMM_NewsContentProfile";
+      position = "12 170";
+      extent = "236 12";
+      text = "<color:AAAAAA>Warning: Abuse will result in a ban.";
+   };
+   %window.canvas.add(%buglink);
+}
+
+//- RTBMM_FileView_SendReport (Processes + Sends the File Report)
+function RTBMM_FileView_SendReport(%window,%id)
+{
+   if(RTBMM_Report_Summary.getValue() $= "")
+   {
+      $RTB::CModManager::Cache::Report::Summary.setValue("<font:Verdana Bold:12><color:EE0000>Summary:");
+      %errors = 1;
+   }
+   else
+      $RTB::CModManager::Cache::Report::Summary.setValue("<font:Verdana:12><color:555555>Summary:");
+
+   if(RTBMM_Report_Description.getValue() $= "")
+   {   
+      $RTB::CModManager::Cache::Report::Description.setValue("<font:Verdana Bold:12><color:EE0000>Description:");
+      %errors = 1;
+   }
+   else
+      $RTB::CModManager::Cache::Report::Description.setValue("<font:Verdana:12><color:555555>Description:");
+   
+   if(%errors)
+      return;
+   
+   %overlay = new GuiSwatchCtrl()
+   {
+      position = "0 0";
+      extent = %window.canvas.extent;
+      color = "255 255 255 200";
+   };
+   %window.canvas.add(%overlay);
+   
+   %bitmap = new GuiAnimatedBitmapCtrl()
+   {
+      extent = "31 31";
+      bitmap = "./images/image_loadRing";
+      framesPerSecond = 15;
+      numFrames = 8;
+   };
+   %overlay.add(%bitmap);
+   RTBMM_GUI_Center(%bitmap);
+   %bitmap.shift(0,-10);
+   
+   %mlCtrl = new GuiMLTextCtrl()
+   {
+      extent = "200 0";
+      text = "<just:center><font:Verdana:12><color:666666>Sending Report...";
+   };
+   %overlay.add(%mlCtrl);
+   RTBMM_GUI_Center(%mlCtrl);
+   %mlCtrl.shift(0,12);
+   
+   $RTB::CModManager::Cache::LoadRing = %bitmap;
+   $RTB::CModManager::Cache::LoadText = %mlCtrl;
+   
+   RTBMM_SendRequest("SENDREPORT",3,%id,RTBMM_Report_Reason.getSelected(),RTBMM_Report_Severity.getSelected(),RTBMM_Report_Summary.getValue(),RTBMM_Report_Description.getValue());
+}
+
+//- RTBMM_FileView_onReportReply (Reply from sending a report)
+%RTBMM_SB.registerResponseHandler("SENDREPORT","RTBMM_FileView_onReportReply");
+function RTBMM_FileView_onReportReply(%tcp,%line)
+{
+   RTBMM_GUI_LoadRing_Clear($RTB::CModManager::Cache::LoadRing);
+   if(getField(%line,0) $= 1)
+   {
+      $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Your report has been received.");
+   }
+   else
+   {
+      $RTB::CModManager::Cache::LoadRing.setBitmap($RTB::Path@"images/image_loadRingFail");
+      if(getField(%line,1) $= 1)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>You are not logged in!");
+      else if(getField(%line,1) $= 2)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>File not found.");
+      else
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Unknown Error Occurred.");
+   }
+}
+
+//- RTBMM_FileView_onReportFail (Fail result from sending a report)
+%RTBMM_SB.registerFailHandler("SENDREPORT","RTBMM_FileView_onReportFail");
+function RTBMM_FileView_onReportFail(%tcp,%fail)
+{
+   RTBMM_GUI_LoadRing_Clear($RTB::CModManager::Cache::LoadRing);
+   $RTB::CModManager::Cache::LoadRing.setBitmap($RTB::Path@"images/image_loadRingFail");
+   $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Connection Failed. Please try again later.");
+}
+
+//- RTBMM_FileView_ReportBug (Opens a form to allow the user to report a bug)
+function RTBMM_FileView_ReportBug(%id)
+{
+   if(%id $= "")
+      %id = $RTB::CModManager::Cache::CurrentFile;
+   if(%id $= "")
+      %id = 0;
+      
+   %window = RTBMM_GUI_createWindow("Report Bug");
+   %window.resize(0,0,400,230);
+   RTBMM_GUI_Center(%window);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 12";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Reason:";
+   };
+   %window.canvas.add(%label);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_Report_Reason)
+   {
+      profile = RTBMM_PopupProfile;
+      position = "54 9";
+      extent = "130 17";
+   };
+   %window.canvas.add(%popup);
+   %popup.add("Stolen",1);
+   %popup.add("Abusive",2);
+   %popup.add("Doesn't Work",3);
+   %popup.add("Breaks Stuff",4);
+   %popup.add("Contains Exploits",5);
+   %popup.add("Other",6);
+   %popup.setSelected(1);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "202 12";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Severity:";
+   };
+   %window.canvas.add(%label);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_Report_Severity)
+   {
+      profile = RTBMM_PopupProfile;
+      position = "252 9";
+      extent = "130 17";
+   };
+   %window.canvas.add(%popup);
+   %popup.add("Low",0);
+   %popup.add("Medium",1);
+   %popup.add("High",2);
+   %popup.setSelected(0);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 40";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Summary:";
+   };
+   %window.canvas.add(%label);
+   $RTB::CModManager::Cache::Report::Summary = %label;
+   
+   %textedit = new GuiTextEditCtrl(RTBMM_Report_Summary)
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "66 38";
+      extent = "316 16";
+   };
+   %window.canvas.add(%textedit);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 64";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Description:";
+   };
+   %window.canvas.add(%label);
+   $RTB::CModManager::Cache::Report::Description = %label;
+   
+   %textedit = new GuiScrollCtrl()
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "9 82";
+      extent = "373 73";
+      hScrollBar = "alwaysOff";
+      vScrollBar = "alwaysOff";
+      
+      new GuiMLTextEditCtrl(RTBMM_Report_Description)
+      {
+         profile = RTBMM_MLEditProfile;
+         position = "3 1";
+         extent = "364 73";
+      };
+   };
+   %window.canvas.add(%textedit);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "324 163";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnOK";
+      command = "RTBMM_FileView_SendReport("@%window@","@%id@");";
+   };
+   %window.canvas.add(%button);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "260 163";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnCancel";
+      command = %window.closeButton.command;
+   };
+   %window.canvas.add(%button);
+   
+   %buglink = new GuiMLTextCtrl()
+   {
+      profile = "RTBMM_NewsContentProfile";
+      position = "12 170";
+      extent = "236 12";
+      text = "<a:reportbug>Click here to report a bug instead</a>";
+   };
+   %window.canvas.add(%buglink);
+}
+
+//- RTBMM_FileView_Screenshots (Opens a bigger version of the screenshot viewer to browse them all)
+function RTBMM_FileView_ShowScreenshots(%selector)
+{
+   %window = RTBMM_GUI_createWindow("Screenshots");
+   %window.resize(0,0,500,375);
+   RTBMM_GUI_Center(%window);
+   
+   %img = new GuiBitmapCtrl()
+   {
+      extent = %window.canvas.extent;
+      bitmap = "screenshots/BLPetrol";
+   };
+   %window.canvas.add(%img);
+}
+
+//- RTBMM_FileView_onReplyStop (Stop Reply)
+function RTBMM_FileView_onReplyStop(%tcp)
+{
+}
+
+//- RTBMM_FileView_onFail (Fail)
+%RTBMM_SB.registerFailHandler("GETFILE","RTBMM_FileView_onFail");
+function RTBMM_FileView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
 }
 
 //*********************************************************
-//* News Feed Interaction
+//* Packs View
 //*********************************************************
-function RTBMM_InitateFeedControl()
+//- RTBMM_PacksView_Init (Entrance)
+function RTBMM_PacksView_Init()
 {
-   if(isObject(RTBMM_FeedControl))
-      RTBMM_FeedControl.delete();
-      
-   new SimGroup(RTBMM_FeedControl);
-   RTBMM_FeedControl::load(RTBMM_FeedControl);
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETPACKS",1);
+   RTBMM_Zones_Track("PacksView","RTBMM_PacksView_Init();");
 }
-function RTBMM_FeedControl::load(%this)
+
+//- RTBMM_PacksView_onReplyStart (Reply Start)
+function RTBMM_PacksView_onReplyStart(%tcp)
 {
-   if(!isFile("config/client/RTB/newsFeed.feed"))
+   RTBMM_GUI_Init();
+   RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  Content Packs");
+   RTBMM_GUI_createSplitHeader("cell2",58,"Pack",17,"Date",10,"Items",15,"Download");
+}
+
+//- RTBMM_PacksView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETPACKS","RTBMM_PacksView_onReply");
+function RTBMM_PacksView_onReply(%tcp,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7)
+{
+   if(%arg1 $= "PACK")
    {
-      %this.latestFeed = 0;
+      %container = RTBMM_GUI_createContent("cell",50,6,52,17,10,15);
+      
+      %c_icon = %container.getObject(0).getBottom(1);      
+      %c_information = %container.getObject(1).getBottom(1);
+      %c_date = %container.getObject(2).getBottom(1);
+      %c_items = %container.getObject(3).getBottom(1);
+      %c_download = %container.getObject(4).getBottom(1);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_icon.position;
+         extent = %c_icon.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_icon.add(%swatch);
+      %icon = new GuiBitmapCtrl()
+      {
+         vertSizing = "center";
+         position = "0 0";
+         extent = "16 16";
+         bitmap = "./images/icons/"@%arg4;
+      };
+      %c_icon.add(%icon);
+      RTBMM_GUI_Center(%icon,%c_icon);
+
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_information.position;
+         extent = %c_information.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_information.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "1 3";
+         extent = "327 18";
+         text = "<font:Arial Bold:15><color:888888> "@%arg3;
+      };
+      %c_information.add(%text);
+      
+      %mltext = new GuiMLTextCtrl()
+      {
+         position = "3 18";
+         extent = "325 18";
+         text = "<font:Verdana:12><color:444444>"@%arg5;
+      };
+      %c_information.add(%mltext);
+      
+      %mltext.forceReflow();
+      %extent = getWord(%mltext.extent,1);
+      %container.resize(getWord(%container.position,0),getWord(%container.position,1),getWord(%container.extent,0),%extent+36);
+      RTBMM_GUI_AutoResize();
+
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_date.position;
+         extent = %c_date.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_date.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "0 7";
+         extent = 200 SPC 18;
+         text = "<just:center><font:Verdana:12><color:888888>"@%arg6;
+      };
+      %c_date.add(%text);
+      %text.forceReflow();
+      RTBMM_GUI_Center(%text,%c_date);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_items.position;
+         extent = %c_items.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_items.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "0 7";
+         extent = 150 SPC 18;
+         text = "<just:center><font:Verdana:12><color:888888>"@%arg7;
+      };
+      %c_items.add(%text);
+      %text.forceReflow();
+      RTBMM_GUI_Center(%text,%c_items);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_download.position;
+         extent = %c_download.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_download.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "0 7";
+         extent = 150 SPC 18;
+         text = "<just:center><font:Verdana:12><color:888888>"@%arg7;
+      };
+      %c_download.add(%text);
+      %text.forceReflow();
+      RTBMM_GUI_Center(%text,%c_download);
+      
+      %mouseCtrl = new GuiMouseEventCtrl()
+      {
+         position = %container.position;
+         extent = %container.extent;
+         
+         eventType = "packSelect";
+         eventCallbacks = "1111";
+         
+         packID = %arg2;
+         container = %container;
+      };
+      RTBMM_GUI_PushControl(%mouseCtrl,1);
+   }
+}
+
+//- Event_packSelect::onMouseEnter (MouseEnter Callback)
+function Event_packSelect::onMouseEnter(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.visible = 1;
+   }
+}
+
+//- Event_packSelect::onMouseLeave (MouseLeave Callback)
+function Event_packSelect::onMouseLeave(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.visible = 0;
+      %swatch.color = "255 255 255 100";
+   }
+}
+
+//- Event_packSelect::onMouseDown (MouseDown Callback)
+function Event_packSelect::onMouseDown(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.color = "255 230 230 150";
+   }
+}
+
+//- Event_packSelect::onMouseUp (MouseUp Callback)
+function Event_packSelect::onMouseUp(%ctrl)
+{
+   %container = %ctrl.container;
+   for(%i=0;%i<%container.getCount();%i++)
+   {
+      %parent = %container.getObject(%i).getBottom(1);
+      %swatch = %parent.getObject(1);
+      %swatch.color = "255 255 255 100";
+   }   
+   RTBMM_PackView_Init(%ctrl.packID);
+}
+
+//- RTBMM_PacksView_onReplyStop (Stop Reply)
+function RTBMM_PacksView_onReplyStop(%tcp)
+{
+   RTBMM_GUI_createHeader(" ",2);
+}
+
+//- RTBMM_PacksView_onFail (Fail)
+%RTBMM_SB.registerFailHandler("GETPACKS","RTBMM_PacksView_onFail");
+function RTBMM_PacksView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* Packs View
+//*********************************************************
+//- RTBMM_PacksView_Init (Entrance)
+function RTBMM_PackView_Init(%id)
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETPACK",1,%id);
+   RTBMM_Zones_Track("PackView","RTBMM_PackView_Init("@%id@");");
+   
+   $RTB::CModManager::Cache::TotalItems = 0;
+   $RTB::CModManager::Cache::ItemsSelected = 0;
+}
+
+//- RTBMM_PackView_onReplyStart (Reply Start)
+function RTBMM_PackView_onReplyStart(%tcp)
+{
+   RTBMM_GUI_Init();
+}
+
+//- RTBMM_PackView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETPACK","RTBMM_PackView_onReply");
+function RTBMM_PackView_onReply(%tcp,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,%arg8,%arg9,%arg10)
+{
+   if(%arg1 $= "HEADER")
+   {
+      RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  "@%arg2);
+   }
+   else if(%arg1 $= "SPLITHEADER")
+   {
+      RTBMM_GUI_createSplitHeader("cell2",66,"File",15,"Rating",14,"Downloads",5," ");
+   }
+   else if(%arg1 $= "FOOTER")
+   {
+      RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  Download Pack");
+      %message = RTBMM_GUI_createMessage("<br><spush><font:Verdana Bold:12>You can download all the files in this pack by clicking the download button below.<spop><br>You can tick/untick files on the right to pick which ones you want to download.<br><br><br><br><br>");
+      
+      %downloadButton = new GuiBitmapButtonCtrl()
+      {
+         extent = "82 25";
+         text = " ";
+         bitmap = $RTB::Path@"images/buttons/large/gray/btnDownload";
+         command = "RTBMM_PackView_Download();";
+      };
+      %message.add(%downloadButton);
+      RTBMM_GUI_Center(%downloadButton);
+      %downloadButton.shift(0,26);
+      
+      %itemCount = new GuiMLTextCtrl()
+      {
+         text = "<color:BBBBBB><font:Arial:12><just:center>"@$RTB::CModManager::Cache::ItemsSelected@" items";
+      };
+      %message.add(%itemCount);
+      RTBMM_GUI_Center(%itemCount);
+      %itemCount.shift(0,32);
+      
+      $RTB::CModManager::Cache::ItemCounter = %itemCount;
+   }
+   else if(%arg1 $= "INFO")
+   {
+      %info = RTBMM_GUI_createContent("cell",30,20,80);
+      %label = %info.getObject(0);
+      %content = %info.getObject(1);
+      
+      %label_txt = new GuiMLTextCtrl()
+      {
+         position = "6 7";
+         extent = "128 30";
+         text = "<font:Arial Bold:15><color:444444>"@%arg2;
+      };
+      %label.add(%label_txt);
+      
+      %content_txt = new GuiMLTextCtrl()
+      {
+         position = "6 9";
+         extent = "530 30";
+         text = "<font:Verdana:12><color:666666>"@%arg3;
+      };
+      %content.add(%content_txt);
+      %content_txt.forceReflow();
+      %extent = getWord(%content_txt.extent,1);
+      %info.resize(getWord(%info.position,0),getWord(%info.position,1),getWord(%info.extent,0),%extent+18);
+      RTBMM_GUI_AutoResize();
+   }
+   else if(%arg1 $= "PACK")
+   {
+      %container = RTBMM_GUI_createContent("cell",50,6,60,15,14,5);
+      
+      %c_icon = %container.getObject(0).getBottom(1);      
+      %c_information = %container.getObject(1).getBottom(1);
+      %c_rating = %container.getObject(2).getBottom(1);
+      %c_downloads = %container.getObject(3).getBottom(1);
+      %c_toggle = %container.getObject(4).getBottom(1);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_icon.position;
+         extent = %c_icon.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_icon.add(%swatch);
+      %icon = new GuiBitmapCtrl()
+      {
+         vertSizing = "center";
+         position = "0 0";
+         extent = "16 16";
+         bitmap = "./images/icons/"@%arg3;
+      };
+      %c_icon.add(%icon);
+      if(RTBMM_FileCache.get(%arg2))
+      {
+         %star = new GuiBitmapCtrl()
+         {
+            position = "24 -2";
+            extent = "16 16";
+            bitmap = "./images/bullet_star";
+         };
+         %c_icon.add(%star);
+      }
+      RTBMM_GUI_Center(%icon,%c_icon);
+
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_information.position;
+         extent = %c_information.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_information.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "1 3";
+         extent = "376 18";
+         text = "<font:Arial Bold:15><color:888888> "@%arg4;
+      };
+      %c_information.add(%text);
+      %text = new GuiMLTextCtrl()
+      {
+         vertSizing = "top";
+         position = "3 32";
+         extent = "325 18";
+         text = "<font:Verdana:12><color:666666>\xBB <color:888888>By "@%arg6;
+      };
+      %c_information.add(%text);
+      
+      %mltext = new GuiMLTextCtrl()
+      {
+         position = "3 18";
+         extent = "376 18";
+         text = "<font:Verdana:12><color:444444>"@%arg5;
+      };
+      %c_information.add(%mltext);
+      
+      %mltext.forceReflow();
+      %extent = getWord(%mltext.extent,1);
+      %container.resize(getWord(%container.position,0),getWord(%container.position,1),getWord(%container.extent,0),%extent+36);
+      RTBMM_GUI_AutoResize();
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_rating.position;
+         extent = %c_rating.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_rating.add(%swatch);
+      %rating_swatch = RTBMM_GUI_createRatingSwatch(%arg8);
+      %c_rating.add(%rating_swatch);
+      RTBMM_GUI_Center(%rating_swatch,%c_rating);
+      
+      %swatch = new GuiSwatchCtrl()
+      {
+         vertSizing = "height";
+         position = %c_downloads.position;
+         extent = %c_downloads.extent;
+         color = "255 255 255 100";
+         visible = 0;
+      };
+      %c_downloads.add(%swatch);
+      %text = new GuiMLTextCtrl()
+      {
+         position = "0 7";
+         extent = 150 SPC 18;
+         text = "<just:center><font:Verdana:12><color:888888>"@%arg9;
+      };
+      %c_downloads.add(%text);
+      %text.forceReflow();
+      RTBMM_GUI_Center(%text,%c_downloads);
+      
+      %mouseCtrl = new GuiMouseEventCtrl()
+      {
+         position = %container.position;
+         extent = 646 SPC restWords(%container.extent);
+         
+         eventType = "fileSelect";
+         eventCallbacks = "1111";
+         
+         persistent = 1;         
+         
+         recurseHover = 4;         
+         
+         fileID = %arg2;
+         container = %container;
+      };
+      RTBMM_GUI_PushControl(%mouseCtrl,1);
+      
+      %downloadBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "430 1";
+         extent = "16 16";
+         visible = 0;
+         bitmap = $RTB::Path@"images/buttons/small/btnDownload";
+         text = " ";
+         command = "RTBMM_TransferView_Add("@%arg2@");";
+      };
+      %mouseCtrl.add(%downloadBtn);
+      %container.dlIcon = %downloadBtn;
+      
+      %screenBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "430 15";
+         extent = "16 16";
+         visible = 0;
+         bitmap = $RTB::Path@"images/buttons/small/btnScreenshots";
+         text = " ";
+      };
+      %mouseCtrl.add(%screenBtn);
+      %container.scIcon = %screenBtn;
+      
+      %reportBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "430" SPC getWord(%mouseCtrl.extent,1)-19;
+         extent = "16 16";
+         visible = 0;
+         bitmap = $RTB::Path@"images/buttons/small/btnReport";
+         text = " ";
+         command = "RTBMM_FileView_Report("@%arg2@");";
+      };
+      %mouseCtrl.add(%reportBtn);
+      %container.rpIcon = %reportBtn;
+      
+      %checkbox = new GuiCheckboxCtrl()
+      {
+         profile = RTBMM_CheckBoxProfile;
+         position = "9 0";
+         extent = "138 50";
+         text = "";
+      };
+      %c_toggle.add(%checkbox);
+      RTBMM_GUI_CenterVert(%checkbox);
+      %checkbox.command = "RTBMM_PackView_clickCheckbox("@%checkbox@","@$RTB::CModManager::Cache::TotalItems@");";
+
+      $RTB::CModManager::Cache::Item[$RTB::CModManager::Cache::TotalItems] = %arg2;
+      
+      if(%arg10 !$= RTBMM_FileCache.get(%arg2).file_version || !RTBMM_FileCache.get(%arg2))
+      {
+         %checkbox.setValue(1);
+         $RTB::CModManager::Cache::ItemDL[$RTB::CModManager::Cache::TotalItems] = 1;
+         $RTB::CModManager::Cache::ItemsSelected++;
+      }
+      
+      $RTB::CModManager::Cache::TotalItems++;
+   }
+}
+
+//- RTBMM_PackView_clickCheckbox (Handles selections for pack downloading)
+function RTBMM_PackView_clickCheckbox(%checkbox,%id)
+{
+   if(%checkbox.getValue() $= 0)
+   {
+      $RTB::CModManager::Cache::ItemsSelected--;
+      $RTB::CModManager::Cache::ItemDL[%id] = 0;
+   }
+   else
+   {
+      $RTB::CModManager::Cache::ItemsSelected++;
+      $RTB::CModManager::Cache::ItemDL[%id] = 1;
+   }
+   
+   %s = ($RTB::CModManager::Cache::ItemsSelected == 1)?"":"s";
+   $RTB::CModManager::Cache::ItemCounter.setValue("<color:BBBBBB><font:Arial:12><just:center>"@$RTB::CModManager::Cache::ItemsSelected@" item"@%s);
+}
+
+//- RTBMM_PackView_Download (Download selected items in this pack)
+function RTBMM_PackView_Download()
+{
+   if($RTB::CModManager::Cache::ItemsSelected <= 0)
+   {
+      RTBMM_GUI_createMessageBoxOK("Hmm?","You should probably atleast tick ONE file to download!");
       return;
    }
       
-   %file = new FileObject();
-   %file.openForRead("config/client/RTB/newsFeed.feed");
-   %this.latestFeed = %file.readLine();
-   
-   while(!%file.isEOF())
+   for(%i=0;%i<$RTB::CModManager::Cache::TotalItems;%i++)
    {
-      %line = %file.readLine();
+      if($RTB::CModManager::Cache::ItemDL[%i])
+         RTBMM_TransferQueue.addItem($RTB::CModManager::Cache::Item[%i]);
+   }
+}
 
-      if(!%file.readingMessage)
+//- RTBMM_PackView_onReplyStop (Reply stop)
+function RTBMM_PackView_onReplyStop(%tcp)
+{
+   RTBMM_GUI_createHeader(" ",2);
+}
+
+//- RTBMM_PackView_onFail (Fail)
+%RTBMM_SB.registerFailHandler("GETPACK","RTBMM_PackView_onFail");
+function RTBMM_PackView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* Top List View
+//*********************************************************
+//- RTBMM_TopListView_Init (Entrance)
+function RTBMM_TopListView_Init()
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETTOPLIST",1);
+   RTBMM_Zones_Track("TopListView","RTBMM_TopListView_Init();");
+}
+
+//- RTBMM_TopListView_onReplyStart (Reply Start)
+function RTBMM_TopListView_onReplyStart(%tcp)
+{
+   RTBMM_SectionView_onReplyStart(%tcp);
+}
+
+//- RTBMM_TopListView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETTOPLIST","RTBMM_TopListView_onReply");
+function RTBMM_TopListView_onReply(%tcp,%line)
+{
+   RTBMM_SectionView_onReply(%tcp,%line);
+}
+
+//- RTBMM_TopListView_onReplyStop (Reply Stop)
+function RTBMM_TopListView_onReplyStop(%tcp)
+{
+   RTBMM_GUI_createFooter("cell2");
+}
+
+//- RTBMM_TopListView_onFail (Fail)
+%RTBMM_SB.registerFailHandler("GETTOPLISt","RTBMM_TopListView_onFail");
+function RTBMM_TopListView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* Search View
+//*********************************************************
+//- RTBMM_SearchView_Init (Entrance)
+function RTBMM_SearchView_Init()
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETSEARCH",1);
+   RTBMM_Zones_Track("SearchView","RTBMM_SearchView_Init();");
+}
+
+//- RTBMM_SearchView_onReplyStart (Reply Start)
+function RTBMM_SearchView_onReplyStart(%tcp)
+{
+   RTBMM_GUI_Init();
+   
+   RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  Search Query");
+   %content = RTBMM_GUI_createContent("cell",40,30,70);
+
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "200 25";
+      text = "<font:Verdana Bold:13><color:444444>Keywords:<br><font:Verdana:12>Enter a keyword to search for.";
+   };
+   %content.getObject(0).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(3,0);
+   
+   %textEdit = new GuiTextEditCtrl(RTBMM_SearchView_Keyword)
+   {
+      profile = "RTBMM_TextEditProfile";
+      extent = "200 20";
+      altCommand = "RTBMM_SearchView_doSearch();";
+   };
+   %content.getObject(1).getBottom(1).add(%textEdit);
+   RTBMM_GUI_CenterVert(%textEdit);
+   %textEdit.shift(10,0);
+   %textEdit.schedule(1,"makeFirstResponder",1);
+   
+   %content = RTBMM_GUI_createContent("cell",40,30,70);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "200 25";
+      text = "<font:Verdana Bold:13><color:444444>Author:<br><font:Verdana:12>Enter a username to search for.";
+   };
+   %content.getObject(0).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(3,0);
+   
+   %textEdit = new GuiTextEditCtrl(RTBMM_SearchView_Author)
+   {
+      profile = "RTBMM_TextEditProfile";
+      extent = "200 20";
+      altCommand = "RTBMM_SearchView_doSearch();";
+   };
+   %content.getObject(1).getBottom(1).add(%textEdit);
+   RTBMM_GUI_CenterVert(%textEdit);
+   %textEdit.shift(10,0);
+   
+   RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  Search Options");
+   
+   %content = RTBMM_GUI_createContent("cell",40,25,25,25,25);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "165 25";
+      text = "<font:Verdana Bold:13><color:444444>Section:<br><font:Verdana:12>Select a section to search in.";
+   };
+   %content.getObject(0).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(3,0);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_SearchView_Section)
+   {
+      profile = "RTBMM_PopupProfile";
+      extent = "140 17";
+   };
+   %content.getObject(1).getBottom(1).add(%popup);
+   RTBMM_GUI_Center(%popup);
+   %popup.add("All",999);
+   %popup.setSelected(999);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "165 25";
+      text = "<font:Verdana Bold:13><color:444444>Search Alternatives:<br><font:Verdana:12>Search different fields.";
+   };
+   %content.getObject(2).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(3,0);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "165 25";
+      text = "<font:Verdana:12><color:444444>Search Summary";
+   };
+   %content.getObject(3).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(25,-2);
+   
+   %checkbox = new GuiCheckboxCtrl(RTBMM_SearchView_SearchSummary)
+   {
+      profile = "RTBMM_CheckBoxProfile";
+      extent = "140 16";
+      text = "";
+   };
+   %content.getObject(3).getBottom(1).add(%checkbox);
+   RTBMM_GUI_Center(%checkbox);
+   %checkbox.shift(-5,-8);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "165 25";
+      text = "<font:Verdana:12><color:444444>Search Description";
+   };
+   %content.getObject(3).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(25,14);
+   
+   %checkbox = new GuiCheckboxCtrl(RTBMM_SearchView_SearchDescription)
+   {
+      profile = "RTBMM_CheckBoxProfile";
+      extent = "140 16";
+      text = "";
+   };
+   %content.getObject(3).getBottom(1).add(%checkbox);
+   RTBMM_GUI_Center(%checkbox);
+   %checkbox.shift(-5,8);
+   
+   %content = RTBMM_GUI_createContent("cell",40,25,25,25,25);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "165 25";
+      text = "<font:Verdana Bold:13><color:444444>Category:<br><font:Verdana:12>Select a category to search in.";
+   };
+   %content.getObject(0).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(3,0);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_SearchView_Category)
+   {
+      profile = "RTBMM_PopupProfile";
+      extent = "140 17";
+   };
+   %content.getObject(1).getBottom(1).add(%popup);
+   RTBMM_GUI_Center(%popup);
+   %popup.add("All",999);
+   %popup.setSelected(999);
+   
+   %mlText = new GuiMLTextCtrl()
+   {
+      extent = "165 25";
+      text = "<font:Verdana Bold:13><color:444444>Sort by:<br><font:Verdana:12>Sort your results.";
+   };
+   %content.getObject(2).getBottom(1).add(%mlText);
+   RTBMM_GUI_Center(%mlText);
+   %mlText.shift(3,0);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_SearchView_SortBy)
+   {
+      profile = "RTBMM_PopupProfile";
+      extent = "70 17";
+   };
+   %content.getObject(3).getBottom(1).add(%popup);
+   RTBMM_GUI_Center(%popup);
+   %popup.shift(-40,0);
+   %popup.add("Name",0);
+   %popup.add("Downloads",1);
+   %popup.add("Rating",2);
+   %popup.add("Submit Date",3);
+   %popup.setSelected(0);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_SearchView_SortDir)
+   {
+      profile = "RTBMM_PopupProfile";
+      extent = "70 17";
+   };
+   %content.getObject(3).getBottom(1).add(%popup);
+   RTBMM_GUI_Center(%popup);
+   %popup.shift(40,0);
+   %popup.add("Ascending",0);
+   %popup.add("Descending",1);
+   %popup.setSelected(0);
+   
+   %content = RTBMM_GUI_createContent("cell",60,100);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      extent = "82 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnSearch";
+      command = "RTBMM_SearchView_DoSearch();";
+   };
+   %content.getObject(0).getBottom(1).add(%button);
+   RTBMM_GUI_Center(%button);
+   
+   RTBMM_GUI_createSplitHeader("cell1","100"," ");
+}
+
+function RTBMM_SearchView_Category::onSelect(%this,%id,%name)
+{
+   %selection = RTBMM_SearchView_Section.getSelected();
+   RTBMM_SearchView_Section.clear();
+   RTBMM_SearchView_Section.add("All",999);
+   
+   for(%i=1;%i<$RTB::CModManager::Cache::Secs+1;%i++)
+   {
+      %sec = $RTB::CModManager::Cache::Sec[%i];
+      if(getField(%sec,2) $= %id || %id $= "999")
+         RTBMM_SearchView_Section.add(getField(%sec,0),getField(%sec,1));
+   }
+   
+   RTBMM_SearchView_Section.setSelected(%selection);
+   if(RTBMM_SearchView_Section.getSelected() == 0)
+      RTBMM_SearchView_Section.setSelected(999);
+}
+
+//- RTBMM_SearchView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETSEARCH","RTBMM_SearchView_onReply");
+function RTBMM_SearchView_onReply(%tcp,%line)
+{
+   if(getField(%line,0) $= "CAT")
+   {
+      $RTB::CModManager::Cache::Cat[$RTB::CModManager::Cache::Cats++] = getField(%line,2) TAB getField(%line,1);
+      RTBMM_SearchView_Category.add(getField(%line,2),getField(%line,1));
+   }
+   else if(getField(%line,0) $= "SEC")
+   {
+      $RTB::CModManager::Cache::Sec[$RTB::CModManager::Cache::Secs++] = getField(%line,3) TAB getField(%line,1) TAB getField(%line,2);
+      RTBMM_SearchView_Section.add(getField(%line,3),getField(%line,1));
+   }
+}
+
+//- RTBMM_SearchView_onReplyStop (Reply Stop)
+function RTBMM_SearchView_onReplyStop(%tcp)
+{
+}
+
+//- RTBMM_SearchView_onReplyFail (Fail)
+%RTBMM_SB.registerFailHandler("GETSEARCH","RTBMM_SearchView_onReplyFail");
+function RTBMM_SearchView_onReplyFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//- RTBMM_SearchView_DoSearch (Starts a search)
+function RTBMM_SearchView_DoSearch(%page,%vars)
+{
+   if($RTB::CModManager::Cache::CurrentZone $= "SearchView")
+   {
+      %keyword = RTBMM_SearchView_Keyword.getValue();
+      %author = RTBMM_SearchView_Author.getValue();
+      %section = RTBMM_SearchView_Section.getSelected();
+      %category = RTBMM_SearchView_Category.getSelected();
+      %searchSummary = RTBMM_SearchView_SearchSummary.getValue();
+      %searchDescription = RTBMM_SearchView_SearchDescription.getValue();
+      %sortBy = RTBMM_SearchView_SortBy.getSelected();
+      %sortDir = RTBMM_SearchView_SortDir.getSelected();
+      %vars = %keyword TAB %author TAB %section TAB %category TAB %searchSummary TAB %searchDescription TAB %sortBy TAB %sortDir;
+   }
+   else
+   {
+      %keyword = getField(%vars,0);
+      %author = getField(%vars,1);
+      %section = getField(%vars,2);
+      %category = getField(%vars,3);
+      %searchSummary = getField(%vars,4);
+      %searchDescription = getField(%vars,5);
+      %sortBy = getField(%vars,6);
+      %sortDir = getField(%vars,7);
+   }
+   
+   if(%page $= "")
+      %page = 1;
+   
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("DOSEARCH",1,%keyword,%author,%section,%category,%searchSummary,%searchDescription,%sortBy,%sortDir,%page);
+   RTBMM_Zones_Track("DoSearchView","RTBMM_SearchView_DoSearch(\""@%page@"\",\""@%vars@"\");","RTBMM_SearchView_DoSearch(%%page%%,\""@%vars@"\");");
+}
+
+//- RTBMM_SearchView_onSearchReplyStart (Begins Reply)
+function RTBMM_SearchView_onSearchReplyStart(%tcp,%line)
+{
+   RTBMM_GUI_Init();
+   RTBMM_GUI_createSplitHeader("cell1","100","<color:FAFAFA><just:left><font:Impact:18>  Search Results");
+   RTBMM_GUI_createSplitHeader("cell2","58","<font:Arial Bold:15>File","15","<font:Arial Bold:15>Submitter","12","<font:Arial Bold:15>Downloads","15","<font:Arial Bold:15>Rating");
+}
+
+//- RTBMM_SearchView_onSearchReply (Handle Search Reply)
+%RTBMM_SB.registerResponseHandler("DOSEARCH","RTBMM_SearchView_onSearchReply");
+function RTBMM_SearchView_onSearchReply(%tcp,%line)
+{
+   if(%line $= 0)
+   {
+      RTBMM_GUI_createMessage("<br><br>There were no results.<br><br>");
+   }
+   else
+      RTBMM_SectionView_onReply(%tcp,%line);
+}
+
+//- RTBMM_SearchView_onSearchReplyStop (Stops Reply)
+function RTBMM_SearchView_onSearchReplyStop(%tcp,%line)
+{
+   RTBMM_GUI_createFooter();
+}
+
+//- RTBMM_SearchView_onSearchReplyFail (Fail)
+%RTBMM_SB.registerFailHandler("DOSEARCH","RTBMM_SearchView_onSearchReplyFail");
+function RTBMM_SearchView_onSearchReplyFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* Recent View
+//*********************************************************
+//- RTBMM_RecentView_Init (Entrance)
+function RTBMM_RecentView_Init(%page)
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETRECENT",1,%page);
+   RTBMM_Zones_Track("RecentView","RTBMM_RecentView_Init(\""@%page@"\");","RTBMM_RecentView_Init(%%page%%);");
+}
+
+//- RTBMM_RecentView_onReplyStart (Reply Start)
+function RTBMM_RecentView_onReplyStart(%tcp)
+{
+   RTBMM_SectionView_onReplyStart(%tcp);
+}
+
+//- RTBMM_RecentView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETRECENT","RTBMM_RecentView_onReply");
+function RTBMM_RecentView_onReply(%tcp,%line)
+{
+   RTBMM_SectionView_onReply(%tcp,%line);
+}
+
+//- RTBMM_RecentView_onReplyStop (Reply Stop)
+function RTBMM_RecentView_onReplyStop(%tcp)
+{
+   if($RTB::CModManager::Cache::ElementsAdded <= 0)
+      RTBMM_GUI_createMessage("<br>There have been no files submitted in the past 5 days.<br>");
+      
+   RTBMM_GUI_createFooter("cell2");
+}
+
+//- RTBMM_RecentView_onFail (Fail)
+%RTBMM_SB.registerFailHandler("GETRECENT","RTBMM_SectionView_onFail");
+function RTBMM_RecentView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* All Files View
+//*********************************************************
+//- RTBMM_AllFilesView_Init (Entrance)
+function RTBMM_AllFilesView_Init(%page)
+{
+   RTBMM_GUI_Load();
+   
+   RTBMM_SendRequest("GETALLFILES",1,%page);
+   RTBMM_Zones_Track("AllFilesView","RTBMM_AllFilesView_Init(\""@%page@"\");","RTBMM_AllFilesView_Init(%%page%%);");
+}
+
+//- RTBMM_AllFilesView_onReplyStart (Reply Start)
+function RTBMM_AllFilesView_onReplyStart(%tcp)
+{
+   RTBMM_SectionView_onReplyStart(%tcp);
+}
+
+//- RTBMM_AllFilesView_onReply (Reply)
+%RTBMM_SB.registerResponseHandler("GETALLFILES","RTBMM_AllFilesView_onReply");
+function RTBMM_AllFilesView_onReply(%tcp,%line)
+{
+   RTBMM_SectionView_onReply(%tcp,%line);
+}
+
+//- RTBMM_AllFilesView_onReplyStop (Reply Stop)
+function RTBMM_AllFilesView_onReplyStop(%tcp)
+{
+   if($RTB::CModManager::Cache::ElementsAdded <= 0)
+      RTBMM_GUI_createMessage("<br>There are ... no files? Just assume something has gone horribly wrong.<br>");
+      
+   RTBMM_GUI_createFooter("cell2");
+}
+
+//- RTBMM_AllFilesView_onFail (Fail)
+%RTBMM_SB.registerFailHandler("GETALLFILES","RTBMM_AllFilesView_onFail");
+function RTBMM_AllFilesView_onFail(%tcp,%error)
+{
+   RTBMM_CategoryView_onFail(%tcp,%error);
+}
+
+//*********************************************************
+//* Downloads View
+//*********************************************************
+//- RTBMM_TransferView_Init (Entrance)
+function RTBMM_TransferView_Init()
+{
+   RTBMM_GUI_Init();
+   
+   $RTB::CModManager::Switchboard.killLine(1);
+   
+   RTBMM_Zones_Track("TransferView","RTBMM_TransferView_Init();");
+   
+   RTBMM_GUI_createHeader("<color:FAFAFA><just:left><font:Impact:18>  Transfers",1);
+   RTBMM_GUI_createSplitHeader("cell2","88","<font:Arial Bold:15>Add-On","12","<font:Arial Bold:15>Options");
+   
+   RTBMM_TransferQueue.updateIndicator();   
+   
+   if(RTBMM_TransferQueue.getCount() > 0)
+      RTBMM_TransferView_Draw();
+   else
+      RTBMM_GUI_createMessage("<br>There are currently no transfers.<br>");
+      
+   RTBMM_GUI_createHeader("",2);
+}
+
+//- RTBMM_TransferView_Draw (Draws the entire transfer queue to the GUI)
+function RTBMM_TransferView_Draw()
+{
+   for(%i=0;%i<RTBMM_TransferQueue.getCount();%i++)
+   {
+      %queue = RTBMM_TransferQueue.getObject(%i);
+
+      %row = RTBMM_GUI_createContent("cell",70,10,78,12);
+      %icon = %row.getObject(0).getBottom(1);
+      %info = %row.getObject(1).getBottom(1);
+      %opts = %row.getObject(2).getBottom(1);
+      
+      %position = new GuiBitmapCtrl()
       {
-         if(%line $= "")
-            continue;
+         position = "0 0";
+         extent = "64 60";
+         bitmap = "./images/image_large"@%i+1;
+      };
+      %icon.add(%position);
+      RTBMM_GUI_Center(%position);
+      
+      %title = new GuiMLTextCtrl()
+      {
+         position = "6 4";
+         extent = "360 13";
+      };
+      %info.add(%title);
+      
+      %desc = new GuiMLTextCtrl()
+      {
+         position = "6 19";
+         extent = "360 13";
+      };
+      %info.add(%desc);
+      
+      %speed = new GuiMLTextCtrl()
+      {
+         position = "259 4";
+         extent = "262 12";
+      };
+      %info.add(%speed);
+      
+      %done = new GuiMLTextCtrl()
+      {
+         position = "259 19";
+         extent = "262 12";
+      };
+      %info.add(%done);
+      
+      %load_bg = new GuiBitmapCtrl()
+      {
+         position = "0 36";
+         extent = "517 26";
+         bitmap = "./images/image_loadbg";
+      };
+      %info.add(%load_bg);
+      
+      %load = new GuiProgressCtrl()
+      {
+         position = "1 1";
+         profile = RTBMM_ProgressBar;
+         extent = "515 24";
+      };
+      %load_bg.add(%load);
+      
+      %red = new GuiSwatchCtrl()
+      {
+         position = "1 1";
+         extent = "515 24";
+         color = "255 0 0 200";
+      };
+      %load_bg.add(%red);
+      
+      %load_ov = new GuiBitmapCtrl()
+      {
+         extent = "517 26";
+         bitmap = "./images/image_loadov";
+      };
+      %load_bg.add(%load_ov);
+      
+      %load_txt = new GuiMLTextCtrl()
+      {
+         extent = "400 12";
+      };
+      %load_bg.add(%load_txt);
+      
+      RTBMM_GUI_CenterHoriz(%load_bg);
+      RTBMM_GUI_Center(%load_txt);
+      
+      %transfer = new GuiBitmapButtonCtrl()
+      {
+         position = "5 4";
+         extent = "68 18";
+         text = " ";
+         bitmap = "./images/buttons/medium/btnTransfer";
+      };
+      %opts.add(%transfer);
+      RTBMM_GUI_CenterHoriz(%transfer);
+      
+      %cancel = new GuiBitmapButtonCtrl()
+      {
+         position = "5 24";
+         extent = "68 18";
+         text = " ";
+         bitmap = "./images/buttons/medium/btnRemove";
+         command = "RTBMM_TransferView_Remove("@%queue.id@");";
+      };
+      %opts.add(%cancel);
+      RTBMM_GUI_CenterHoriz(%cancel);
+      
+      %up = new GuiBitmapButtonCtrl()
+      {
+         position = "5 44";
+         extent = "28 18";
+         text = " ";
+         bitmap = "./images/buttons/medium/btnUp";
+         command = "RTBMM_TransferView_MoveUp("@%queue.id@");";
+      };
+      %opts.add(%up);
+      
+      %down = new GuiBitmapButtonCtrl()
+      {
+         position = "35 44";
+         extent = "38 18";
+         text = " ";
+         bitmap = "./images/buttons/medium/btnDown";
+         command = "RTBMM_TransferView_MoveDown("@%queue.id@");";
+      };
+      %opts.add(%down);
+      
+      %queue.g_row = %row;
+      %queue.g_title = %title;
+      %queue.g_desc = %desc;
+      %queue.g_speed = %speed;
+      %queue.g_done = %done;
+      %queue.g_progress = %load;
+      %queue.g_red = %red;
+      %queue.g_progress_text = %load_txt;
+      %queue.g_transfer = %transfer;
+      %queue.g_cancel = %cancel;
+      %queue.g_up = %up;
+      %queue.g_down = %down;
+      %queue.update();
+   }
+}
 
-         if(strPos(%line,"---") $= 0)
+//- RTBMM_TransferView_Add (GUI-handler for downloading files)
+function RTBMM_TransferView_Add(%id)
+{
+   if(!RTBMM_TransferQueue.addItem(%id))
+      RTBMM_GUI_createMessageBoxOK("Whooops","You already have this file in your transfers list.");
+}
+
+//- RTBMM_TransferView_Remove (Removes an item)
+function RTBMM_TransferView_Remove(%id)
+{
+   RTBMM_TransferQueue.removeItem(%id);
+   RTBMM_TransferView_Init();
+}
+
+//- RTBMM_TransferView_MoveUp (Moves an item in the queue up in the list)
+function RTBMM_TransferView_MoveUp(%id)
+{
+   %position = RTBMM_TransferQueue.getItemPos(%id);
+   if(%position == 0)
+      return;
+      
+   RTBMM_TransferQueue.swap(%position,%position-1);
+   RTBMM_TransferView_Init();
+}
+
+//- RTBMM_TransferView_MoveDown (Moves an item in the queue down in the list)
+function RTBMM_TransferView_MoveDown(%id)
+{
+   %position = RTBMM_TransferQueue.getItemPos(%id);
+   if(%position == RTBMM_TransferQueue.getCount()-1)
+      return;
+      
+   RTBMM_TransferQueue.swap(%position,%position+1);
+   RTBMM_TransferView_Init();
+}
+
+//- RTBMM_TransferView_RequestTransfer (Attempts to begin a file transfer)
+function RTBMM_TransferView_RequestTransfer(%id)
+{
+   if(RTBMM_FileGrabber.connected || isObject(RTBMM_FileGrabber.queue))
+      RTBMM_GUI_createMessageBoxOK("Ooops","There is already a file being downloaded. Cancel or wait for that to finish then try again.");
+   else
+      RTBMM_FileGrabber.loadItem(%id);
+}
+
+//- RTBMM_TransferView_HaltTransfer (Halts a file transfer)
+function RTBMM_TransferView_HaltTransfer(%id)
+{
+   if(RTBMM_FileGrabber.queue !$= RTBMM_TransferQueue.getObject(%id))
+      RTBMM_GUI_createMessageBoxOK("Ooops","This file is not currently in transfer.");
+   else
+      RTBMM_FileGrabber.halt();
+}
+
+//- RTBMM_TransferView_onFileData (On data being returned about a file)
+%RTBMM_SB.registerResponseHandler("GETFILEDATA","RTBMM_TransferView_onFileData");
+function RTBMM_TransferView_onFileData(%tcp,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6)
+{
+   if(!%item = RTBMM_TransferQueue.getItem(%arg1))
+      return;
+      
+   %item.live = 1;
+      
+   if(%arg2 $= 1)
+   {
+      %item.status = 1;
+      
+      %item.title = %arg3;
+      %item.desc = "Submitted by "@%arg4;
+      %item.zip = %arg5;
+      %item.filesize = %arg6;
+      %item.progress_text = "Waiting to Download";
+   }
+   else
+   {
+      if(%arg3 $= 0 || %arg3 $= 2)  //File not Found
+      {
+         %item.status = 0;
+         %item.desc = "File could not be found.";
+         %item.progress_text = "File Missing";
+      }
+      else if(%arg3 $= 1)  //File Failed
+      {
+         %item.status = 0;
+         %item.desc = "File has been failed by a moderator.";
+         %item.progress_text = "File in Fail Bin";
+      }
+      else  //Don't Know
+      {
+         %item.status = 0;
+         %item.desc = "Ambiguous error code was returned from server.";
+         %item.progress_text = "Error Occurred";
+      }
+   }
+   %item.update();
+   
+   RTBMM_FileGrabber.poke();
+}
+
+//- RTBMM_TransferView_onDataFail (When data fails to be returned)
+%RTBMM_SB.registerFailHandler("GETFILEDATA","RTBMM_TransferView_onDataFail");
+function RTBMM_TransferView_onDataFail(%tcp)
+{
+   if(!%item = RTBMM_TransferQueue.getItem(getField(%tcp.t_rawString,0)))
+      return;
+      
+   %item.status = 0;
+   %item.desc = "Could not connect to the RTB Service";
+   %item.progress_text = "Unable to Connect";
+
+   %item.update();
+}
+
+//*********************************************************
+//* DMods View
+//*********************************************************
+//- RTBMM_ModsView_Init (Entrance)
+function RTBMM_ModsView_Init(%mode)
+{
+   RTBMM_GUI_Init();
+   
+   $RTB::CModManager::Switchboard.killLine(1);
+   
+   RTBMM_Zones_Track("ModsView","RTBMM_ModsView_Init(\""@%mode@"\");");
+   
+   %header = RTBMM_GUI_createHeader("<color:FAFAFA><just:left><font:Impact:18>  Your Mods",1);
+   
+   %expandBtn = new GuiBitmapButtonCtrl()
+   {
+      position = "370 4";
+      extent = "68 18";
+      text = " ";
+      bitmap = "./images/buttons/medium/btnExpand";
+      command = "RTBMM_ModsView_ExpandAll();";
+   };
+   %header.add(%expandBtn);
+   
+   %collapseBtn = new GuiBitmapButtonCtrl()
+   {
+      position = "442 4";
+      extent = "68 18";
+      text = " ";
+      bitmap = "./images/buttons/medium/btnCollapse";
+      command = "RTBMM_ModsView_CollapseAll();";
+   };
+   %header.add(%collapseBtn);
+   
+   %sectionsBtn = new GuiBitmapButtonCtrl()
+   {
+      position = "534 4";
+      extent = "68 18";
+      text = " ";
+      bitmap = "./images/buttons/medium/btnSections";
+      command = "RTBMM_ModsView_Init(\"sections\");";
+   };
+   %header.add(%sectionsBtn);
+   
+   %groupsBtn = new GuiBitmapButtonCtrl()
+   {
+      position = "606 4";
+      extent = "68 18";
+      text = " ";
+      bitmap = "./images/buttons/medium/btnGroups";
+      command = "RTBMM_ModsView_Init(\"groups\");";
+   };
+   %header.add(%groupsBtn);
+   
+   if(%mode $= "groups")
+   {
+      RTBMM_GUI_createMessageBoxOK("No no no!","<just:center>Add-On Groups are not available in this version of RTB.");
+      return;
+   }
+   else
+      RTBMM_ModsView_InitSectionView();
+
+   $RTB::CModManager::Cache::Section[$RTB::CModManager::Cache::NumSections] = RTBMM_GUI_createHeader("",1);
+   $RTB::CModManager::Cache::NumSections++;
+}
+
+//- RTBMM_ModsView_InitSectionView (section-based view of add-ons)
+function RTBMM_ModsView_InitSectionView()
+{
+   $RTB::CModManager::Cache::NumSections = 0;
+   
+   %sections = 0;
+   for(%i=0;%i<RTBMM_FileCache.getCount();%i++)
+   {
+      %file = RTBMM_FileCache.getObject(%i);
+      %type = %file.file_type;
+      
+      if(!%added[%type])
+      {
+         %added[%type] = 1;
+         %files[%type] = 0;
+         %section[%sections++] = %type;
+      }
+      %file[%files[%type]++,%type] = %file;
+   }
+   
+   %sortString = "";      
+   for(%i=1;%i<%sections+1;%i++)
+   {
+      %sortString = %sortString@%i@"=>"@%section[%i]@",";
+   }
+   %sortString = getSubStr(%sortString,0,strLen(%sortString)-1);
+   %sortString = strReplace(sortFields(%sortString),",","\t");
+   
+   %k = 0;
+   for(%i=0;%i<getFieldCount(%sortString);%i++)
+   {
+      %block = strReplace(getField(%sortString,%i),"=>","\t");
+      %key = getField(%block,0);
+      %value = getField(%block,1);
+      %section[%k++] = %value;
+   }
+   
+   %collapse = 0;
+   if($RTB::CModManager::SectionCollapsed["Default Add-Ons"] $= "" || $RTB::CModManager::SectionCollapsed["Default Add-Ons"] $= 1)
+         %collapse = 1;
+   RTBMM_ModsView_createSectionRow("Default Add-Ons",%collapse);
+   
+   for(%i=1;%i<%sections+1;%i++)
+   {
+      if(%section[%i] $= "Default Add-Ons" || %section[%i] $= "Non-RTB Add-Ons" || %section[%i] $= "RTB2 Add-Ons")
+         continue;
+      
+      %collapse = 0;
+      if($RTB::CModManager::SectionCollapsed[%section[%i]])
+         %collapse = 1;
+      
+      RTBMM_ModsView_createSectionRow(%section[%i],%collapse);
+   }
+   
+   %collapse = 0;
+   if($RTB::CModManager::SectionCollapsed["Non-RTB Add-Ons"] $= "" || $RTB::CModManager::SectionCollapsed["Non-RTB Add-Ons"] $= 1)
+         %collapse = 1;
+   RTBMM_ModsView_createSectionRow("Non-RTB Add-Ons",%collapse);
+   
+   %collapse = 0;
+   if($RTB::CModManager::SectionCollapsed["RTB2 Add-Ons"] $= "" || $RTB::CModManager::SectionCollapsed["RTB2 Add-Ons"] $= 1)
+         %collapse = 1;
+   RTBMM_ModsView_createSectionRow("RTB2 Add-Ons",%collapse);
+}
+
+//- RTBMM_ModsView_createSectionRow (creates a section row)
+function RTBMM_ModsView_createSectionRow(%name,%hide)
+{
+   %files = 0;
+   for(%i=0;%i<RTBMM_FileCache.getCount();%i++)
+   {
+      if(RTBMM_FileCache.getObject(%i).file_type $= %name)
+      {
+         %file[%files] = RTBMM_FileCache.getObject(%i);
+         %files++;
+      }
+   }
+   
+   %container = new GuiSwatchCtrl()
+   {
+      position = 0 SPC $RTB::CModManager::GUI::CurrentY;
+      extent = "680 28";
+      color = "255 255 255 255";
+   };
+   RTBMM_GUI_PushControl(%container);
+   
+   %container.sec_id = $RTB::CModManager::Cache::NumSections;
+   $RTB::CModManager::Cache::Section[$RTB::CModManager::Cache::NumSections] = %container;
+   $RTB::CModManager::Cache::NumSections++;
+   
+   %s = (%files $= 1)?"":"s";
+   %header = RTBMM_GUI_createHeader("<just:left>        "@%name@"  <font:Arial:12>"@%files[%section[%i]]@" Add-On"@%s,2);
+   %container.header = %header;
+   %container.name = %name;
+   %container.files = %files[%section[%i]];
+   %bitmap = new GuiBitmapCtrl()
+   {
+      position = "5 6";
+      extent = "16 16";
+      bitmap = "./images/icon_arrowdown";
+   };
+   %header.add(%bitmap);
+   %container.add(%header);
+   %header.position = "0 0";
+   %container.bitmap = %bitmap;
+   
+   %mouseEvent = new GuiMouseEventCtrl()
+   {
+      extent = "680 28";
+      
+      eventType = "sectionClick";
+      eventCallbacks = "0001";
+      
+      id = $RTB::CModManager::Cache::NumSections-1;
+      type = 1;
+      
+      container = %container;
+   };
+   %container.add(%mouseEvent);
+   %container.mouseEvent = %mouseEvent;
+
+   %sortString = "";      
+   for(%i=0;%i<%files;%i++)
+   {
+      %sortString = %sortString@%file[%i]@"=>"@%file[%i].file_title@",";
+   }
+   %sortString = getSubStr(%sortString,0,strLen(%sortString)-1);
+   %sortString = strReplace(sortFields(%sortString),",","\t");
+   for(%j=0;%j<getFieldCount(%sortString);%j++)
+   {
+      %field = strReplace(getField(%sortString,%j),"=>","\t");
+      %row = RTBMM_ModsView_createModRow(getField(%field,0));
+      if(!isObject(%row))
+         continue;
+      %container.add(%row);
+      %container.bringToFront(%row);
+      
+      %row.vertSizing = "top";
+      %row.position = 0 SPC getWord(%container.extent,1);
+      %container.extent = vectorAdd(%container.extent,"0" SPC getWord(%row.extent,1));
+   }
+   %container.originalHeight = getWord(%container.extent,1);
+   
+   if(%hide)
+   {
+      %mouseEvent.type = 2;
+      RTBMM_ModsView_collapseSection($RTB::CModManager::Cache::NumSections-1,1);
+   }
+}
+
+//- Event_sectionClick::onMouseUp (callback for clicking on a section header)
+function Event_sectionClick::onMouseUp(%this)
+{
+   if(%this.type $= 1)
+   {
+      if(RTBMM_ModsView_collapseSection(%this.id))
+      {
+         %this.type = 2;
+         %secName = $RTB::CModManager::Cache::Section[%this.id].name;
+         $RTB::CModManager::SectionCollapsed[%secName] = 1;
+      }
+   }
+   else if(%this.type $= 2)
+   {
+      if(RTBMM_ModsView_expandSection(%this.id))
+      {
+         %this.type = 1;
+         %secName = $RTB::CModManager::Cache::Section[%this.id].name;
+         $RTB::CModManager::SectionCollapsed[%secName] = 0;
+      }
+   }
+}
+
+//- RTBMM_ModsView_createModRow (creates a mod row for the section view)
+function RTBMM_ModsView_createModRow(%cache)
+{
+   if(!isObject(%cache))
+      return;
+      
+   %content = RTBMM_GUI_createContent("cell",40,6,38,6,50);
+   %c_icon = %content.getObject(0).getBottom(1);
+   %c_info = %content.getObject(1).getBottom(1);
+   %c_state = %content.getObject(2).getBottom(1);
+   %c_opts = %content.getObject(3).getBottom(1);
+   %content.setName("ModsViewRow_"@%cache.file_var);
+   %content.file_title = %cache.file_title;   
+   
+   %icon = new GuiBitmapCtrl()
+   {
+      extent = "16 16";
+      bitmap = "./images/icons/"@%cache.file_icon;
+   };
+   %c_icon.add(%icon);
+   RTBMM_GUI_Center(%icon);
+   
+   %title_text = new GuiMLTextCtrl()
+   {
+      position = "2 4";
+      extent = "307 18";
+      text = "<font:Arial Bold:14><color:777777> "@%cache.file_title;
+   };
+   %c_info.add(%title_text);
+   
+   %text = new GuiMLTextCtrl()
+   {
+      position = "4 20";
+      extent = "450 18";
+      text = "<font:Verdana:12><color:999999>by "@%cache.file_author;
+   };
+   %c_info.add(%text);
+  
+   if(%cache.file_platform $= "rtb" || %cache.file_platform $= "rtb2")
+      %title_text.setText(%title_text.text@" <color:999999><font:Arial:12>v"@%cache.file_version);  
+  
+   if(%cache.file_platform $= "rtb")
+   { 
+      %icon = new GuiBitmapButtonCtrl()
+      {
+         position = "235 1";
+         extent = "16 16";
+         text = " ";
+         bitmap = "./images/buttons/small/btnEye";
+         command = "RTBMM_FileView_Init("@%cache.file_id@");";
+      };
+      %c_info.add(%icon);
+      
+      %reportBtn = new GuiBitmapButtonCtrl()
+      {
+         position = "235 18";
+         extent = "16 16";
+         text = " ";
+         bitmap = $RTB::Path@"images/buttons/small/btnReport";
+         command = "RTBMM_FileView_Report("@%cache.file_id@");";
+      };
+      %c_info.add(%reportBtn);
+   }
+   
+   %enabled = $AddOn__[%cache.file_var];
+   if(%enabled $= 1 || %cache.file_special !$= "")
+   {
+      %c_state.getGroup().getGroup().color = "230 255 230 255";
+      %c_state.getGroup().color = "50 200 50 255";
+      %c_state.color = "200 255 200 255";
+      %c_state.getObject(0).setColor("0 0 0 0");
+      %icon = new GuiBitmapCtrl()
+      {
+         extent = "16 16";
+         bitmap = "./images/icon_tick";
+      };
+      %c_state.add(%icon);
+   }
+   else
+   {
+      %c_state.getGroup().getGroup().color = "255 230 230 255";
+      %c_state.getGroup().color = "255 100 100 255";
+      %c_state.color = "255 200 200 255";
+      %c_state.getObject(0).setColor("0 0 0 0");
+      %icon = new GuiBitmapCtrl()
+      {
+         extent = "16 16";
+         bitmap = "./images/icon_cross";
+      };
+      %c_state.add(%icon);
+   }
+   RTBMM_GUI_Center(%icon);
+   
+   if(%cache.file_special $= "clientside")
+   {
+      %btnLeft = new GuiBitmapCtrl()
+      {
+         position = "7 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnClient_i";
+      };
+      %c_opts.add(%btnLeft);
+   }
+   else if(%cache.file_special $= "map")
+   {
+      %btnLeft = new GuiBitmapCtrl()
+      {
+         position = "7 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnMap_i";
+      };
+      %c_opts.add(%btnLeft);
+   }
+   else if(%cache.file_special $= "decal")
+   {
+      %btnLeft = new GuiBitmapCtrl()
+      {
+         position = "7 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnDecal_i";
+      };
+      %c_opts.add(%btnLeft);
+   }
+   else if(%cache.file_special $= "colorset")
+   {
+      %btnLeft = new GuiBitmapCtrl()
+      {
+         position = "7 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnColorset_i";
+      };
+      %c_opts.add(%btnLeft);
+   }
+   else
+   {
+      if(%enabled $= 1)
+      {
+         %btnLeft = new GuiBitmapButtonCtrl()
          {
-            %file.readingMessage = 1;
-            %feedMessage = "";
-            continue;
-         }
-         
-         %feedData = strReplace(%line,"|","\t");
-         %feedId = getField(%feedData,0);
-         %feedType = getField(%feedData,1);
-         %feedDate = getField(%feedData,2);
-         %feedSubject = getField(%feedData,3);
-         %feedRead = getField(%feedData,4);
+            position = "7 6";
+            extent = "82 25";
+            text = " ";
+            command = "RTBMM_ModsView_DisableAddon(\""@%cache.file_var@"\");";
+            bitmap = "./images/buttons/large/gray/btnDisable";
+         };
+         %c_opts.add(%btnLeft);
       }
       else
       {
-         if(strPos(%line,"---") $= 0)
+         %btnLeft = new GuiBitmapButtonCtrl()
          {
-            %file.readingMessage = 0;
-            
-            %feed = new ScriptObject()
-            {
-               class = RTBMM_NewsFeedItem;
-               feed_id = %feedId;
-               feed_type = %feedType;
-               feed_date = %feedDate;
-               feed_subject = %feedSubject;
-               feed_message = %feedMessage;
-               feed_read = %feedRead;
-               feed_loaded = 1;
-            };
-            RTBMM_FeedControl.add(%feed);
-         }
-         else
-         {
-            %feedMessage = (%feedMessage $= "") ? %line : %feedMessage@"\n"@%line;
-         }
+            position = "7 6";
+            extent = "82 25";
+            text = " ";
+            command = "RTBMM_ModsView_EnableAddon(\""@%cache.file_var@"\");";
+            bitmap = "./images/buttons/large/gray/btnEnable";
+         };
+         %c_opts.add(%btnLeft);
       }
    }
-   %file.close();
-   %file.delete();
-}
-function RTBMM_FeedControl_reqSave(%this)
-{
-   if(isEventPending(%this.saveSchedule))
-      cancel(%this.saveSchedule);
-      
-   %this.saveSchedule = schedule(1000,0,"RTBMM_FeedControl_Save",%this);
-}
-function RTBMM_FeedControl_Save(%this)
-{
-   %highestFeedID = %this.latestFeed;
-   for(%i=0;%i<%this.getCount();%i++)
-   {
-      %feedId = %this.getObject(%i).feed_id;
-      if(%feedId > %highestFeedID)
-         %highestFeedID = %feedId;
-   }
    
-   %file = new FileObject();
-   %file.openForWrite("config/client/RTB/newsFeed.feed");
-   %file.writeLine(%highestFeedID);
-   %file.writeLine("");
-   
-   for(%i=0;%i<%this.getCount();%i++)
-   {
-      %feed = %this.getObject(%i);
-      %file.writeLine(%feed.feed_id@"|"@%feed.feed_type@"|"@%feed.feed_date@"|"@%feed.feed_subject@"|"@%feed.feed_read);
-      %file.writeLine("--------------------------------------------------------");
-      %file.writeLine(%feed.feed_message);
-      %file.writeLine("--------------------------------------------------------");
-      %file.writeLine("");
-   }
-   %file.close();
-   %file.delete();
-}
-
-//*********************************************************
-//* User Interaction with Files (Ratings/Comments/Reports)
-//*********************************************************
-function RTBMM_AddComment::onWake(%this)
-{
-   RTBMM_CommentText.setValue("");
-}
-function RTBMM_EditComment(%comment)
-{
-   if(!$RTB::CModManager::Session::LoggedIn)
-      return;
-      
-   canvas.pushdialog(RTBMM_AddComment);
-   RTBMM_AddComment.getObject(0).setText("Edit Comment");
-   RTBMM_AddComment.getObject(0).getObject(0).command = "RTBMM_SendComment("@%comment@");";
-   RTBMM_CommentText.setValue("Downloading Comment...");
-   RTBMM_SendRequest("GETCOMMENT",5,%comment);
-}
-function RTBMM_Comments_onRetrieve(%this,%line)
-{
-   if(getField(%line,0) $= 1)
-      RTBMM_CommentText.setValue(getField(%line,1));
-   else if(getField(%line,0) $= "ERROR")
-   {
-      MessageBoxOK("Failure!",getField(%line,1));
-      canvas.popDialog(RTBMM_AddComment);
-   }
-   else
-   {
-      MessageBoxOK("Failure!","Your Comment could not be retrieved due to a Server Error.");
-      canvas.popDialog(RTBMM_AddComment);
-   }
-}
-function RTBMM_SendComment(%commentID)
-{
-   if(!$RTB::CModManager::Session::LoggedIn)
-      return;
-      
-   %comment = RTBMM_CommentText.getValue();
-   if(%comment !$= "")
-   {
-      %file = $RTB::CModManager::Cache::CurrentFile;
-      canvas.popDialog(RTBMM_AddComment);
-      MessagePopup("Transmitting...","Your Comment is being Submitted...");
-      RTBMM_SendRequest("ADDCOMMENT",5,%file,%comment,%commentID);
-   }
-   else
-      MessageBoxOK("Ooops","You forgot to enter a Comment.");
-}
-function RTBMM_Comments_onSend(%this,%line)
-{
-   MessagePopup("","",1);
-   if(getField(%line,0) $= 1)
-      MessageBoxOK("Success!","Your comment was posted successfully.");
-   else if(getField(%line,0) $= 2)
-      MessageBoxOK("Success!","Your comment was edited successfully.");
-   else if(getField(%line,0) $= "ERROR")
-      MessageBoxOK("Failure!",getField(%line,1));
-   else
-      MessageBoxOK("Failure","Your Comment was not added due to a Server Error.");
-      
-   RTBMM_getFileView($RTB::CModManager::Cache::CurrentFile);
-}
-function RTBMM_DeleteComment(%comment)
-{
-   MessagePopup("Transmitting...","Your Comment is being Deleted...");
-   RTBMM_SendRequest("DELETECOMMENT",5,%comment);
-}
-function RTBMM_Comments_onRemove(%this,%line)
-{
-   if(getField(%line,0) $= 1)
-      MessageBoxOK("Success!","Your Comment has been removed.");
-   else if(getField(%line,0) $= "ERROR")
-      MessageBoxOK("Failure!",getField(%line,1));
-   else
-      MessageBoxOK("Failure!","Your Comment was not removed due to a Server Error.");
-      
-   RTBMM_getFileView($RTB::CModManager::Cache::CurrentFile);
-}
-function RTBMM_Ratings_onSend(%this,%line)
-{
-   MessagePopup("","",1);
-   if(%line $= 1)
-      MessageBoxOK("Success!","Your Rating has been added.");
-   else if(%line $= 2)
-      MessageBoxOK("Success!","Your Rating has been edited.");
-   else if(%line $= 0)
-      MessageBoxOK("Oops!","Your BL_ID ("@getNumKeyID()@") is not linked to an RTB Account, therefore you cannot Comment or Rate on Files.");
-   else if(%line $= "ERROR")
-      MessageBoxOK("Failure!",getField(%line,1));
-   else
-      MessageBoxOK("Failure!","Your Rating was not added due to a Server Error.");
-   
-   RTBMM_getFileView($RTB::CModManager::Cache::CurrentFile);
-}
-
-//*********************************************************
-//* Download Queue Managing
-//*********************************************************
-function RTBMM_InitiateDownloadQueue()
-{
-   if(!isObject(RTBMM_DownloadManifest))
-      new SimGroup(RTBMM_DownloadManifest);
-      
-   %dQueue = new ScriptObject(RTBMM_DownloadQueue)
-   {
-      class = RTBMM_DownloadQueueSO;
-      totalDownloads = 0;
-   };
-   RTBMM_DownloadManifest.add(%dQueue);
-      
-   if(isFile("config/client/RTB/dlQueue.dat"))
-   {
-      %file = new FileObject();
-      if(%file.openForRead("config/client/RTB/dlQueue.dat"))
+   if(%cache.file_platform $= "rtb")
+   {      
+      %btnBug = new GuiBitmapButtonCtrl()
       {
-         while(!%file.isEOF())
+         position = "87 6";
+         extent = "82 25";
+         text = " ";
+         command = "RTBMM_ModsView_Report("@%cache.file_id@");";
+         bitmap = "./images/buttons/large/gray/btnSendBug";
+      };
+      %c_opts.add(%btnBug);
+
+      %btnUpdate = new GuiBitmapButtonCtrl()
+      {
+         position = "167 6";
+         extent = "82 25";
+         text = " ";
+         command = "RTBMM_ModsView_updateAddon("@%cache@","@%content@");";
+         bitmap = "./images/buttons/large/gray/btnUpdate";
+      };
+      %c_opts.add(%btnUpdate);
+   }
+   else
+   {  
+      %btnBug = new GuiBitmapCtrl()
+      {
+         position = "87 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnSendBug_i";
+      };
+      %c_opts.add(%btnBug);
+
+      %btnUpdate = new GuiBitmapCtrl()
+      {
+         position = "167 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnUpdate_i";
+      };
+      %c_opts.add(%btnUpdate);
+   }
+   
+   if(!%cache.file_default)
+   {
+      %btnDelete = new GuiBitmapButtonCtrl()
+      {
+         position = "247 6";
+         extent = "82 25";
+         text = " ";
+         command = "RTBMM_GUI_createMessageBoxOKCancel(\"Are you sure?\",\"<just:center>Are you sure you want to permanently delete the selected add-on?\",\"RTBMM_ModsView_deleteAddon("@%cache@","@%content@");\");";
+         bitmap = "./images/buttons/large/gray/btnDelete";
+      };
+      %c_opts.add(%btnDelete);
+   }
+   else
+   {
+      %btnDelete = new GuiBitmapCtrl()
+      {
+         position = "247 6";
+         extent = "82 25";
+         text = " ";
+         bitmap = "./images/buttons/large/gray/btnDelete_i";
+      };
+      %c_opts.add(%btnDelete);
+   }
+   return %content;
+}
+
+//- RTBMM_ModsView_insertModRow (inserts a mod row live into the mods view)
+function RTBMM_ModsView_insertModRow(%cache)
+{
+   for(%i=0;%i<$RTB::CModManager::Cache::NumSections-1;%i++)
+   {
+      %sec = $RTB::CModManager::Cache::Section[%i];
+      if(%sec.name $= %cache.file_type)
+      {
+         %targetSection = %sec;
+         break;
+      }
+   }
+   
+   if(!isObject(%targetSection))
+   {
+      RTBMM_Zones_Refresh();
+      return;
+   }
+   else
+   {
+      %targetSection.files++;
+      %s = (%targetSection.files == 1) ? "" : "s";
+      %targetSection.header.getObject(1).setText("<color:888888><font:Arial Bold:15><just:left>        "@%targetSection.name@"  <font:Arial:12>"@%targetSection.files@" Add-On"@%s);
+      
+      %content = RTBMM_ModsView_createModRow(%cache,1);
+      RTBMM_GUI_Offset(-(getWord(%content.extent,1)));
+      
+      for(%i=0;%i<%targetSection.getCount();%i++)
+      {
+         %row = %targetSection.getObject(0);
+         if(!%targetSection.isMember(%content))
          {
-            %queuedFile = %file.readLine();
-            %dQueue.pushFile(%queuedFile);
+            if(alphaCompare(%cache.file_title,%row.file_title) $= 2)
+            {
+               %row.position = vectorSub(%row.position,0 SPC getWord(%content.extent,1));
+               %targetSection.add(%content);
+               %targetSection.pushToBack(%content);
+               %content.vertSizing = "top";
+               %content.position = vectorAdd(%row.position,0 SPC getWord(%content.extent,1));
+               %i++;
+            }
+            else if(%i $= %targetSection.getCount()-2)
+            {
+               %targetSection.add(%content);
+               %targetSection.pushToBack(%content);
+               %content.vertSizing = "top";
+               %content.position = vectorSub("0 28",0 SPC getWord(%content.extent,1));
+               %i++;
+            }
+         }
+         else if(%row.file_title !$= "")
+         {          
+            %row.position = vectorSub(%row.position,0 SPC getWord(%content.extent,1));
+         }
+         %targetSection.pushToBack(%row);
+      }
+      %targetSection.originalHeight = vectorAdd(%targetSection.originalHeight,getWord(%content.extent,1));
+      %sec_id = %targetSection.sec_id;
+      
+      if(%targetSection.mouseEvent.type $= 1)
+      {
+         %targetSection.resize(getWord(%targetSection.position,0),getWord(%targetSection.position,1),getWord(%targetSection.extent,0),getWord(%targetSection.extent,1)+getWord(%content.extent,1));
+         for(%i=0;%i<$RTB::CModManager::Cache::NumSections;%i++)
+         {
+            %sec = $RTB::CModManager::Cache::Section[%i];
+            if(%i > %sec_id)
+               %sec.position = vectorAdd(%sec.position,0 SPC getWord(%content.extent,1));         
          }
       }
-      %file.delete();
+   }
+}
+
+//- RTBMM_ModsView_collapseAll (collapses all the sections)
+function RTBMM_ModsView_collapseAll()
+{
+   for(%i=0;%i<$RTB::CModManager::Cache::NumSections;%i++)
+   {
+      if(RTBMM_ModsView_collapseSection(%i,1))
+      {
+         %sec = $RTB::CModManager::Cache::Section[%i];
+         %sec.mouseEvent.type = 2;
+         $RTB::CModManager::SectionCollapsed[%sec.name] = 1;
+      }
+   }
+}
+
+//- RTBMM_ModsView_collapseSection (collapses a mod view section)
+function RTBMM_ModsView_collapseSection(%id,%noAnimate)
+{
+   %sec = $RTB::CModManager::Cache::Section[%id];
+   if(%sec.sec_id $= "")
+      return;
+      
+   if(!$RTB::Options::MM::AnimateGUI || %noAnimate)
+   {
+      %sec.bitmap.position = "4 5";
+      %sec.bitmap.setBitmap($RTB::Path@"images/icon_arrowright");
+      RTBMM_ModsView_instantCollapseSection(%id);
+      return 1;
+   }
+
+   if(!isEventPending(%sec.expColSch))
+   {
+      %sec.bitmap.position = "4 5";
+      %sec.bitmap.setBitmap($RTB::Path@"images/icon_arrowright");
+      if(%sec.files > 9)
+         %time = 1000;
+      else
+         %time = 100*%sec.files;
+      RTBMM_ModsView_doCollapse(%id,0,getWord(%sec.extent,1),(28-getWord(%sec.extent,1))-1,%time);
+      return 1;
+   }
+   return 0;
+}
+
+//- RTBMM_ModsView_doCollapse (looping function to animate the section collapsing)
+function RTBMM_ModsView_doCollapse(%id,%time,%begin,%change,%duration)
+{
+   if(%time $= %duration)
+      return;
+
+   %sec = $RTB::CModManager::Cache::Section[%id];
+   if(!isObject(%sec))
+      return;
+      
+   %oldExtent = getWord(%sec.extent,1);
+   %newExtent = mceil(Anim_EaseInOut(%time,%begin,%change,%duration));
+   %sec.resize(getWord(%sec.position,0),getWord(%sec.position,1),getWord(%sec.extent,0),%newExtent);
+   %sec.expColSch = schedule(10,0,"RTBMM_ModsView_doCollapse",%id,%time+10,%begin,%change,%duration);
+   
+   for(%i=%id+1;%i<$RTB::CModManager::Cache::NumSections;%i++)
+   {
+      %sec = $RTB::CModManager::Cache::Section[%i];
+      %sec.position = vectorAdd(%sec.position,"0" SPC %newExtent-%oldExtent);
+   }
+   RTBMM_GUI_AutoResize();
+   RTBMM_GUI_Offset(-1);
+}
+
+//- RTBMM_ModsView_instantCollapseSection (Instantly collapses a section)
+function RTBMM_ModsView_instantCollapseSection(%id)
+{
+   %sec = $RTB::CModManager::Cache::Section[%id];
+   if(!isObject(%sec))
+      return;
+
+   %oldExtent = getWord(%sec.extent,1);
+   %sec.resize(getWord(%sec.position,0),getWord(%sec.position,1),680,28);
+
+   for(%i=%id+1;%i<$RTB::CModManager::Cache::NumSections;%i++)
+   {
+      %sec = $RTB::CModManager::Cache::Section[%i];
+      %sec.position = vectorAdd(%sec.position,"0" SPC 28-%oldExtent);
+   }
+   RTBMM_GUI_AutoResize();
+}
+
+//- RTBMM_ModsView_expandAll (expands all the sections)
+function RTBMM_ModsView_expandAll()
+{
+   for(%i=0;%i<$RTB::CModManager::Cache::NumSections;%i++)
+   {
+      if(RTBMM_ModsView_expandSection(%i,1))
+      {
+         %sec = $RTB::CModManager::Cache::Section[%i];
+         %sec.mouseEvent.type = 1;
+         $RTB::CModManager::SectionCollapsed[%sec.name] = 0;
+      }
+   }
+}
+
+//- RTBMM_ModsView_expandSection (Expands a section)
+function RTBMM_ModsView_expandSection(%id,%noAnimate)
+{
+   %sec = $RTB::CModManager::Cache::Section[%id];
+   if(%sec.sec_id $= "")
+      return;
+      
+   if(!$RTB::Options::MM::AnimateGUI || %noAnimate)
+   {
+      %sec.bitmap.position = "5 6";
+      %sec.bitmap.setBitmap($RTB::Path@"images/icon_arrowdown");
+      RTBMM_ModsView_instantExpandSection(%id);
+      return 1;
    }   
-   RTBMM_InitiateFileConnection();
+   
+   if(!isEventPending(%sec.expColSch))
+   {
+      %sec.bitmap.position = "5 6";
+      %sec.bitmap.setBitmap($RTB::Path@"images/icon_arrowdown");
+      if(%sec.files > 9)
+         %time = 1000;
+      else
+         %time = 100*%sec.files;
+      RTBMM_ModsView_doExpand(%id,0,getWord(%sec.extent,1),%sec.originalHeight-28,%time);
+      return 1;
+   }
+   return 0;
+}
+
+//- RTBMM_ModsView_doExpand (looping function to animate the section expanding)
+function RTBMM_ModsView_doExpand(%id,%time,%begin,%change,%duration)
+{
+   if(%time $= %duration)
+   {
+      RTBMM_GUI_Offset(-1);
+      return;
+   }
+
+   %sec = $RTB::CModManager::Cache::Section[%id];
+   if(!isObject(%sec))
+      return;
+      
+   %oldExtent = getWord(%sec.extent,1);
+   %newExtent = mceil(Anim_EaseInOut(%time,%begin,%change,%duration));
+   %sec.resize(getWord(%sec.position,0),getWord(%sec.position,1),getWord(%sec.extent,0),%newExtent);
+   %sec.expColSch = schedule(10,0,"RTBMM_ModsView_doExpand",%id,%time+10,%begin,%change,%duration);
+   
+   for(%i=%id+1;%i<$RTB::CModManager::Cache::NumSections;%i++)
+   {
+      %sec = $RTB::CModManager::Cache::Section[%i];
+      %sec.position = vectorAdd(%sec.position,"0" SPC %newExtent-%oldExtent);
+   }
+   RTBMM_GUI_AutoResize();
+}
+
+//- RTBMM_ModsView_instantExpandSection (Instantly expands a section)
+function RTBMM_ModsView_instantExpandSection(%id)
+{
+   %sec = $RTB::CModManager::Cache::Section[%id];
+   if(!isObject(%sec))
+      return;
+
+   %oldExtent = getWord(%sec.extent,1);
+   %sec.resize(getWord(%sec.position,0),getWord(%sec.position,1),680,%sec.originalHeight);
+   %newExtent = getWord(%sec.extent,1);
+
+   for(%i=%id+1;%i<$RTB::CModManager::Cache::NumSections;%i++)
+   {
+      %sec = $RTB::CModManager::Cache::Section[%i];
+      %sec.position = vectorAdd(%sec.position,"0" SPC %newExtent-%oldExtent);
+   }
+   RTBMM_GUI_AutoResize();
+   RTBMM_GUI_Offset(-1);
+}
+
+//- RTBMM_ModsView_EnableAddon (Sets an add-on to enabled and updates gui)
+function RTBMM_ModsView_EnableAddon(%var)
+{
+   $AddOn__[%var] = 1;
+   export("$AddOn__*","config/server/ADD_ON_LIST.cs");
+   
+   %container = "ModsViewRow_"@%var;
+   %c_state = %container.getObject(2).getBottom(1);
+   %c_opts = %container.getObject(3).getBottom(1);
+   
+   %c_state.getGroup().getGroup().color = "230 255 230 255";
+   %c_state.getGroup().color = "50 200 50 255";
+   %c_state.color = "200 255 200 255";
+   %c_state.getObject(0).setColor("0 0 0 0");
+   %c_state.getObject(1).setBitmap($RTB::Path@"images/icon_tick");
+   
+   %c_opts.getBottom(1).getObject(1).setBitmap($RTB::Path@"images/buttons/large/gray/btnDisable");
+   %c_opts.getBottom(1).getObject(1).command = "RTBMM_ModsView_DisableAddon(\""@%var@"\");";
+}
+
+//- RTBMM_ModsView_DisableAddon (Sets an add-on to disabled and updates gui)
+function RTBMM_ModsView_DisableAddon(%var)
+{
+   $AddOn__[%var] = 0;
+   export("$AddOn__*","config/server/ADD_ON_LIST.cs");
+   
+   %container = "ModsViewRow_"@%var;
+   %c_state = %container.getObject(2).getBottom(1);
+   %c_opts = %container.getObject(3).getBottom(1);
+   
+   %c_state.getGroup().getGroup().color = "255 230 230 255";
+   %c_state.getGroup().color = "255 100 100 255";
+   %c_state.color = "255 200 200 255";
+   %c_state.getObject(0).setColor("0 0 0 0");
+   %c_state.getObject(1).setBitmap($RTB::Path@"images/icon_cross");
+   
+   %c_opts.getBottom(1).getObject(1).setBitmap($RTB::Path@"images/buttons/large/gray/btnEnable");
+   %c_opts.getBottom(1).getObject(1).command = "RTBMM_ModsView_EnableAddon(\""@%var@"\");";
+}
+
+//- RTBMM_ModsView_Report (Opens a form to allow the user to report a bug in the addon)
+function RTBMM_ModsView_Report(%id)
+{
+   if(%id $= "")
+   {
+      RTBMM_GUI_createMessageBoxOK("Ooops","You have not selected a file to report a bug for.");
+      return;
+   }
+      
+   %window = RTBMM_GUI_createWindow("Report Bug");
+   %window.resize(0,0,400,200);
+   RTBMM_GUI_Center(%window);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 10";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Summary:";
+   };
+   %window.canvas.add(%label);
+   $RTB::CModManager::Cache::Report::Summary = %label;
+   
+   %textedit = new GuiTextEditCtrl(RTBMM_Report_Summary)
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "66 8";
+      extent = "316 16";
+   };
+   %window.canvas.add(%textedit);
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "10 34";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Description:";
+   };
+   %window.canvas.add(%label);
+   $RTB::CModManager::Cache::Report::Description = %label;
+   
+   %label = new GuiMLTextCtrl()
+   {
+      position = "202 34";
+      extent = "";
+      text = "<font:Verdana:12><color:555555>Severity:";
+   };
+   %window.canvas.add(%label);
+   
+   %popup = new GuiPopupMenuCtrl(RTBMM_Report_Severity)
+   {
+      profile = RTBMM_PopupProfile;
+      position = "252 31";
+      extent = "130 17";
+   };
+   %window.canvas.add(%popup);
+   %popup.add("Low",1);
+   %popup.add("Medium",2);
+   %popup.add("High",3);
+   %popup.setSelected(1);
+   
+   %textedit = new GuiScrollCtrl()
+   {
+      profile = RTBMM_TextEditProfile;
+      position = "9 52";
+      extent = "373 73";
+      hScrollBar = "alwaysOff";
+      vScrollBar = "alwaysOff";
+      
+      new GuiMLTextEditCtrl(RTBMM_Report_Description)
+      {
+         profile = RTBMM_MLEditProfile;
+         position = "3 1";
+         extent = "364 73";
+      };
+   };
+   %window.canvas.add(%textedit);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "324 133";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnOK";
+      command = "RTBMM_ModsView_SendReport("@%window@","@%id@");";
+   };
+   %window.canvas.add(%button);
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "260 133";
+      extent = "58 25";
+      text = " ";
+      bitmap = "./images/buttons/large/gray/btnCancel";
+      command = %window.closeButton.command;
+   };
+   %window.canvas.add(%button);
+   
+   %buglink = new GuiMLTextCtrl()
+   {
+      profile = "RTBMM_NewsContentProfile";
+      position = "12 140";
+      extent = "236 12";
+      text = "<color:AAAAAA>Warning: Abuse will result in a ban.";
+   };
+   %window.canvas.add(%buglink);
+}
+
+//- RTBMM_ModsView_SendReport (Processes + Sends the File Report)
+function RTBMM_ModsView_SendReport(%window,%id)
+{
+   if(RTBMM_Report_Summary.getValue() $= "")
+   {
+      $RTB::CModManager::Cache::Report::Summary.setValue("<font:Verdana Bold:12><color:EE0000>Summary:");
+      %errors = 1;
+   }
+   else
+      $RTB::CModManager::Cache::Report::Summary.setValue("<font:Verdana:12><color:555555>Summary:");
+
+   if(RTBMM_Report_Description.getValue() $= "")
+   {   
+      $RTB::CModManager::Cache::Report::Description.setValue("<font:Verdana Bold:12><color:EE0000>Description:");
+      %errors = 1;
+   }
+   else
+      $RTB::CModManager::Cache::Report::Description.setValue("<font:Verdana:12><color:555555>Description:");
+   
+   if(%errors)
+      return;
+   
+   %overlay = new GuiSwatchCtrl()
+   {
+      position = "0 0";
+      extent = %window.canvas.extent;
+      color = "255 255 255 200";
+   };
+   %window.canvas.add(%overlay);
+   
+   %bitmap = new GuiAnimatedBitmapCtrl()
+   {
+      extent = "31 31";
+      bitmap = "./images/image_loadRing";
+      framesPerSecond = 15;
+      numFrames = 8;
+   };
+   %overlay.add(%bitmap);
+   RTBMM_GUI_Center(%bitmap);
+   %bitmap.shift(0,-10);
+   
+   %mlCtrl = new GuiMLTextCtrl()
+   {
+      extent = "200 0";
+      text = "<just:center><font:Verdana:12><color:666666>Sending Report...";
+   };
+   %overlay.add(%mlCtrl);
+   RTBMM_GUI_Center(%mlCtrl);
+   %mlCtrl.shift(0,12);
+   
+   $RTB::CModManager::Cache::LoadRing = %bitmap;
+   $RTB::CModManager::Cache::LoadText = %mlCtrl;
+   
+   %details = RTBMM_FileCache.get(%id);
+   RTBMM_SendRequest("SENDBUGREPORT",3,%id,%details.file_version,RTBMM_Report_Summary.getValue(),RTBMM_Report_Description.getValue(),$Version,$RTB::Version,RTBMM_Report_Severity.getSelected());
+}
+
+//- RTBMM_ModsView_onReportReply (Reply from sending a report)
+%RTBMM_SB.registerResponseHandler("SENDBUGREPORT","RTBMM_ModsView_onReportReply");
+function RTBMM_ModsView_onReportReply(%tcp,%line)
+{
+   RTBMM_GUI_LoadRing_Clear($RTB::CModManager::Cache::LoadRing);
+   if(getField(%line,0) $= 1)
+   {
+      $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Your report has been received.");
+   }
+   else
+   {
+      $RTB::CModManager::Cache::LoadRing.setBitmap($RTB::Path@"images/image_loadRingFail");
+      if(getField(%line,1) $= 1)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>You are not logged in!");
+      else if(getField(%line,1) $= 2)
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>File not found.");
+      else
+         $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Unknown Error Occurred.");
+   }
+}
+
+//- RTBMM_ModsView_onReportFail (Fail result from sending a report)
+%RTBMM_SB.registerFailHandler("SENDBUGREPORT","RTBMM_ModsView_onReportFail");
+function RTBMM_ModsView_onReportFail(%tcp,%fail)
+{
+   RTBMM_GUI_LoadRing_Clear($RTB::CModManager::Cache::LoadRing);
+   $RTB::CModManager::Cache::LoadRing.setBitmap($RTB::Path@"images/image_loadRingFail");
+   $RTB::CModManager::Cache::LoadText.setValue("<just:center><font:Verdana:12><color:666666>Connection Failed. Please try again later.");
+}
+
+//- RTBMM_ModsView_updateAddon (Checks for updates for a certain add-on)
+function RTBMM_ModsView_updateAddon(%cache,%content)
+{
+   if(%cache.checkingForUpdates)
+      return;
+      
+   %cache.checkingForUpdates = 1;
+   
+   %content.getObject(0).getBottom(1).getObject(1).setVisible(0);
+   %ring = new GuiAnimatedBitmapCtrl()
+   {
+      extent = "26 26";
+      bitmap = "./images/image_loadRing";
+      framesPerSecond = 15;
+      numFrames = 8;
+   };
+   %content.getObject(0).getBottom(1).add(%ring);
+   RTBMM_GUI_Center(%ring);
+   %content.getObject(1).getBottom(1).getObject(2).oldValue = %content.getObject(1).getBottom(1).getObject(2).getValue();
+   %content.getObject(1).getBottom(1).getObject(2).setValue("<font:Verdana:12><color:999999>Checking for Updates...");
+   
+   RTBMM_SendRequest("GETUPDATE",3,%cache.file_id,%cache.file_version,%content);
+}
+
+//- RTBMM_ModsView_onUpdateReply (Reply Handler)
+%RTBMM_SB.registerResponseHandler("GETUPDATE","RTBMM_ModsView_onUpdateReply");
+function RTBMM_ModsView_onUpdateReply(%tcp,%line)
+{
+   %file_id = getField(%tcp.t_rawString,0);
+   %content = getField(%tcp.t_rawString,2);
+   
+   RTBMM_FileCache.get(%file_id).checkingForUpdates = 0;
+
+   if(!isObject(%content))
+      return;
+      
+   %content.getObject(0).getBottom(1).getObject(1).setVisible(1);
+   %content.getObject(0).getBottom(1).getObject(2).delete();
+
+   if(%line $= 1)
+   {
+      RTBMM_GUI_createMessageBoxOKCancel("Update Found!","An update has been found for this add-on, would you like to download it now?","RTBMM_TransferQueue.addItem("@%file_id@");","");
+      %content.getObject(1).getBottom(1).getObject(2).setValue("<font:Verdana:12><color:999999>An update was found.");
+   }
+   else
+   {
+      %content.getObject(1).getBottom(1).getObject(2).setValue("<font:Verdana:12><color:FF6666>No updates were found ...");
+   }
+   schedule(2000,0,"RTBMM_ModsView_resetDesc",%content.getObject(1).getBottom(1).getObject(2));
+}
+
+//- RTBMM_ModsView_resetDesc (Resets control value)
+function RTBMM_ModsView_resetDesc(%ctrl)
+{
+   if(!isObject(%ctrl))
+      return;
+      
+   %ctrl.setValue(%ctrl.oldValue);
+}
+
+//- RTBMM_ModsView_deleteAddon (Action to remove a row and alter the gui)
+function RTBMM_ModsView_deleteAddon(%cache,%row)
+{
+   %section = %row.getGroup();
+   %id = %section.sec_id;
+   %extent = getWord(%row.extent,1);
+   %pos = getWord(%row.position,1);
+   %row.delete();
+   
+   %section.files--;
+   %s = (%section.files == 1) ? "" : "s";
+   %section.header.getObject(1).setText("<color:888888><font:Arial Bold:15><just:left>        "@%section.name@"  <font:Arial:12>"@%section.files@" Add-On"@%s);
+
+   if(%section.getCount() <= 2)
+   {
+      %extent = getWord(%section.extent,1);
+      %section.delete();
+
+      for(%i=%id+1;%i<$RTB::CModManager::Cache::NumSections;%i++)
+      {
+         %sec = $RTB::CModManager::Cache::Section[%i];
+         %sec.position = vectorSub(%sec.position,"0" SPC %extent);
+      }
+   }
+   else
+   {
+      for(%i=0;%i<%section.getCount()-1;%i++)
+      {
+         %row = %section.getObject(%i);
+         if(getWord(%row.position,1) > %pos)
+            %row.position = vectorSub(%row.position,0 SPC %extent);
+      }
+      
+      %section.extent = vectorSub(%section.extent,0 SPC %extent);
+      %section.originalHeight -= %extent;
+
+      for(%i=%id+1;%i<$RTB::CModManager::Cache::NumSections;%i++)
+      {
+         %sec = $RTB::CModManager::Cache::Section[%i];
+         %sec.position = vectorSub(%sec.position,"0" SPC %extent);
+      }
+      
+      for(%i=0;%i<%section.getCount()-1;%i++)
+      {
+         %row = %section.getObject(%i);
+         if(%row.getClassName() $= "GuiMouseEventCtrl")
+         {
+            %section.pushToBack(%row);
+            continue;
+         }
+      }
+   }
+   RTBMM_GUI_AutoResize();
+
+   %filepath = %cache.file_path;
+   fileDelete(%filepath);
+   %cache.delete();
+}
+
+//- RTBMM_ModsView_syncAddons (Attempts to match old add-ons to the new system)
+function RTBMM_ModsView_syncAddons()
+{
+   %window = RTBMM_GUI_createWindow("Sync Add-Ons");
+   %window.resize(0,0,400,500);
+   RTBMM_GUI_Center(%window);
+   
+   %parent = new GuiSwatchCtrl()
+   {
+      position = "10 100";
+      extent = "360 300";
+      color = "200 200 200 255";
+      
+      new GuiSwatchCtrl()
+      {
+         position = "1 1";
+         extent = "358 298";
+         color = "230 230 230 255";
+      };
+   };
+   %window.canvas.add(%parent);
+   
+   %scroll = new GuiScrollCtrl()
+   {
+      profile = RTBMM_ScrollProfile;
+      position = "10 100";
+      extent = "374 300";
+      hScrollBar = "AlwaysOff";
+   };
+   %window.canvas.add(%scroll);
+}
+
+//#####################################################################################################
+//
+//     _____                              _   
+//    / ____|                            | |  
+//   | (___  _   _ _ __  _ __   ___  _ __| |_ 
+//    \___ \| | | | '_ \| '_ \ / _ \| '__| __|
+//    ____) | |_| | |_) | |_) | (_) | |  | |_ 
+//   |_____/ \__,_| .__/| .__/ \___/|_|   \__|
+//                | |   | |                   
+//                |_|   |_|                   
+//
+//
+//##################################################################################################### 
+
+//*********************************************************
+//* Transfer Queue
+//*********************************************************
+if(!isObject(RTBMM_TransferQueue))
+{
+   new ScriptGroup(RTBMM_TransferQueue)
+   {
+      class = "TransferQueue";
+   };
+}
+
+//- TransferQueue::items (Dumps out a list of items in the queue)
+function TransferQueue::items(%this)
+{
+   echo(%this.getCount()@" items");
+   echo("----------------------------------------");
+}
+
+//- TransferQueue::getItem (Returns the scriptobject of the file id in the transfer list)
+function TransferQueue::getItem(%this,%id)
+{
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      if(%this.getObject(%i).id $= %id)
+         return %this.getObject(%i);
+   }
+   return 0;
+}
+
+//- TransferQueue::getItemPos (Gets the physical item position in the transfer queue)
+function TransferQueue::getItemPos(%this,%id)
+{
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      if(%this.getObject(%i).id $= %id)
+         return %i;
+   }
+   return 0;
+}
+
+//- TransferQueue::hasItem (Returns whether queue has an item with the specified id in the queue)
+function TransferQueue::hasItem(%this,%id)
+{
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      if(%this.getObject(%i).id $= %id)
+         return %this.getObject(%i);
+   }
+   return 0;
+}
+
+//- TransferQueue::updateIndicator (Updates the indicator on the transfers button with number of transfers)
+function TransferQueue::updateIndicator(%this)
+{
+   RTBMM_GUI_setTransfers(%this.getCount());
+}
+
+//- TransferQueue::addItem (Adds a file id to the transfer queue and grabs the data for it)
+function TransferQueue::addItem(%this,%id)
+{
+   if(%this.hasItem(%id))
+      return 0;
+      
+   %item = new ScriptObject()
+   {
+      class = "TransferItem";
+      
+      id = %id;
+      title = "File "@%id;
+      desc = "Downloading Details...";
+      progress_text = "Downloading Details...";
+      
+      zip = "";
+      
+      speed = "0b/s";
+      progress = 0;
+      filesize = 0;
+      completed = 0;
+      
+      status = 1;
+      
+      live = 0;
+   };
+   %this.add(%item);
+   
+   %item.update();
+   RTBMM_SendRequest("GETFILEDATA",3,%id);
+   
+   %this.updateIndicator();
+
+   RTBMM_FileGrabber.poke();   
    
    return 1;
 }
-function RTBMM_DownloadQueueSO::hasFile(%this,%file)
+
+//- TransferItem::update (Updates the physical gui with new information in the transfer item object)
+function TransferItem::update(%this,%force)
 {
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-      
-   for(%i=0;%i<%this.totalDownloads;%i++)
+   if($RTB::CModManager::Cache::CurrentZone $= "TransferView")
    {
-      %fileID = %this.download[%i].file_id;
-      if(%fileID $= %file)
+      if(%force || !isObject(%this.g_row))
+         RTBMM_TransferView_Init();
+      else
+      {
+         %this.g_title.setValue("<color:666666><font:Verdana Bold:13>"@%this.title);
+         %this.g_desc.setValue("<color:999999><font:Verdana Bold:12>"@%this.desc);
+         
+         %this.g_speed.setValue("<just:right><color:999999><font:Verdana:12>"@%this.speed);
+         %this.g_done.setValue("<just:right><color:999999><font:Verdana:12>"@byteRound(%this.done)@"/"@byteRound(%this.filesize));
+         
+         %this.g_progress.setValue(%this.progress/100);
+         
+         %this.g_transfer.setActive(1);
+         %this.g_cancel.setActive(1);
+         %this.g_up.setActive(1);         
+         %this.g_down.setActive(1);
+         
+         for(%i=0;%i<RTBMM_TransferQueue.getCount();%i++)
+         {
+            if(RTBMM_TransferQueue.getObject(%i) $= %this)
+               break;
+         }
+         
+         if(%i == 0)
+            %this.g_up.setActive(0);
+         if(%i == RTBMM_TransferQueue.getCount()-1)
+            %this.g_down.setActive(0);
+         
+         if(%this.completed)
+         {
+            %this.g_transfer.setActive(0);
+            %this.g_cancel.setActive(0);
+            %this.g_up.setActive(0);
+            %this.g_down.setActive(0);
+         }
+         
+         if(%this.transferring)
+         {
+            %this.g_transfer.setBitmap($RTB::Path@"images/buttons/medium/btnCancel");
+            %this.g_transfer.command = "RTBMM_TransferView_HaltTransfer("@%i@");";
+         }
+         else
+         {
+            %this.g_transfer.setBitmap($RTB::Path@"images/buttons/medium/btnTransfer");
+            %this.g_transfer.command = "RTBMM_TransferView_RequestTransfer("@%i@");";
+         }
+         
+         if(%this.status == 1)
+         {
+            %this.g_progress.setVisible(1);
+            %this.g_red.setVisible(0);
+            %this.g_progress_text.setValue("<just:center><font:Verdana:12><color:999999>"@%this.progress_text);
+         }
+         else if(%this.status == 0)
+         {
+            %this.g_progress.setValue(0);
+            %this.g_progress.setVisible(0);
+            %this.g_red.setVisible(1);
+            %this.g_progress_text.setValue("<just:center><font:Verdana Bold:12><color:FFEEEE>"@%this.progress_text);
+         }
+      }
+   }
+}
+
+//- TransferQueue::removeItem (Removes an item from the transfer queue)
+function TransferQueue::removeItem(%this,%id)
+{
+   if(%item = %this.getItem(%id))
+   {
+      if(RTBMM_FileGrabber.halted && RTBMM_FileGrabber.halter $= %item)
+         RTBMM_FileGrabber.halted = 0;
+         
+      %position = %this.getItemPos(%id);
+      %item.delete();
+      if(%position < RTBMM_TransferQueue.getCount())
+         RTBMM_TransferQueue.pushToBack(RTBMM_TransferQueue.getObject(%position));
+      if($RTB::CModManager::Cache::CurrentZone $= "TransferView")
+         RTBMM_TransferView_Init();
+      %this.updateIndicator();
+   }
+}
+
+//*********************************************************
+//* Add-Ons Cache (No more RM faggotry)
+//*********************************************************
+if(!isObject(RTBMM_FileCache))
+{
+   new ScriptGroup(RTBMM_FileCache)
+   {
+      class = "FileCache";
+      
+      refreshTime = 0;
+   };
+}
+
+//- FileCache::refresh (Refreshes the list of files discovered by the FC)
+function FileCache::refresh(%this)
+{
+   %this.clear();
+   %this.refreshTime = getSimTime();
+   
+   %filepath = findFirstFile("Add-Ons/*_*/description.txt");
+   while(strlen(%filepath) > 0)
+   {
+      %zip = getSubStr(%filepath,0,strPos(%filepath,"/description.txt"))@".zip";
+      %this.addPath(%zip);
+      %filepath = findNextFile("Add-Ons/*_*/description.txt");
+   }
+}
+
+//- FileCache::list (Lits all files in the cache)
+function FileCache::list(%this)
+{
+   echo(%this.getCount());
+   echo("-----------------------------------------------");
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      echo(%this.getObject(%i).file_path@%this.getObject(%i).file_zipname@" ("@%this.getObject(%i).file_type@")");
+   }
+   echo("");
+}
+
+//- FileCache::addPath (Adds a path to the file cache)
+function FileCache::addPath(%this,%filepath)
+{
+   if(isFile(%filepath))
+   {
+      if(%filepath $= "Add-Ons/System_ReturnToBlockland.zip")
+         return;
+         
+      if(%this.exists(%filepath))
+         return;
+         
+      %dir = getSubStr(%filepath,0,strPos(%filepath,".zip"))@"/";
+      %zipname = fileBase(%filepath)@".zip";
+      
+      if(!isFile(%dir@"description.txt"))
+         return;
+      if(isFile(%dir@"rtbInfo.txt"))
+         %isRTB = 1;
+   
+      %fo = new FileObject();
+      %fo.openForRead(%dir@"description.txt");
+      while(!%fo.isEOF())
+      {
+         %l = %fo.readLine();
+         if(strPos(%l,"Title:") $= 0)
+            %f_title = trim(getSubStr(%l,6,strLen(%l)));
+         else if(strPos(%l,"Author:") $= 0)
+            %f_author = trim(getSubStr(%l,7,strLen(%l)));
+         else if(%f_title !$= "" && %f_author !$= "")
+            %f_desc = %l;
+      }
+      %fo.close();
+      
+      if(%f_title $= "")
+         %f_title = fileBase(%filepath)@".zip";
+      if(%f_author $= "")
+         %f_author = "Unknown Author";
+      
+      %f_default = 0;
+      %isOldRTB = 0;      
+      if(%isRTB)
+      {
+         %fo.openForRead(%dir@"rtbInfo.txt");
+         while(!%fo.isEOF())
+         {
+            %l = %fo.readLine();
+            if(striPos(%l,"id:") $= 0)
+               %f_id = trim(getSubStr(%l,3,strLen(%l)));
+            else if(striPos(%l,"icon:") $= 0)
+               %f_icon = trim(getSubStr(%l,5,strLen(%l)));
+            else if(striPos(%l,"type:") $= 0)
+               %f_type = trim(getSubStr(%l,5,strLen(%l)));
+            else if(striPos(%l,"version:") $= 0)
+               %f_version = trim(getSubStr(%l,8,strLen(%l)));
+            else if(striPos(%l,"name:") $= 0)
+               %isOldRTB = 1;
+         }
+      }
+      %fo.delete();
+      
+      if(%f_title $= "" || %f_author $= "" || %f_desc $= "" || ((%f_id $= "" || %f_icon $= "" || %f_type $= "" || %f_version $= "") && %isRTB))
+         %isRTB = 0;
+
+      if(!%isRTB)
+      {
+         for(%i=0;%i<$RTB::CModManager::DefaultBLMods;%i++)
+         {
+            %f_type = "Non-RTB Add-Ons";
+            %mod = $RTB::CModManager::DefaultBLMod[%i];
+            if(%mod $= fileBase(%filepath))
+            {
+               %f_default = 1;
+               %f_type = "Default Add-Ons";
+               break;
+            }
+         }
+         %f_icon = "blLogo";
+         %f_platform = "bl";
+      }
+      else
+      {
+         if(%isOldRTB)
+            %f_platform = "rtb2";
+         else
+            %f_platform = "rtb";
+      }
+      
+      if(%isOldRTB)
+      {
+        %f_icon = "link_break";
+        %f_type = "RTB2 Add-Ons";
+      }
+      
+      if(getSubStr(fileBase(%filepath),0,4) $= "Map_")
+         %f_special = "map";
+      else if(getSubStr(fileBase(%filepath),0,6) $= "Decal_" || getSubStr(fileBase(%filepath),0,5) $= "Face_")
+         %f_special = "decal";
+      else if(isFile("Add-Ons/"@fileBase(%filepath)@"/client.cs") && !isFile("Add-Ons/"@fileBase(%filepath)@"/server.cs"))
+         %f_special = "clientside";
+      else if(getSubStr(fileBase(%filepath),0,9) $= "Colorset_")
+         %f_special = "colorset";
+      else
+         %f_special = "";
+         
+      if(!clientIsValidAddOn(fileBase(%filepath),1))
+         return;
+      
+      %file = new ScriptObject()
+      {
+         //standard props
+         file_zip = %zipname;
+         file_zipname = fileBase(%filepath);
+         file_path = %filepath;
+         file_title = %f_title;
+         file_author = %f_author;
+         file_desc = %f_desc;
+         file_size = getFileLength(%filepath);
+         file_var = getSafeVariableName(fileBase(%filepath));
+         
+         //management props
+         file_platform = %f_platform;
+         file_special = %f_special;
+         file_default = %f_default;
+         
+         //public props
+         file_type = %f_type;         
+         
+         //rtb props
+         file_id = %f_id;
+         file_icon = %f_icon;
+         file_version = %f_version;
+      };
+      %this.add(%file);
+      
+      return %file;
+   }
+}
+
+//- FileCache::get (Returns the cache record for the file id)
+function FileCache::get(%this,%id)
+{
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      if(%this.getObject(%i).file_id $= %id)
+         return %this.getObject(%i);
+   }
+   return 0;
+}
+
+//- FileCache::exists (Checks to see if the file cache knows about a file)
+function FileCache::exists(%this,%filepath)
+{
+   for(%i=0;%i<%this.getCount();%i++)
+   {
+      if(%this.getObject(%i).file_path $= %filepath)
          return 1;
    }
    return 0;
 }
-function RTBMM_DownloadQueueSO::pushFile(%this,%file)
+
+//- FileCache::remove (Removes a file from the cache)
+function FileCache::remove(%this,%filepath)
 {
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-      
-   if(%file $= "" || %file < 0 || !isint(%file))
-      return 0;
-      
-   if(%this.hasFile(%file))
-      return 0;
-      
-   %fileSO = new ScriptObject()
+   for(%i=0;%i<%this.getCount();%i++)
    {
-      class = RTBMM_DownloadFileSO;
-      file_id = %file;
-   };
-   %this.getGroup().add(%fileSO);
-   %this.download[%this.totalDownloads] = %fileSO;
-   %this.totalDownloads++;
-   
-   %this.export();
-   
-   %this.grabFileData();
-   return 1;
-}
-function RTBMM_DownloadQueueSO::pushMusic(%this,%file,%index)
-{
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-      
-   if(%file $= "" || %file < 0 || !isint(%file))
-      return 0;
-      
-   %fileSO = new ScriptObject()
-   {
-      class = RTBMM_DownloadFileSO;
-      file_id = %file@"-"@%index;
-      file_music = 1;
-   };
-   %this.getGroup().add(%fileSO);
-   %this.download[%this.totalDownloads] = %fileSO;
-   %this.totalDownloads++;
-   
-   %this.export();
-   
-   %this.grabFileData();
-   return 1;
-}
-function RTBMM_DownloadQueueSO::popFile(%this,%file)
-{
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-      
-   if(!%this.hasFile(%file))
-      return 0;
-      
-   %k = 0;
-   for(%i=0;%i<%this.totalDownloads;%i++)
-   {
-      %fileID = %this.download[%i].file_id;
-      if(%fileID $= %file)
-         continue;
-      %this.download[%k] = %this.download[%i];
-      %k++;
-   }
-   %this.download[%i-1].delete();
-   %this.download[%i-1] = "";
-   %this.totalDownloads--;
-   
-   %this.export();
-   
-   return 1;
-}
-function RTBMM_DownloadQueueSO::popIndex(%this,%index)
-{
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-      
-   if(%index >= %this.totalDownloads)
-      return 0;
-      
-   %k = 0;
-   for(%i=0;%i<%this.totalDownloads;%i++)
-   {
-      if(%i $= %index)
+      if(%this.getObject(%i).file_path $= %filepath)
       {
-         %this.download[%i].delete();
-         continue;
-      }
-      %this.download[%k] = %this.download[%i];
-      %k++;
-   }
-   %this.totalDownloads--;
-   
-   %this.export();
-   
-   return 1;
-}
-function RTBMM_DownloadQueueSO::dump(%this)
-{
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-      
-   echo("");
-   echo("Download Queue SO: Dump ("@%this.totalDownloads@")");
-   echo("***************************************");
-   for(%i=0;%i<%this.totalDownloads;%i++)
-   {
-      echo(" "@%i@" - "@%this.download[%i]);
-   }
-   echo("");
-}
-function RTBMM_DownloadQueueSO::export(%this)
-{
-   %file = new FileObject();
-   %file.openForWrite("config/client/RTB/dlQueue.dat");
-   for(%i=0;%i<%this.totalDownloads;%i++)
-   {
-      %file.writeLine(%this.download[%i].file_id);
-   }
-   %file.close();
-   %file.delete();
-}
-function RTBMM_DownloadQueueSO::grabFileData(%this)
-{
-   for(%i=0;%i<%this.totalDownloads;%i++)
-   {
-      if(%this.download[%i].liveData $= "")
-      {
-         if(%this.download[%i].file_music $= 1)
-            %fileList = %fileList@"M"@%this.download[%i].file_id@",";
-         else
-            %fileList = %fileList@"F"@%this.download[%i].file_id@",";
+         %this.delete();
+         return 1;
       }
    }
-   
-   if(%fileList !$= "")
-      RTBMM_SendRequest("GETFILEDATA",3,getSubStr(%fileList,0,strLen(%fileList)-1));
-}
-function RTBMM_DownloadFileSO::dump(%this)
-{
-   echo("");
-   echo("Download File SO: Dump");
-   echo("***************************************");
-   echo(" file_id:      "@%this.file_id);
-   echo(" file_name:    "@%this.file_name);
-   echo(" file_author:  "@%this.file_author);
-   echo(" file_version: "@%this.file_version);
-   echo(" file_url:     "@%this.file_url);
-   echo(" file_crc:     "@%this.file_crc);
-   echo(" file_size:    "@%this.file_size);
-   echo(" liveData:     "@%this.liveData);
-   echo("");
+   return 0;
 }
 
 //*********************************************************
-//* View of current downloads queue
+//* File Downloader
 //*********************************************************
-function RTBMM_getDownloadsView()
+function RTBMM_FileGrabber_Init()
 {
-	RTBMM_ConstructWindow();
-	RTBMM_DownloadsView_createHeader();
-   if(!isObject(RTBMM_DownloadQueue))
-      RTBMM_InitiateDownloadQueue();
-	
-	RTBMM_trackZone("downloadview","RTBMM_getDownloadsView();");
-   RTBMM_DownloadsView_DrawQueue();
-   RTBMM_DownloadQueue.grabFileData();
-   
-   RTBMM_InitiateFileConnection();
-   
-   if(RTBMM_DownloadQueue.totalDownloads $= 0)
-      RTBMM_createCenterMessage("You do not have any Downloads.");
-   
-   RTBMM_createFooter();
-}
-function RTBMM_DownloadsView_createHeader()
-{
-	%bitmap = new GuiBitmapCtrl(MODDownloadHeader)
-	{
-		offset = "1 0";
-		extent = "318 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "137 3";
-		extent = "51 21";
-		text = "\c1File Title";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "320 0";
-		extent = "101 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "35 3";
-		extent = "30 21";
-		text = "\c1Stats";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "422 0";
-		extent = "75 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "16 3";
-		extent = "45 21";
-		text = "\c1Options";
-		profile = "RTBMM_MainMiddleText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_DownloadsView_drawQueue()
-{
-   for(%i=0;%i<RTBMM_DownloadQueue.totalDownloads;%i++)
+   if(isObject(RTBMM_FileGrabber))
    {
-      %queuePosition = %i+1;
-      %fileID = RTBMM_DownloadQueue.download[%i].file_id;
-      %hasData = RTBMM_DownloadQueue.download[%i].liveData;
-      %swatch = new GuiSwatchCtrl()
-      {
-         offset = "1 0";
-         extent = "25 46";
-         color = "200 200 200 255";
-      };
-      %textPos = new GuiTextCtrl()
-      {
-         position = "4 14";
-         extent = "17 18";
-         text = "\c0"@%queuePosition@":";
-         profile = "BlockButtonProfile";
-      };
-      %swatch.add(%textPos);
-      RTBMM_PushWindowElement(%swatch);
-
-      %swatch = new GuiSwatchCtrl()
-      {
-         offset = "27 0";
-         extent = "292 46";
-         color = "235 235 235 255";
-      };
-      %text = new GuiTextCtrl("RTBMM_DownloadQueue_Title"@%queuePosition)
-      {
-         position = "2 0";
-         extent = "327 18";
-         text = "\c0File "@%fileID@" - Downloading Data";
-         profile = "RTBMM_MainText";
-      };
-      %swatch.add(%text);
-      %progress = new GuiProgressCtrl("RTBMM_DownloadQueue_Progress"@%queuePosition)
-      {
-         position = "2 19";
-         extent = "286 24";
-         profile = "GuiProgressProfile";
-      };
-      %swatch.add(%progress);
-
-      %text = new GuiTextCtrl("RTBMM_DownloadQueue_Status"@%queuePosition)
-      {
-         position = "5 3";
-         extent = "275 18";
-         text = "\c0Connecting...";
-         profile = "RTBMM_MiddleText";
-      };
-      %progress.add(%text);
-      RTBMM_PushWindowElement(%swatch);
-
-      %swatch = new GuiSwatchCtrl()
-      {
-         offset = "320 0";
-         extent = "101 46";
-         color = "235 235 235 255";
-      };
-      %text = new GuiTextCtrl("RTBMM_DownloadQueue_Size"@%queuePosition)
-      {
-         position = "3 1";
-         extent = "95 18";
-         text = "\c0Size: N/A";
-         profile = "RTB_Verdana12Pt";
-      };
-      %swatch.add(%text);
-      %text = new GuiTextCtrl("RTBMM_DownloadQueue_Done"@%queuePosition)
-      {
-         position = "3 14";
-         extent = "95 18";
-         text = "\c0Done: N/A";
-         profile = "RTB_Verdana12Pt";
-      };
-      %swatch.add(%text);
-      %text = new GuiTextCtrl("RTBMM_DownloadQueue_Speed"@%queuePosition)
-      {
-         position = "3 28";
-         extent = "95 18";
-         text = "\c0Speed: N/A";
-         profile = "RTB_Verdana12Pt";
-      };
-      %swatch.add(%text);
-      RTBMM_PushWindowElement(%swatch);
-
-      %swatch = new GuiSwatchCtrl()
-      {
-         offset = "422 0";
-         extent = "75 46";
-         color = "230 230 230 255";
-      };
-      
-      if(%queuePosition $= 1)
-      {
-         %button = new GuiBitmapButtonCtrl("RTBMM_DownloadQueue_ButtonA"@%queuePosition)
-         {
-            position = "8 3";
-            extent = "59 18";
-            text = "";
-            bitmap = "./images/buttons/btnResume";
-            profile = "BlockButtonProfile";
-            mColor = "255 255 255 255";
-            command = "RTBMM_FileConnection.promptDownload();";
-         };
-         %swatch.add(%button);
-         
-         %disableswatch = new GuiSwatchCtrl("RTBMM_DownloadQueue_ButtonABlock"@%queuePosition)
-         {
-            offset = "2 1";
-            extent = "91 22";
-            color = "230 230 230 150";
-         };
-      }
-      else
-      {
-         %button = new GuiBitmapButtonCtrl("RTBMM_DownloadQueue_ButtonA"@%queuePosition)
-         {
-            position = "8 3";
-            extent = "59 18";
-            text = "";
-            bitmap = "./images/buttons/btnMoveUp";
-            profile = "BlockButtonProfile";
-            mColor = "255 255 255 255";
-            command = "RTBMM_DownloadsView_MoveFileUp("@%i@");";
-         };
-         %swatch.add(%button);
-      }
-      
-      %button = new GuiBitmapButtonCtrl("RTBMM_DownloadQueue_ButtonB"@%queuePosition)
-      {
-         position = "8 22";
-         extent = "59 18";
-         text = "";
-         command = "RTBMM_DownloadsView_RemoveDownload("@%i@");";
-         bitmap = "./images/buttons/btnCancel";
-         profile = "BlockButtonProfile";
-         mColor = "255 255 255 255";
-      };
-      %swatch.add(%button);
-      if(isObject(%disableswatch))
-         %swatch.add(%disableswatch);
-      RTBMM_PushWindowElement(%swatch,1);
-      
-      if(%hasData !$= "")
-         RTBMM_DownloadsView_ApplyFileData(%fileID);
-         
-      if(RTBMM_DownloadQueue.download[%i].isDownloading)
-      {
-         ("RTBMM_DownloadQueue_ButtonA"@%queuePosition).setBitmap($RTB::Path@"images/buttons/btnStop");
-         ("RTBMM_DownloadQueue_ButtonA"@%queuePosition).command = "RTBMM_FileConnection.stopDownload();";
-      }
-         
-      if(RTBMM_DownloadQueue.download[%i].isArchive)
-      {
-         %progress.getObject(0).setText("Download Complete");
-         %progress.setValue(1);
-         %disableswatch.extent = "91 44";
-         %disableswatch.setVisible(1);
-         %size = "RTBMM_DownloadQueue_Size"@%queuePosition;
-         %done = "RTBMM_DownloadQueue_Done"@%queuePosition;
-         %size.setText("\c0Size: "@byteRound(RTBMM_DownloadQueue.download[%i].file_size));
-         %done.setText("\c0Done: "@byteRound(RTBMM_DownloadQueue.download[%i].file_size));
-      }
+      RTBMM_FileGrabber.disconnect();
+      RTBMM_FileGrabber.delete();
    }
-}
-function RTBMM_DownloadsView_retrieveFileData(%this,%line)
-{
-   //id-name-author-version-url-crc-size
-   %fileID = getField(%line,0);
-   for(%i=0;%i<RTBMM_DownloadQueue.totalDownloads;%i++)
+   
+   new TCPObject(RTBMM_FileGrabber)
    {
-      if(RTBMM_DownloadQueue.download[%i].file_id $= %fileID)
+      host = "api.returntoblockland.com";
+      port = 80;
+      
+      queue = 0;
+      
+      connected = 0;
+   };
+   
+   RTBMM_FileGrabber.schedule(500,"poke");
+}
+RTBMM_FileGrabber_Init();
+
+//- RTBMM_FileGrabber::poke (Pokes the FileGrabber to load a new item if appropriate)
+function RTBMM_FileGrabber::poke(%this)
+{
+   if(%this.connected)
+      return;
+   if(isObject(%this.queue))
+      return;
+   if(%this.halted)
+      return;
+   for(%i=0;%i<RTBMM_TransferQueue.getCount();%i++)
+   {
+      if(!RTBMM_TransferQueue.getObject(%i).completed && RTBMM_TransferQueue.getObject(%i).status $= 1)
       {
-         if(RTBMM_DownloadQueue.download[%i].file_music)
-         {
-            RTBMM_DownloadQueue.download[%i].file_name = getField(%line,1);
-            RTBMM_DownloadQueue.download[%i].file_size = getField(%line,2);
-            RTBMM_DownloadQueue.download[%i].file_author = getField(%line,3);
-         }
-         else
-         {
-            RTBMM_DownloadQueue.download[%i].file_name = getField(%line,1);
-            RTBMM_DownloadQueue.download[%i].file_author = getField(%line,2);
-            RTBMM_DownloadQueue.download[%i].file_version = getField(%line,3);
-            RTBMM_DownloadQueue.download[%i].file_url = getField(%line,4);
-            RTBMM_DownloadQueue.download[%i].file_crc = getField(%line,5);
-            RTBMM_DownloadQueue.download[%i].file_size = getField(%line,6);
-            RTBMM_DownloadQueue.download[%i].file_savename = getField(%line,7);
-         }
-         RTBMM_DownloadQueue.download[%i].liveData = 1;
-         
-         if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-            RTBMM_DownloadsView_ApplyFileData(%fileID);
-            
-         RTBMM_FileConnection.schedule(1000,"promptDownload");
+         RTBMM_FileGrabber.loadItem(%i);
          return;
       }
    }
 }
-function RTBMM_DownloadsView_ApplyFileData(%fileID)
+
+//- RTBMM_FileGrabber::loadItem (Loads an item from the transfer queue of %index)
+function RTBMM_FileGrabber::loadItem(%this,%index)
 {
-   for(%i=0;%i<RTBMM_DownloadQueue.totalDownloads;%i++)
-   {
-      if(RTBMM_DownloadQueue.download[%i].file_id $= %fileID)
-      {
-         %SO = RTBMM_DownloadQueue.download[%i];
-         %i++;
-         break;
-      }
-   }
-   
-   if(%SO.liveData $= "")
+   if(isObject(%this.queue))
       return;
-      
-   %titleCtrl = "RTBMM_DownloadQueue_Title"@%i;
-   %progressCtrl = "RTBMM_DownloadQueue_Progress"@%i;
-   %statusCtrl = "RTBMM_DownloadQueue_Status"@%i;
-   %sizeCtrl = "RTBMM_DownloadQueue_Size"@%i;
-   %doneCtrl = "RTBMM_DownloadQueue_Done"@%i;
-   %speedCtrl = "RTBMM_DownloadQueue_Speed"@%i;
-   %buttonACtrl = "RTBMM_DownloadQueue_ButtonA"@%i;
-   %buttonABCtrl = "RTBMM_DownloadQueue_ButtonABlock"@%i;
-   %buttonBCtrl = "RTBMM_DownloadQueue_ButtonB"@%i;
-      
-   //Data like so:
-   //name-author-version-url-crc-size
-   %file_name = %SO.file_name;
-   %file_author = %SO.file_author;
-   %file_version = %SO.file_version;
-   %file_url = %SO.file_url;
-   %file_crc = %SO.file_crc;
-   %file_size = %SO.file_size;
-   %file_zip = %SO.file_savename;
+   else if(%this.connected)
+      RTBMM_FileGrabber_Init();
    
-   if(%file_name $= "0")
+   if(isObject(%item = RTBMM_TransferQueue.getObject(%index)) && %item.live)
    {
-      %titleCtrl.setText("File "@%fileID@" - File not Found");
-      %sizeCtrl.setText("Size: N/A");
-      %statusCtrl.setText("File cannot be Located");
-      %doneCtrl.setText("Done: N/A");
-   }
-   else if(%file_name $= "2")
-   {
-      %titleCtrl.setText("File "@%fileID@" - Download Content Missing");
-      %sizeCtrl.setText("Size: N/A");
-      %statusCtrl.setText("File cannot be Located");
-      %doneCtrl.setText("Done: N/A");
-   }
-   else if(isReadonly("Add-Ons/"@%file_zip))
-   {
-      %titleCtrl.setText(%file_name@" - ZIP is Readonly");
-      %sizeCtrl.setText("Size: N/A");
-      %statusCtrl.setText("Cannot overwrite existing "@%file_zip@"!");
-      %doneCtrl.setText("Done: N/A");
-      %SO.isArchive = 1;
-      %SO.liveData = 0;
-      %SO.file_name = 2;
+      %this.queue = %item;
+      %item.status = 1;
+      %item.transferring = 1;
+      %item.update();
+      %this.doConnect();
    }
    else
+      return 0;
+}
+
+//- RTBMM_FileGrabber::doConnect (Begins connecting to the server)
+function RTBMM_FileGrabber::doConnect(%this)
+{
+   %this.queue.progress_text = "Connecting...";
+   %this.queue.update();
+   
+   %this.connect(%this.host@":"@%this.port);
+}
+
+//- RTBMM_FileGrabber::onConnected (Begins the sending sequence and prepares string for sending)
+function RTBMM_FileGrabber::onConnected(%this)
+{
+   %this.connected = 1;
+   
+   %content = "c=DOWNLOADFILE&n="@$Pref::Player::NetName@"&arg1="@%this.queue.id@"&"@$RTB::Connection::Session;   
+   %contentLen = strLen(%content);
+   
+   %this.queue.progress_text = "Connected - Awaiting Data";
+   %this.queue.update();
+   
+   %this.send("POST /apiRouter.php?d=APIMS HTTP/1.1\r\nHost: api.returntoblockland.com\r\nUser-Agent: Torque/1.0\r\nContent-Type: application/x-www-form-urlencoded\r\nContent-Length: "@%contentLen@"\r\n\r\n"@%content@"\r\n");
+}
+
+//- RTBMM_FileGrabber::onLine (Callback for a line return)
+function RTBMM_FileGrabber::onLine(%this,%line)
+{
+   if(!%this.isOK)
    {
-      if(%SO.file_music)
+      if(strPos(%line,"200 OK") >= 0)
       {
-         %titleCtrl.setText("Music File: "@%file_name@" by "@%file_author);
-         %sizeCtrl.setText("Size: "@byteRound(%file_size));
-         %statusCtrl.setText("Waiting to Download...");
-         %doneCtrl.setText("Done: "@byteRound(0));
+         %this.isOK = 1;
+         %this.queue.status = 1;
       }
       else
       {
-         %titleCtrl.setText(%file_name@" v"@%file_version@" by "@%file_author);
-         %sizeCtrl.setText("Size: "@byteRound(%file_size));
-         %statusCtrl.setText("Waiting to Download...");
-         %doneCtrl.setText("Done: "@byteRound(0));
-      }
-      
-      if(%i $= 1)
-         %buttonABCtrl.setVisible(0);
-   }
-}
-function RTBMM_DownloadsView_MoveFileUp(%index,%conf)
-{
-   if(%index $= 0)
-      return;
-      
-   if(%index >= RTBMM_DownloadQueue.totalDownloads)
-      return;
-      
-   if(%index $= 1 && RTBMM_FileConnection.inTransfer)
-   {
-      if(!%conf)
-      {
-         MessageBoxYesNo("Oops...","Are you sure you want to move this file to the top of the Queue?\n\nThis will stop the current Download.","RTBMM_DownloadsView_MoveFileUp("@%index@",1);","");
+         if(isObject(%this.queue))
+         {
+            %this.queue.status = 0;
+            %this.queue.progress_text = "HTTP Error "@restWords(%line);
+            %this.queue.update();
+         }
+         %this.disconnect();
+         RTBMM_FileGrabber_Init();
          return;
       }
-      
-      RTBMM_FileConnection.stopDownload();
-   }
-      
-   %tempDLW = RTBMM_DownloadQueue.download[%index-1];
-   RTBMM_DownloadQueue.download[%index-1] = RTBMM_DownloadQueue.download[%index];
-   RTBMM_DownloadQueue.download[%index] = %tempDLW;
-   
-   if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-      schedule(1,0,"RTBMM_getDownloadsView");
-}
-function RTBMM_DownloadsView_removeDownload(%index,%conf)
-{
-   if(!%conf)
-   {
-      MessageBoxYesNo("Really?","Are you sure you want to delete this file from your Downloads Queue?","RTBMM_DownloadsView_removeDownload("@%index@",1);","");
-      return;
-   }
-
-   RTBMM_DownloadQueue.popIndex(%index);
-   if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-      RTBMM_getDownloadsView();
-}
-function RTBMM_DownloadsView_addDownload(%file)
-{
-   if(RTBMM_DownloadQueue.pushFile(%file))
-      MessageBoxOK("Huzzah!","This file has been added to your Download Queue.");
-   else if(RTBMM_hasFile(%file))
-   {
-      %so = RTBMM_MODManifest.getEntryById(%file);
-   }
-   else
-      MessageBoxYesNo("Failure!","It appears as though this file is already in your Download Queue...\n\nWould you like to see your Downloads?","RTBMM_getDownloadsView();","");
-}
-function RTBMM_DownloadsView_addMusic(%file,%index)
-{
-   if(RTBMM_DownloadQueue.pushMusic(%file,%index))
-      MessageBoxOK("Huzzah!","This music has been added to your Download Queue.");
-}
-function RTBMM_DownloadsView_clearDownloadedFile(%file)
-{
-   if(RTBMM_DownloadQueue.download[0] $= %file)
-   {
-      RTBMM_DownloadQueue.popIndex(0);
-      RTBMM_FileConnection.delete();
-      RTBMM_InitiateFileConnection();
-      
-      if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-         RTBMM_getDownloadsView();
-      
-      RTBMM_FileConnection.promptDownload();
-   }
-}
-
-//*********************************************************
-//* View of existing downloaded mogs
-//*********************************************************
-function RTBMM_getModsView()
-{
-   RTBMM_ConstructWindow();
-   RTBMM_trackZone("modview","RTBMM_getModsView();");
-   RTBMM_ModsView_createHeader();
-   
-   if(!isObject(RTBMM_MODManifest))
-      RTBMM_loadExistingRTBMods();
-   
-   if(RTBMM_MODManifest.getCount() >= 1)
-   {
-      for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-      {
-         %SO = RTBMM_MODManifest.getObject(%i);
-         RTBMM_ModsView_addMod(%SO);
-      }
-   }
-   else
-      RTBMM_createCenterMessage("You do not have any RTB-Downloaded Mods in your Add-Ons Folder.");
-   
-   RTBMM_createFooter();
-}
-function RTBMM_ModsView_addMod(%SO)
-{
-   %type = RTBMM_ModsView_addCategory(%SO.type);
-   
-   %categoryName = "RTBMM_ModCat_"@%type;
-   %categoryName.extent = vectorAdd(%categoryName.extent,"0 41");
-   %categoryName.newExtent = %categoryName.extent;
-   
-   %yHeight = 40*(%categoryName.getObject(0).getObject(1).catCount-1)+31+(%categoryName.getObject(0).getObject(1).catCount-1);
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "0" SPC %yHeight;
-      extent = "25 40";
-      color = "220 220 220 255";
-      
-      new GuiBitmapCtrl()
-      {
-         profile = GuiDefaultProfile;
-         vertSizing = "center";
-         horizSizing = "center";
-         position = "0 0";
-         extent = "16 16";
-         bitmap = "./images/icons/"@%SO.icon;
-      };
-   };
-   %categoryName.add(%swatch);
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "26" SPC %yHeight;
-      extent = "299 40";
-      color = "220 220 220 255";
-      
-      new GuiTextCtrl()
-      {
-         profile = RTBMM_MainText;
-         position = "3 1";
-         extent = "284 18";
-         text = %SO.name SPC "\c1v"@%SO.version;
-      };
-      
-      new GuiTextCtrl()
-      {
-         profile = RTB_Verdana12Pt;
-         position = "4 16";
-         extent = "300 18";
-         text = "by" SPC %SO.author;
-      };
-   };
-   %categoryName.add(%swatch);
-   
-   if(%SO.isClientside)
-   {
-      %txt = "\c1Clientside";
-      %swatchColor = "200 200 200 255";
-      %categoryName.numEnabled++;
-   }
-   else if(%SO.isMap)
-   {
-      %txt = "\c1Map";
-      %swatchColor = "200 200 200 255";
-      %categoryName.numEnabled++;
-   }
-   else if($AddOn__[%SO.variableName] $= 1)
-   {
-      %txt = "Enabled";
-      %swatchColor = "150 255 150 255";
-      %categoryName.numEnabled++;
-   }
-   else
-   {
-      %txt = "Disabled";
-      %swatchColor = "255 150 150 255";
-   }
-   %categoryName.getObject(0).getObject(1).setText("\c1"@%categoryName.catName@"  ("@%categoryName.numEnabled@"/"@%categoryName.getObject(0).getObject(1).catCount@" )");
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "326" SPC %yHeight;
-      extent = "104 40";
-      color = %swatchColor;
-   };
-   %categoryName.add(%swatch);
-
-   %statusText = new GuiTextCtrl()
-   {
-      profile = RTBMM_MainMiddleText;
-      position = "1 1";
-      vertSizing = "center";
-      extent = "103 18";
-      text = %txt;
-   };
-   %swatch.add(%statusText);
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "431" SPC %yHeight;
-      extent = "74 40";
-      color = "220 220 220 255";
-      
-      new GuiBitmapButtonCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "3 20";
-         vertSizing = "bottom";
-         extent = "59 18";
-         text = "\c1";
-         bitmap = "./images/buttons/btnView";
-         command = "RTBMM_getFileView("@%SO.id@");";
-      };
-   };
-   %categoryName.add(%swatch);
-
-   if(!%SO.isClientside && !%SO.isMap)
-   {
-      %buttonDisable = new GuiBitmapButtonCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "3 0";
-         vertSizing = "top";
-         extent = "59 18";
-         text = "\c1";
-         bitmap = "./images/buttons/btnDisable";
-         command = "RTBMM_ModsView_DisableMod("@%SO@");";
-      };
-      
-      %buttonEnable = new GuiBitmapButtonCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "3 0";
-         vertSizing = "top";
-         extent = "59 18";
-         text = "\c1";
-         bitmap = "./images/buttons/btnEnable";
-         command = "RTBMM_ModsView_EnableMod("@%SO@");";
-      };
-      
-      if($AddOn__[%SO.variableName] $= 1)
-         %buttonEnable.setVisible(0);
-      else
-         %buttonDisable.setVisible(0);
-
-      %swatch.add(%buttonEnable);
-      %swatch.add(%buttonDisable);
-      
-      %SO.gui_buttonEnable = %buttonEnable;
-      %SO.gui_buttonDisable = %buttonDisable;
-   }
-   
-   %SO.gui_category = %categoryName;
-   %SO.gui_statusBG = %statusText.getGroup();
-   %SO.gui_statusText = %statusText;
-   
-	$RTB::CModManager::GUI::YSpacing = 55;
-	for(%i=5;%i<RTBMM_WindowSwatch.getCount();%i++)
-	{
-      %obj = RTBMM_WindowSwatch.getObject(%i);
-      RTBMM_PushWindowElement(%obj,1);
-	}
-}
-function RTBMM_ModsView_EnableMod(%SO)
-{
-   if($AddOn__[%SO.variableName] $= 1)
-      return;
-      
-   %SO.gui_buttonDisable.setVisible(1);
-   %SO.gui_buttonEnable.setVisible(0);
-   %SO.gui_category.numEnabled++;   
-   %SO.gui_category.getObject(0).getObject(1).setText("\c1"@%SO.gui_category.catName@"  ("@%SO.gui_category.numEnabled@"/"@%SO.gui_category.getObject(0).getObject(1).catCount@" )");
-   %SO.gui_statusBG.color = "150 255 150 255";
-   %SO.gui_statusText.setText("Enabled");
-   
-   $AddOn__[%SO.variableName] = 1;
-   export("$AddOn__*","config/server/ADD_ON_LIST.cs");
-}
-function RTBMM_ModsView_DisableMod(%SO)
-{
-   if($AddOn__[%SO.variableName] !$= 1)
-      return;
-      
-   %SO.gui_buttonDisable.setVisible(0);
-   %SO.gui_buttonEnable.setVisible(1);
-   %SO.gui_category.numEnabled--;   
-   %SO.gui_category.getObject(0).getObject(1).setText("\c1"@%SO.gui_category.catName@"  ("@%SO.gui_category.numEnabled@"/"@%SO.gui_category.getObject(0).getObject(1).catCount@" )");
-   %SO.gui_statusBG.color = "255 150 150 255";
-   %SO.gui_statusText.setText("Disabled");
-   
-   $AddOn__[%SO.variableName] = 0;
-   export("$AddOn__*","config/server/ADD_ON_LIST.cs");
-}
-function RTBMM_ModsView_collapseCategory(%name)
-{
-   %categoryName = "RTBMM_ModCat_"@%name;
-   %categoryName.extent = "496 30";
-   %categoryName.getObject(0).getObject(0).command = "RTBMM_ModsView_expandCategory(\""@%name@"\");";
-   %categoryName.getObject(0).getObject(0).setBitmap($RTB::Path@"images/buttons/bullet_plus");
-   
-	$RTB::CModManager::GUI::YSpacing = 55;
-	for(%i=5;%i<RTBMM_WindowSwatch.getCount();%i++)
-	{
-      %obj = RTBMM_WindowSwatch.getObject(%i);
-      RTBMM_PushWindowElement(%obj,1);
-	}
-}
-function RTBMM_ModsView_expandCategory(%name)
-{
-   %categoryName = "RTBMM_ModCat_"@%name;
-   %categoryName.extent = %categoryName.newExtent;
-   %categoryName.getObject(0).getObject(0).command = "RTBMM_ModsView_collapseCategory(\""@%name@"\");";
-   %categoryName.getObject(0).getObject(0).setBitmap($RTB::Path@"images/buttons/bullet_minus");
-   
-	$RTB::CModManager::GUI::YSpacing = 55;
-	for(%i=5;%i<RTBMM_WindowSwatch.getCount();%i++)
-	{
-      %obj = RTBMM_WindowSwatch.getObject(%i);
-      RTBMM_PushWindowElement(%obj,1);
-	}
-}
-function RTBMM_ModsView_addCategory(%name)
-{
-   if(%name $= "")
-      %name = "Unsorted";
-      
-   %categoryName = "RTBMM_ModCat_"@%name;
-   if(isObject(%categoryName))
-   {
-      %txt = %categoryName.getObject(0).getObject(1);
-      %currNum = %txt.catCount++;
-      %txt.setText("\c1"@%name@"  ("@%currNum@" )");
-      return %name;
-   }
-   
-   %swatch = new GuiSwatchCtrl(%categoryName)
-   {
-      offset = "1 0";
-      extent = "496 30";
-      color = "255 0 0 0";
-      
-      catName = %name;
-      numEnabled = 0;
-   };
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "496 30";
-		bitmap = "./images/cellpic3";
-	};
-   %swatch.add(%bitmap);
-	%toggle = new GuiBitmapButtonCtrl()
-	{
-		position = "1 8";
-		extent = "16 16";
-		bitmap = "./images/buttons/bullet_minus";
-		text = " ";
-		command = "RTBMM_ModsView_collapseCategory(\""@%name@"\");";
-	};
-	%bitmap.add(%toggle);
-	%text = new GuiTextCtrl()
-	{
-		profile = RTBMM_MainText;
-		position = "18 4";
-		horizSizing = "right";
-		vertsizing = "center";
-		extent = "430 22";
-		text = "\c1"@%name@"  (1/1 )";
-		catCount = 1;
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%swatch,1);
-	
-	for(%i=1;%i<RTBMM_WindowSwatch.getCount();%i++)
-	{
-      %obj = RTBMM_WindowSwatch.getObject(%i);
-      if(%obj $= %swatch)
-         continue;
-         
-      if(alphaCompare(%obj.catName,%name) $= 2)
-      {
-         %numPushBack++;
-         %pushBack[%numPushBack] = %obj;
-      }
-	}
-	for(%i=1;%i<%numPushBack+1;%i++)
-	{
-	   RTBMM_WindowSwatch.pushToBack(%pushBack[%i]);
-	}
-	
-	return %name;
-}
-function RTBMM_ModsView_createHeader()
-{
-   %swatch = new GuiSwatchCtrl()
-   {
-      offset = "1 0";
-      extent = "496 25";
-      color = "220 220 220 255";
-   };
-   %sync = new GuiBitmapButtonCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "3 2";
-      extent = "130 18";
-      text = "\c1";
-      bitmap = "./images/buttons/btnSyncMods";
-      command = "RTBMM_ModsView_syncNonRTB();";
-   };
-   %swatch.add(%sync);
-   %expand = new GuiBitmapButtonCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "166 3";
-      extent = "68 18";
-      text = "\c1";
-      bitmap = "./images/buttons/btnExpand";
-      command = "RTBMM_ModsView_expandAll();";
-   };
-   %swatch.add(%expand);
-   %collapse = new GuiBitmapButtonCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "236 3";
-      extent = "68 18";
-      text = "\c1";
-      bitmap = "./images/buttons/btnCollapse";
-      command = "RTBMM_ModsView_collapseAll();";
-   };
-   %swatch.add(%collapse);
-   %enable = new GuiBitmapButtonCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "307 2";
-      extent = "59 18";
-      text = "\c1";
-      bitmap = "./images/buttons/btnEnable";
-      command = "RTBMM_ModsView_enableAll();";
-   };
-   %swatch.add(%enable);
-   %disable = new GuiBitmapButtonCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "370 2";
-      extent = "59 18";
-      text = "\c1";
-      bitmap = "./images/buttons/btnDisable";
-      command = "RTBMM_ModsView_disableAll();";
-   };
-   %swatch.add(%disable);
-   %update = new GuiBitmapButtonCtrl()
-   {
-      profile = GuiDefaultProfile;
-      position = "433 2";
-      extent = "59 18";
-      text = "\c1";
-      bitmap = "./images/buttons/btnUpdate";
-      command = "RTBMM_ModsView_checkForUpdates();";
-   };
-   %swatch.add(%update);
-   RTBMM_PushWindowElement(%swatch,1);
-   
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "1 0";
-		extent = "325 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "116 3";
-		extent = "97 21";
-		text = "\c1MOD Information";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "327 0";
-		extent = "104 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "35 3";
-		extent = "47 21";
-		text = "\c1Status";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap);
-
-	%bitmap = new GuiBitmapCtrl()
-	{
-		offset = "432 0";
-		extent = "72 27";
-		bitmap = "./images/cellpic3";
-	};
-	%text = new GuiTextCtrl()
-	{
-		position = "10 3";
-		extent = "47 21";
-		text = "\c1Options";
-		profile = "RTBMM_MainText";
-	};
-	%bitmap.add(%text);
-	RTBMM_PushWindowElement(%bitmap,1);
-}
-function RTBMM_ModsView_downloadUpdates()
-{
-   for(%i=0;%i<RTBMM_UpdateScroll.getObject(0).getCount();%i++)
-   {
-      %obj = RTBMM_UpdateScroll.getObject(0).getObject(%i);
-      if(%obj.getObject(3).getObject(0).getValue() $= 1)
-      {
-         if(RTBMM_DownloadQueue.pushFile(%obj.getObject(3).getObject(0).file_id))
-            %numAdded++;
-         %numAttempted++;
-      }
-   }
-   
-   if(%numAttempted)
-   {
-      if(%numAdded)
-      {
-         MessageBoxYesNo("Huzzah","A total of "@%numAdded@" files have been added to your downloads queue.\n\nWould you like to view it now?","RTBMM_OpenDirect();RTBMM_getDownloadsView();","");
-         canvas.popDialog(RTBMM_Updates);
-      }
-      else
-         MessageBoxOK("Oh Dear","Looks like all the updates failed. You'd better report this.");
-   }
-   else
-      MessageBoxOK("Ooops","You haven't selected any updates to download.");
-}
-function RTBMM_ModsView_checkForUpdates(%silent)
-{
-   $RTB::CModManager::Cache::SilentUpdate = %silent;
-   if(!isObject(RTBMM_MODManifest))
-      RTBMM_loadExistingRTBMods();
-      
-   if(RTBMM_MODManifest.getCount() >= 1)
-   {
-      if(!%silent)
-         MessagePopup("Searching for Updates...","Please wait while updates are located for the Add-Ons you have...");
-      for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-      {
-         %SO = RTBMM_MODManifest.getObject(%i);
-         %delimList = (%delimList $= "") ? %SO.id : %delimList@","@%SO.id;
-      }
-   }
-   else
-   {
-      if(!%silent)
-         MessageBoxOK("Whoops","You don't have any Add-Ons to update.");
-      return;
-   }
-   
-   RTBMM_SendRequest("GETFILEUPDATES",6,%delimList);
-}
-function RTBMM_ModsView_retrieveUpdates(%this,%line)
-{
-   MessagePopup("","",0);
-   if(getField(%line,0) >= 1)
-   {
-      canvas.pushDialog(RTBMM_Updates);
-      RTBMM_UpdateScroll.clear();
-      
-      %s = new GuiSwatchCtrl()
-      {
-         position = "0 0";
-         extent = "338 2";
-         color = "0 0 0 0";
-      };
-      RTBMM_UpdateScroll.add(%s);
-      
-      %idString = strReplace(getField(%line,1),",","\t");
-      for(%i=0;%i<getFieldCount(%idString);%i++)
-      {
-         %idL = getField(%idString,%i);
-         %idL = strReplace(%idL,"-","\t");
-         RTBMM_ModsView_PushUpdate(getField(%idL,0),getField(%idL,1),getField(%idL,2));
-      }
-   }
-   else if(getField(%line,0) $= 0)
-   {
-      if(!$RTB::CModManager::Cache::SilentUpdate)
-         MessageBoxOK("No Updates Found!","No updates were found for the Add-Ons you have.");
-   }
-   else
-   {
-      if(!$RTB::CModManager::Cache::SilentUpdate)
-         MessageBoxOK("Failure!","Updates could not be found due to a Server Error.");
-   }
-}
-function RTBMM_ModsView_PushUpdate(%oldID,%newID,%newVers)
-{
-   for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-   {
-      %SO = RTBMM_MODManifest.getObject(%i);
-      if(%SO.id $= %oldID)
-         break;
-   }
-   
-   %s = new GuiSwatchCtrl()
-   {
-      position = "1" SPC 30*RTBMM_UpdateScroll.getObject(0).getCount()+(RTBMM_UpdateScroll.getObject(0).getCount()+1);
-      extent = "336 30";
-      color = "0 0 0 0";
-      
-      new GuiSwatchCtrl()
-      {
-         position = "0 0";
-         extent = "30 30";
-         color = "230 230 230 255";
-         
-         new GuiBitmapCtrl()
-         {
-            position = "7 7";
-            extent = "16 16";
-            bitmap = "./images/icons/"@%SO.icon;
-         };
-      };
-      
-      new GuiSwatchCtrl()
-      {
-         position = "31 0";
-         extent = "223 30";
-         color = "200 200 200 255";
-         
-         new GuiTextCtrl()
-         {
-            profile = RTBMM_MainText;
-            position = "5 6";
-            vertSizing = "center";
-            extent = "284 18";
-            text = "\c1"@%SO.title;
-         };
-      };
-
-      new GuiSwatchCtrl()
-      {
-         position = "255 0";
-         extent = "50 30";
-         color = "220 220 220 255";
-         
-         new GuiTextCtrl()
-         {
-            profile = RTB_Verdana12PtCenter;
-            position = "0 6";
-            vertSizing = "center";
-            extent = "50 18";
-            text = "\c1v"@%newVers;
-         };
-      };
-      
-      new GuiSwatchCtrl()
-      {
-         position = "306 0";
-         extent = "30 30";
-         color = "200 200 200 255";
-         
-         new GuiCheckBoxCtrl()
-         {
-            position = "8 1";
-            text = " ";
-            file_id = %newID;
-         };
-      };
-   };
-   RTBMM_UpdateScroll.getObject(0).add(%s);
-   %s.getObject(3).getObject(0).setValue(1);
-   
-   %bottom = getWord(%s.position,1)+31;
-   RTBMM_UpdateScroll.getObject(0).extent = "338" SPC %bottom;
-   RTBMM_UpdateScroll.scrollToTop();
-}
-function RTBMM_ModsView_syncNonRTB()
-{
-   clientUpdateAddOnsList();
-   
-	%mod = FindFirstFile("Add-Ons/*_*/description.txt");
-	while(strLen(%mod) > 0)
-	{
-	   %modName = getSubStr(%mod,8,strLen(%mod)-24);
-	   %modVarName = getSafeVariableName(%modName);
-
-      if(!isFile("Add-Ons/"@%modName@"/rtbInfo.txt") && (isFile("Add-Ons/"@%modName@"/server.cs") || isFile("Add-Ons/"@%modName@"/client.cs")))
-      {
-         %isDefault = 0;
-         for(%i=0;%i<$RTB::CModManager::DefaultBLMods+1;%i++)
-         {
-            if($RTB::CModManager::DefaultBLMod[%i] $= %modName)
-            {
-               %isDefault = 1;
-               break;
-            }
-         }
-         
-         if(!%isDefault)
-            %delimitedMods = (%delimitedMods $= "") ? %modName : %delimitedMods@","@%modName;
-      }
-		%mod = FindNextFile("Add-Ons/*_*/description.txt");
-	}
-	
-	%mod = FindFirstFile("Add-Ons/*_*/*.mis");
-	while(strLen(%mod) > 0)
-	{
-	   %parts = strReplace(%mod,"/","\t");
-	   %modName = getField(%parts,1);
-	   %modVarName = getSafeVariableName(%modName);
-
-      if(!isFile("Add-Ons/"@%modName@"/rtbInfo.txt"))
-      {
-         %isDefault = 0;
-         for(%i=0;%i<$RTB::CModManager::DefaultBLMods+1;%i++)
-         {
-            if($RTB::CModManager::DefaultBLMod[%i] $= %modName)
-            {
-               %isDefault = 1;
-               break;
-            }
-         }
-         
-         if(!%isDefault)
-            %delimitedMods = (%delimitedMods $= "") ? %modName : %delimitedMods@","@%modName;
-      }
-		%mod = FindNextFile("Add-Ons/*_*/*.mis");
-	}
-	
-	if(%delimitedMods $= "")
-	{
-	   MessageBoxOK("Phew","Looks like you don't have any Add-Ons that weren't downloaded through RTB!");
-	}
-	else
-	{
-      canvas.pushDialog(RTBMM_SyncMods);
-      RTBMM_SyncText.setText("Attempting to match your non-rtb add-ons with ones in the RTB system...");
-      RTBMM_SyncScroll.clear();
-      RTBMM_SyncButton.setVisible(0);
-      
-      %s = new GuiSwatchCtrl()
-      {
-         position = "0 0";
-         extent = "384 2";
-         color = "255 255 255 255";
-      };
-      RTBMM_SyncScroll.add(%s);
-      
-      %swatch = new GuiSwatchCtrl(RTBMM_SyncLoading)
-      {
-         position = "0 0";
-         extent = "384 187";
-         color = "235 235 235 255";
-         
-         new GuiBitmapCtrl()
-         {
-            position = "186 66";
-            extent = "31 31";
-            bitmap = "./images/loadRing";
-         };
-         
-         new GuiMLTextCtrl()
-         {
-            position = "161 104";
-            extent = "83 12";
-            profile = RTB_Verdana12Pt;
-            text = "<color:555555>Synchronising...";
-         };
-      };
-      RTBMM_SyncScroll.add(%swatch);
-      RTBMM_createLoadingRing(%swatch.getObject(0));
-      
-      RTBMM_SendRequest("SYNCMODS",2,%delimitedMods);
-	}
-	
-	if($RTB::Debug)
-	   echo("\c4Delimited Mods for Sync: "@%delimitedMods);
-}
-function RTBMM_ModsView_syncResults(%this,%line)
-{
-   if(getField(%line,0) $= 1)
-   {
-      %id = getField(%line,1);
-      %title = getField(%line,2);
-      %version = getField(%line,3);
-      %icon = getField(%line,4);
-      %zipname = getField(%line,5);
-      RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname,1);
-   }
-   else
-   {
-      %zipname = getField(%line,1);
-      RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname,0);
-   }
-}
-function RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname,%found)
-{
-   if(isObject(RTBMM_SyncLoading))
-      RTBMM_SyncLoading.delete();
-      
-   if(%found)
-   {
-      %s = new GuiSwatchCtrl()
-      {
-         position = "1" SPC 30*RTBMM_SyncScroll.getObject(0).getCount()+(RTBMM_SyncScroll.getObject(0).getCount()+1);
-         extent = "384 30";
-         color = "0 0 0 0";
-         
-         new GuiSwatchCtrl()
-         {
-            position = "0 0";
-            extent = "30 30";
-            color = "230 230 230 255";
-            
-            new GuiBitmapCtrl()
-            {
-               position = "7 7";
-               extent = "16 16";
-               bitmap = "./images/icons/"@%icon;
-            };
-         };
-         
-         new GuiSwatchCtrl()
-         {
-            position = "31 0";
-            extent = "291 30";
-            color = "200 200 200 255";
-            
-            new GuiTextCtrl()
-            {
-               profile = RTBMM_MainText;
-               position = "5 0";
-               extent = "284 18";
-               text = "\c1"@%title;
-            };
-            
-            new GuiTextCtrl()
-            {
-               profile = RTB_Verdana12Pt;
-               position = "5 13";
-               extent = "284 18";
-               text = "\c1Add-Ons/"@%zipname;
-            };
-         };
-
-         new GuiSwatchCtrl()
-         {
-            position = "313 0";
-            extent = "40 30";
-            color = "220 220 220 255";
-            
-            new GuiTextCtrl()
-            {
-               profile = RTB_Verdana12PtCenter;
-               position = "0 6";
-               vertSizing = "center";
-               extent = "40 18";
-               text = "\c1v"@%version;
-            };
-         };
-         
-         new GuiSwatchCtrl()
-         {
-            position = "354 0";
-            extent = "30 30";
-            color = "200 200 200 255";
-            
-            new GuiCheckBoxCtrl()
-            {
-               position = "8 1";
-               text = " ";
-               file_id = %id;
-            };
-         };
-      };
-      RTBMM_SyncScroll.getObject(0).add(%s);
-      %s.getObject(3).getObject(0).setValue(1);
-   }
-   else
-   {
-      %s = new GuiSwatchCtrl()
-      {
-         position = "1" SPC 30*RTBMM_SyncScroll.getObject(0).getCount()+(RTBMM_SyncScroll.getObject(0).getCount()+1);
-         extent = "384 30";
-         color = "0 0 0 0";
-         
-         new GuiSwatchCtrl()
-         {
-            position = "0 0";
-            extent = "30 30";
-            color = "230 230 230 255";
-            
-            new GuiBitmapCtrl()
-            {
-               position = "7 7";
-               extent = "16 16";
-               bitmap = "./images/smallbllogo";
-            };
-         };
-         
-         new GuiSwatchCtrl()
-         {
-            position = "31 0";
-            extent = "363 30";
-            color = "200 200 200 255";
-            
-            new GuiTextCtrl()
-            {
-               profile = RTBMM_MainText;
-               position = "5 0";
-               extent = "284 18";
-               text = "\c1"@%zipname;
-            };
-            
-            new GuiTextCtrl()
-            {
-               profile = RTB_Verdana12Pt;
-               position = "5 13";
-               extent = "284 18";
-               text = "Could not locate this file on RTB.";
-            };
-         };
-      };
-      RTBMM_SyncScroll.getObject(0).add(%s);
-      %s.getObject(3).getObject(0).setValue(1);
-   }
-   
-   %bottom = getWord(%s.position,1)+31;
-   RTBMM_SyncScroll.getObject(0).resize(getWord(RTBMM_SyncScroll.getObject(0).position,0),getWord(RTBMM_SyncScroll.getObject(0).position,1),384,%bottom);
-   RTBMM_SyncScroll.scrollToTop();
-}
-function RTBMM_ModsView_downloadSyncs(%conf)
-{
-   if(!%conf)
-   {
-      MessageBoxYesNo("Hmm","Are you sure you want to synchronise your add-ons?\n\nThis will download the add-ons listed above and overwrite the old non-rtb ones.","RTBMM_ModsView_downloadSyncs(1);","");
-      return;
-   }
-   
-   for(%i=0;%i<RTBMM_SyncScroll.getObject(0).getCount();%i++)
-   {
-      %obj = RTBMM_SyncScroll.getObject(0).getObject(%i);
-      if(%obj.getObject(3).getObject(0).getValue() $= 1)
-      {
-         if(RTBMM_DownloadQueue.pushFile(%obj.getObject(3).getObject(0).file_id))
-            %numAdded++;
-         %numAttempted++;
-      }
-   }
-   
-   if(%numAttempted)
-   {
-      if(%numAdded)
-         MessageBoxYesNo("Huzzah","A total of "@%numAdded@" files have been added to your downloads queue.\n\nWould you like to view it now?","RTBMM_getDownloadsView();","");
-      else
-         MessageBoxOK("Oh Dear","Looks like all the synchronizations failed. You'd better report this.");
-      canvas.popDialog(RTBMM_SyncMods);
-   }
-   else
-      MessageBoxOK("Ooops","You haven't selected any add-ons to synchronise.");
-}
-function RTBMM_ModsView_endSyncResults(%this,%line)
-{
-   %numSynced = getField(%line,0);
-   %total = getField(%line,1);
-   if(%numSynced $= 0)
-   {
-      MessageBoxOK("Oh Dear","RTB was unable to sync any of your "@%total@" non-rtb mod(s).");
-   }
-   else
-   {
-      MessageBoxOK("Woo","RTB managed to find positive matches for "@%numSynced@"/"@%total@" of your non-rtb mod(s).\n\nPlease make sure they are the correct ones before ticking them for Synchronization!");
-      RTBMM_SyncButton.setVisible(1);
-      RTBMM_SyncText.setText("RTB has found matches for "@%numSynced@"/"@%total@" of your non-rtb mod(s):");
-   }
-}
-function RTBMM_ModsView_failSyncResults(%this,%line)
-{
-   canvas.popDialog(RTBMM_SyncMods);
-   MessageBoxOK("Ooops","The RTB System could not be connected to, please try again later.");
-}
-function RTBMM_ModsView_expandAll()
-{
-	for(%i=5;%i<RTBMM_WindowSwatch.getCount()-1;%i++)
-	{
-      %obj = RTBMM_WindowSwatch.getObject(%i);
-      RTBMM_ModsView_expandCategory(%obj.catName);
-	}
-}
-function RTBMM_ModsView_collapseAll()
-{
-	for(%i=5;%i<RTBMM_WindowSwatch.getCount()-1;%i++)
-	{
-      %obj = RTBMM_WindowSwatch.getObject(%i);
-      RTBMM_ModsView_collapseCategory(%obj.catName);
-	}
-}
-function RTBMM_ModsView_enableAll()
-{
-   for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-   {
-      %SO = RTBMM_MODManifest.getObject(%i);
-      if(!%SO.isClientside && !%SO.isMap)
-         RTBMM_ModsView_EnableMod(%SO);
-   }
-}
-function RTBMM_ModsView_disableAll()
-{
-   for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-   {
-      %SO = RTBMM_MODManifest.getObject(%i);
-      if(!%SO.isClientside && !%SO.isMap)
-         RTBMM_ModsView_DisableMod(%SO);
-   }
-}
-function RTBMM_SyncMods::onSleep(%this)
-{
-   if(isObject(RTBMM_SyncLoading))
-      RTBMM_SyncLoading.delete();
-}
-
-//*********************************************************
-//* File Downloading Connection and Handling
-//*********************************************************
-function RTBMM_InitiateFileConnection()
-{
-   if(isObject(RTBMM_FileConnection))
-      return;
-      
-   %connection = new TCPObject(RTBMM_FileConnection);
-}
-function RTBMM_FileConnection::onConnected(%this)
-{
-   if(!%this.SO.liveData || %this.SO.isArchive)
-   {
-      %this.disconnect();
-      return;
-   }
-   
-   %this.SO.isDownloading = 1;
-   
-   if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-   {
-      RTBMM_DownloadQueue_ButtonA1.setBitmap($RTB::Path@"images/buttons/btnStop");
-      RTBMM_DownloadQueue_ButtonA1.command = "RTBMM_FileConnection.stopDownload();";
-      RTBMM_DownloadQueue_Status1.setText("Locating Download...");
-   }
-   
-   %this.inTransfer = 1;
-   %this.send("GET /blockland/rtbModServer.php?c=GETFILEDL&n="@urlEnc($Pref::Player::NetName)@"&arg1="@%this.SO.file_id@" HTTP/1.1\r\nHost: returntoblockland.com\r\nUser-Agent: Torque/1.0\r\n\r\n");
-}
-function RTBMM_FileConnection::onConnectFailed(%this)
-{
-}
-function RTBMM_FileConnection::onDisconnect(%this)
-{
-   %this.setBinarySize(0);
-}
-function RTBMM_FileConnection::onBinChunk(%this,%bin)
-{
-   if(%this.timeStarted $= "")
-      %this.timeStarted = getSimTime();
-      
-   if(%bin $= %this.fileSize)
-      schedule(3000,0,"RTBMM_DownloadsView_ClearDownloadedFile",%this.SO);
-      
-   if(%bin >= %this.fileSize)
-   {
-      if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-      {
-         RTBMM_DownloadQueue_Status1.setText("Download Complete");
-         RTBMM_DownloadQueue_ButtonABlock1.extent = "91 44";
-         RTBMM_DownloadQueue_ButtonABlock1.setVisible(1);
-      }
-      
-      %this.SO.isArchive = 1;
-      %filename = %this.fileName;
-
-      %fo = new FileObject();
-      %fo.openForWrite("Add-Ons/"@%filename);
-      %fo.delete();
-
-      if(%this.fileType $= "zip")
-         %this.saveBufferToFile("Add-Ons/"@%filename);
-      else
-         %this.saveBufferToFile("Add-Ons/Music/"@%filename);
-      
-      %this.disconnect();
-      setModPaths(getModPaths());
-      RTBMM_loadExistingRTBMods();
-      
-      if(%this.fileType $= "zip")
-      {
-         if(isFile("Add-Ons/"@getSubStr(%filename,0,strLen(%filename)-4)@"/client.cs") && isFile("Add-Ons/"@getSubStr(%filename,0,strLen(%filename)-4)@"/description.txt"))
-         {
-            exec("Add-Ons/"@getSubStr(%filename,0,strLen(%filename)-4)@"/client.cs");
-         }
-      }
-      buildIFLs();
-   }
-   else
-   {
-      if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-         RTBMM_DownloadQueue_Status1.setText("Downloading ("@mFloor((%bin/%this.fileSize)*100)@"%)...");
-   }
-
-   if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-   {
-      RTBMM_DownloadQueue_Progress1.setValue(%bin/%this.fileSize);
-      RTBMM_DownloadQueue_Done1.setText("Done: "@byteRound(%bin));
-      RTBMM_DownloadQueue_Speed1.setText("Speed: "@mFloatLength(%bin/(getSimTime()-%this.timeStarted),2)@"kb/s");
-   }
-}
-function RTBMM_FileConnection::onLine(%this,%line)
-{
-   if(strPos(%line,"404 Not Found") >= 0)
-   {
-      MessageBoxOK("Error!","There appears to be an error with this file, and the ZIP cannot be located.");
-      return;
-   }
-   
-   if(firstWord(%line) $= "Content-Type:")
-   {
-      if(getWord(%line,1) $= "application/download")
-         %this.fileType = "zip";
-      else if(getWord(%line,1) $= "application/ogg")
-         %this.fileType = "ogg";
-   }
-   
-   if(firstWord(%line) $= "Content-Length:")
-      %this.fileSize = getWord(%line,1);
-      
-   if(firstWord(%line) $= "Content-Savename:")
-      %this.fileName = getWord(%line,1);
-      
-   if(%line $= "")
-      %this.setBinarySize(%this.fileSize);
-      
-   %this.lastLine = %line;
-   %this.timeStarted = "";
-}
-function RTBMM_FileConnection::promptDownload(%this)
-{
-   if(%this.inTransfer)
-      return;
-
-   %SO = RTBMM_DownloadQueue.download[0];
-   if(!%SO.liveData || %SO.isArchive || %SO.file_name $= 0 || %SO.file_name $= 2)
-      return;
-   
-   %this.setBinary(0);
-   %this.lastLine = "";
-   %this.SO = %SO;
-   %this.connect($RTB::CModManager::HostSite@":80");
-}
-function RTBMM_FileConnection::stopDownload(%this,%conf)
-{
-   if(!%conf)
-   {
-      MessageBoxYesNo("Really?","Are you sure you want to stop this download?","RTBMM_FileConnection.stopDownload(1);","");
-      return;
-   }
-   %this.SO.isDownloading = 0;
-   
-   %this.delete();
-   if($RTB::CModManager::Cache::CurrentZone $= "downloadview")
-      RTBMM_getDownloadsView();
-}
-
-//*********************************************************
-//* Screenshot Downloading and Handling
-//*********************************************************
-function RTBMM_InitiateScreenshotGrabber()
-{
-   if(isObject(RTBMM_ScreenshotGrabber))
-      RTBMM_ScreenshotGrabber.delete();
-      
-   new TCPObject(RTBMM_ScreenshotGrabber);
-}
-function RTBMM_ScreenshotGrabber::getCollage(%this)
-{
-   %this.setBinary(0);
-   %this.grabMode = "collage";
-   %this.connect($RTB::CModManager::HostSite@":80");
-}
-function RTBMM_ScreenshotGrabber::getScreenshot(%this,%sspath)
-{
-   %this.setBinary(0);
-   %this.screenshotPath = %sspath;
-   %this.grabMode = "screenshot";
-   %this.connect($RTB::CModManager::HostSite@":80");
-}
-function RTBMM_ScreenshotGrabber::onConnected(%this)
-{
-   if(%this.grabMode $= "collage")
-      %this.send("GET "@$RTB::CModManager::Cache::FileCollage@" HTTP/1.1\r\nHost: "@$RTB::CModManager::HostSite@"\r\n\r\n");
-   else if(%this.grabMode $= "screenshot")
-      %this.send("GET "@%this.screenshotPath@" HTTP/1.1\r\nHost: "@$RTB::CModManager::HostSite@"\r\n\r\n");
-}
-function RTBMM_ScreenshotGrabber::onLine(%this,%line)
-{
-   if(strPos(%line,"404 Not Found") >= 0)
-   {
-      MessageBoxOK("Error!","The Screenshot Collage could not be located!");
-      return;
    }
    
    if(strPos(%line,"Content-Length:") $= 0)
       %this.contentSize = getWord(%line,1);
-   
+      
+   if(strPos(%line,"Result:") $= 0)
+   {
+      if(getWord(%line,1) !$= 1)
+      {
+         if(getWord(%line,2) $= 0)
+         {
+            %this.queue.desc = "File could not be found.";
+            %this.queue.progress_text = "File Missing";
+         }
+         else if(getWord(%line,2) $= 1)
+         {
+            %this.queue.desc = "File has been failed by a moderator.";
+            %this.queue.progress_text = "File in Fail Bin";            
+         }
+         else if(getWord(%line,2) $= 2)
+         {
+            %this.queue.desc = "Physical zip file is missing - report this file!";
+            %this.queue.progress_text = "Physical File Missing";            
+         }
+         else
+         {
+            %this.queue.desc = "Unknown Error Occurred";
+            %this.queue.progress_text = "Error Occurred";  
+         }
+         %this.queue.status = 0;
+         %this.queue.update();
+         %this.disconnect();
+         RTBMM_FileGrabber_Init();
+         return;
+      }
+   }
+      
    if(%line $= "")
       %this.setBinarySize(%this.contentSize);
-   
-   %this.lastLine = %line;
+      
+   %this.startTime = getSimTime();
+      
+   %this.queue.update();
 }
-function RTBMM_ScreenshotGrabber::onBinChunk(%this,%chunk)
+
+//- RTBMM_FileGrabber::onBinChunk (Transfers are binary-chunked so this callback happens upon chunk receival)
+function RTBMM_FileGrabber::onBinChunk(%this,%bin)
 {
-   if(%chunk >= %this.contentSize)
+   %this.queue.speed = byteRound(mFloatLength(%bin/(getSimTime()-%this.startTime),2))@"/s";
+   %this.queue.done = %bin;
+   %this.queue.progress = mCeil((%bin/%this.queue.filesize)*100);
+   %this.queue.progress_text = %this.queue.progress@"%";
+   %this.queue.update();
+   
+   if(%bin >= %this.contentSize)
+   {
+      %this.queue.speed = "0b/s";
+      %this.queue.done = %this.queue.filesize;
+      %this.queue.progress = 100;
+      %this.queue.completed = 1;
+      %this.queue.progress_text = "100%";
+      %this.queue.update();
+      
+      RTBMM_TransferQueue.schedule(2000,"removeItem",%this.queue.id);
+      RTBMM_GUI_addToMods();
+      
+      %this.saveBufferToFile("Add-Ons/"@%this.queue.zip);
+      discoverFile("Add-Ons/"@%this.queue.zip);
+      %cache = RTBMM_FileCache.addPath("Add-Ons/"@%this.queue.zip);
+      
+      if($RTB::CModManager::Cache::CurrentZone $= "ModsView")
+         RTBMM_ModsView_insertModRow(%cache);
+      
+      %addonName = getSubStr(%this.queue.zip,0,strLen(%this.queue.zip)-4);
+      if(isFile("Add-Ons/"@%addonName@"/client.cs"))
+      {
+         echo("Client checking Add-On: "@%addonName);
+         if(clientIsValidAddOn(%addonName,1))
+         {
+            echo("\c4Loading Add-On: "@%addonName@" \c1(CRC: "@getFileCRC("Add-Ons/"@%this.queue.zip)@")");
+            if(ClientVerifyAddOnScripts(%addonName))
+            {
+               exec("Add-Ons/"@getSubStr(%this.queue.zip,0,strLen(%this.queue.zip)-4)@"/client.cs");
+            }
+         }
+      }
+      
+      %this.disconnect();
+      RTBMM_FileGrabber_Init();
+      return;
+   }
+}
+
+//- RTBMM_FileGrabber::halt (Halts filegrabber process)
+function RTBMM_FileGrabber::halt(%this)
+{
+   if(isObject(%this.queue))
+   {
+      %this.queue.transferring = 0;
+      %this.queue.done = 0;
+      %this.queue.percent = 0;
+      %this.queue.speed = "0b/s";
+      %this.queue.status = 0;
+      %this.queue.progress_text = "User Cancelled";
+      %this.queue.update();
+      
+      %queue = %this.queue;
+   }
+      
+   %this.disconnect();
+   RTBMM_FileGrabber_Init();
+   RTBMM_FileGrabber.halted = 1;
+   RTBMM_FileGrabber.halter = %queue;
+}
+
+//*********************************************************
+//* Screenshot Loader
+//*********************************************************
+function RTBMM_ScreenGrabber_Init()
+{
+   if(isObject(RTBMM_ScreenGrabber))
+   {
+      RTBMM_ScreenGrabber.disconnect();
+      RTBMM_ScreenGrabber.delete();
+   }
+      
+   new TCPObject(RTBMM_ScreenGrabber)
+   {
+      host = "forum.returntoblockland.com";
+      port = 80;
+      
+      cmd = "";
+   };
+}
+RTBMM_ScreenGrabber_Init();
+
+//- RTBMM_ScreenGrabber::getCollage (Prepares screengrabber to grab a collage image, and connects)
+function RTBMM_ScreenGrabber::getCollage(%this,%url)
+{
+   %this.grabMode = "collage";
+   %this.cmd = "GET "@%url@" HTTP/1.1\r\nHost: forum.returntoblockland.com\r\n\r\n";
+   %this.doConnect();
+}
+
+//- RTBMM_ScreenGrabber::getScreenshot (Prepares screengrabber to grab a fullsize image, and connects)
+function RTBMM_ScreenGrabber::getScreenshot(%this,%url,%window)
+{
+   %this.window = %window;
+   %this.grabMode = "screenshot";
+   %this.cmd = "GET "@%url@" HTTP/1.1\r\nHost: forum.returntoblockland.com\r\n\r\n";
+   %this.doConnect();
+}
+
+//- RTBMM_ScreenGrabber::doConnect (Begins connection sequence)
+function RTBMM_ScreenGrabber::doConnect(%this)
+{
+   %this.connect(%this.host@":"@%this.port);
+}
+
+//- RTBMM_ScreenGrabber::onConnected (Connection callback - sends the cmd prepared earlier)
+function RTBMM_ScreenGrabber::onConnected(%this)
+{
+   %this.send(%this.cmd);
+}
+
+//- RTBMM_ScreenGrabber::onLine (Line callback, checks filesize etc.)
+function RTBMM_ScreenGrabber::onLine(%this,%line)
+{
+   if(strPos(%line,"Content-Length:") $= 0)
+      %this.contentSize = getWord(%line,1);
+      
+   if(%line $= "")
+      %this.setBinarySize(%this.contentSize);
+}
+
+//- RTBMM_ScreenGrabber::onBinChunk (Receives binary chunks then saves collage on complete)
+function RTBMM_ScreenGrabber::onBinChunk(%this,%bin)
+{
+   if(%bin >= %this.contentSize)
    {
       if(%this.grabMode $= "collage")
       {
-         %this.saveBufferToFile("config/client/RTB/cache/screenCollage.png");
+         %this.saveBufferToFile("config/client/rtb/cache/collage.png");
          
-         %k=0;
-         for(%i=0;%i<4;%i++)
+         if(!isObject($RTB::CModManager::Cache::Screen[0]))
          {
-            %pres = getSubStr($RTB::CModManager::Cache::FileSSPresence,%i,1);
-            if(%pres)
+            %this.disconnect();
+            RTBMM_ScreenGrabber_Init();
+            return;
+         }
+            
+         for(%i=0;%i<$RTB::CModManager::Cache::ScreenCount;%i++)
+         {
+            %id = $RTB::CModManager::Cache::Screen[%i];
+            %ctrl = $RTB::CModManager::Cache::ScreenControl[%i];
+            
+            %img = new GuiSwatchCtrl()
             {
-               %ctrl = "RTBMM_FileThumb"@%k;
-               if(isObject(%ctrl))
+               position = "2 2";
+               extent = "112 84";
+               color = "255 255 255 255";
+               
+               new GuiBitmapCtrl()
                {
-                  %ctrl.setVisible(1);
-                  if(isObject(%ctrl.loadSwatch))
-                     %ctrl.loadSwatch.delete();
-                  %ctrl.getObject(0).setBitmap("config/client/RTB/cache/screenCollage");
-                  
-                  if(%i $= 1)
-                     %ctrl.getObject(0).position = "-112 0";
-                  else if(%i $= 2)
-                     %ctrl.getObject(0).position = "0 -84";
-                  else if(%i $= 3)
-                     %ctrl.getObject(0).position = "-112 -84";
-                  %k++;
-               }
-            }
+                  position = "0 0";
+                  extent = "224 168";
+                  bitmap = "config/client/rtb/cache/collage.png";
+               };
+
+               new GuiSwatchCtrl()
+               {
+                  position = "0 0";
+                  extent = "112 84";
+                  color = "255 255 255 255";
+               };
+            };
+            %ctrl.clear();
+            %ctrl.add(%img);
+            
+            %swatch = new GuiSwatchCtrl()
+            {
+               position = "0 0";
+               extent = "112 84";
+               color = "255 255 255 0";
+            };
+            %img.add(%swatch);
+            
+            %mouseCtrl = new GuiMouseEventCtrl()
+            {
+               position = "0 0";
+               extent = "112 84";
+               
+               eventType = "screenshotSelect";
+               eventCallbacks = "1111";
+               
+               screenID = %i;
+               swatch = %swatch;
+            };
+            %img.add(%mouseCtrl);
+            
+            if(%i $= 1)
+               %img.getObject(0).position = "-112 0";
+            else if(%i $= 2)
+               %img.getObject(0).position = "0 -84";
+            else if(%i $= 3)
+               %img.getObject(0).position = "-112 -84";
+               
+            RTBMM_GUI_FadeOut(%img.getObject(1));
          }
       }
       else if(%this.grabMode $= "screenshot")
       {
-         if(isObject(RTBMM_VS_Loader))
-            RTBMM_VS_Loader.delete();
-            
-         if(RTBMM_ViewScreenshot.isAwake())
+         %this.saveBufferToFile("config/client/rtb/cache/screen.png");
+         
+         %window = %this.window;
+         if(!isObject(%window))
          {
-            %this.saveBufferToFile("config/client/RTB/cache/screenshot.png");
-            RTBMM_VS_Bitmap.setBitmap("config/client/RTB/cache/screenshot");
+            %this.disconnect();
+            RTBMM_ScreenGrabber_Init();
+            return;
          }
+         %window.canvas.getObject(1).delete();
+         %window.canvas.getObject(0).setBitmap("config/client/rtb/cache/screen.png");      
+         %window.canvas.getObject(0).setVisible(1);
       }
       %this.disconnect();
-      RTBMM_InitiateScreenshotGrabber();
+      RTBMM_ScreenGrabber_Init();
    }
 }
-function RTBMM_ScreenshotGrabber::onDisconnect(%this)
+
+//*********************************************************
+//* Mod Manager Support Functions
+//*********************************************************
+//- RTBMM_parseBBCode (Parses bbCode into TorqueML)
+function RTBMM_parseBBCode(%message)
 {
+   %message = strReplace(%message,"<br>[*]","<br><bitmap:add-ons/system_returntoblockland/images/bullet_list>");
+   %message = strReplace(%message,"[*]","<br><bitmap:add-ons/system_returntoblockland/images/bullet_list>");
+   return %message;
 }
-function RTBMM_PushScreenshotViewer(%file,%caption,%crc)
+
+function RTBMM_OpenModManager()
 {
-   if(isObject(RTBMM_VS_Loader))
-      RTBMM_VS_Loader.delete();
-   
-   RTBMM_VS_Bitmap.setBitmap("");
-   canvas.pushDialog(RTBMM_ViewScreenshot);
-   RTBMM_VS_Caption.setText(%caption);
-   
-   if(%crc $= getFileCRC("config/client/RTB/cache/screenshot.png"))
-   {
-      RTBMM_VS_Bitmap.setBitmap("config/client/RTB/cache/screenshot");
-      return;
-   }
-   
-   %swatch = new GuiSwatchCtrl(RTBMM_VS_Loader)
-   {
-      position = "0 0";
-      extent = "550 413";
-      color = "235 235 235 255";
-   };
-   RTBMM_VS_Bitmap.add(%swatch);
-   
-   %ring = new GuiBitmapCtrl()
-   {
-      vertSizing = "center";
-      horizSizing = "center";
-      position = "259 191";
-      extent = "31 31";
-      bitmap = "./images/loadRing";
-   };
-   %swatch.add(%ring);
-   RTBMM_createLoadingRing(%ring);
-   
-   RTBMM_ScreenshotGrabber.getScreenshot(%file);
-}
-function RTBMM_ViewScreenshot::onSleep(%this)
-{
-   if(isObject(RTBMM_VS_Loader))
-      RTBMM_VS_Loader.delete();
-   RTBMM_ScreenshotGrabber.delete();
-   RTBMM_InitiateScreenshotGrabber();
+   $RTB::CModManager::Cache::OpenDirect = 1;
+   Canvas.pushDialog(RTB_ModManager);
+   $RTB::CModManager::Cache::OpenDirect = 0;
 }
 
 //*********************************************************
@@ -5722,8 +6925,10 @@ function addonsGui::onWake()
    %prefix["Player"] = "Players";
    %prefix["Print"] = "Prints";
    %prefix["Projectile"] = "Projectiles";
-   %prefix["Script"] = "Scripts";
+   %prefix["Script"] = "Server Mods";
    %prefix["Server"] = "Server Mods";
+   %prefix["Sound"] = "Sound Effects";
+   %prefix["System"] = "Systems";
    %prefix["Tool"] = "Tools";
    %prefix["Vehicle"] = "Vehicles";
    %prefix["Weapon"] = "Weapons";
@@ -5735,8 +6940,7 @@ function addonsGui::onWake()
    {
       %filename = getSubStr(%file,8,strLen(%file));
       %filename = getSubStr(%filename,0,strPos(%filename,"/"));
-      //if(%filename $= "System_ReturnToBlockland" || !isFile("Add-Ons/"@%filename@"/description.txt"))
-      if(!isFile("Add-Ons/"@%filename@"/description.txt"))
+      if(!isFile("Add-Ons/"@%filename@"/description.txt") || !isFile("Add-Ons/"@%filename@"/server.cs"))
       {
          %file = findNextFile("Add-Ons/*_*/server.cs");
          continue;
@@ -5745,22 +6949,30 @@ function addonsGui::onWake()
       %new_prefix = %file_prefix;
       if(%prefix[%new_prefix] !$= "")
             %new_prefix = %prefix[%new_prefix];
-      if(%AOG_hasCategory[%new_prefix])
+      if(%AOG_hasCategory[%new_prefix] !$= "")
       {
-         %iC = %AOG_ItemCount[%AOG_CategoryCount-1];
-         %AOG_Category[%AOG_CategoryCount-1,%iC] = %filename;
-         %AOG_ItemCount[%AOG_CategoryCount-1]++;
+         %iC = %AOG_ItemCount[%AOG_hasCategory[%new_prefix]];
+         %AOG_Category[%AOG_hasCategory[%new_prefix],%iC] = %filename;
+         %AOG_ItemCount[%AOG_hasCategory[%new_prefix]]++;
       }
       else
       {
          %AOG_Category[%AOG_CategoryCount,0] = %new_prefix;
          %AOG_Category[%AOG_CategoryCount,1] = %filename;
          %AOG_ItemCount[%AOG_CategoryCount] = 2;
+         %AOG_hasCategory[%new_prefix] = %AOG_CategoryCount;
          %AOG_CategoryCount++;
-         %AOG_hasCategory[%new_prefix] = 1;
       }
       %file = findNextFile("Add-Ons/*_*/server.cs");
    }
+   
+   %sortString = "";      
+   for(%i=0;%i<%AOG_CategoryCount;%i++)
+   {
+      %sortString = %sortString@%i@"=>"@%AOG_Category[%i,0]@",";
+   }
+   %sortString = getSubStr(%sortString,0,strLen(%sortString)-1);
+   %sortString = strReplace(sortFields(%sortString),",","\t");
    
    %swatch = new GuiSwatchCtrl()
    {
@@ -5771,8 +6983,11 @@ function addonsGui::onWake()
    AOG_Scroll.add(%swatch);
    
    %AOG_nextPos = 1;
-   for(%i=%AOG_CategoryCount-1;%i>-1;%i--)
+   for(%i=0;%i<getFieldCount(%sortString);%i++)
    {
+      %keypair = strReplace(getField(%sortString,%i),"=>","\t");
+      %cat = getField(%keypair,0);      
+      
       %bg = new GuiSwatchCtrl()
       {
          position = "5" SPC %AOG_nextPos+2;
@@ -5780,16 +6995,16 @@ function addonsGui::onWake()
          color = "0 0 0 255";
       };
       %swatch.add(%bg);
-      %AOG_CatCheck[%i] = new GuiCheckboxCtrl()
+      %AOG_CatCheck[%cat] = new GuiCheckboxCtrl()
       {
          profile = GuiCheckBoxBoldProfile;
          position = "5" SPC %AOG_nextPos;
          extent = "256 18";
-         text = " "@%AOG_Category[%i,0];
-         category = %AOG_Category[%i,0];
+         text = " "@%AOG_Category[%cat,0];
+         category = %AOG_Category[%cat,0];
       };
-      %AOG_CatCheck[%i].command = "AOG_tickCategory("@%AOG_CatCheck[%i]@");";
-      %swatch.add(%AOG_CatCheck[%i]);
+      %AOG_CatCheck[%cat].command = "AOG_tickCategory("@%AOG_CatCheck[%cat]@");";
+      %swatch.add(%AOG_CatCheck[%cat]);
       %AOG_nextPos += 18;
       %hr = new GuiSwatchCtrl()
       {
@@ -5799,36 +7014,47 @@ function addonsGui::onWake()
       };
       %swatch.add(%hr);
       %AOG_nextPos += 5;
-      for(%j=%AOG_ItemCount[%i]-1;%j>0;%j--)
+      
+      %sortStringB = "";      
+      for(%j=1;%j<%AOG_ItemCount[%cat];%j++)
       {
+         %sortStringB = %sortStringB@%j@"=>"@%AOG_Category[%cat,%j]@",";
+      }
+      %sortStringB = getSubStr(%sortStringB,0,strLen(%sortStringB)-1);
+      %sortStringB = strReplace(sortFields(%sortStringB),",","\t");
+      
+      for(%j=0;%j<getFieldCount(%sortStringB);%j++)
+      {
+         %keypair = strReplace(getField(%sortStringB,%j),"=>","\t");
          %checkbox = new GuiCheckboxCtrl()
          {
             position = "5" SPC %AOG_nextPos;
             extent = "256 18";
-            text = %AOG_Category[%i,%j];
-            varName = getSafeVariableName(%AOG_Category[%i,%j]);
-            parent = %AOG_CatCheck[%i];
+            text = getField(%keypair,1);
+            varName = getSafeVariableName(getField(%keypair,1));
+            parent = %AOG_CatCheck[%cat];
          };
          %checkbox.command = "AOG_tickAddon("@%checkbox@");";
          %swatch.add(%checkbox);
-         %AOG_CatCheck[%i].numChildren++;
+         %AOG_CatCheck[%cat].numChildren++;
          if($AddOn__[%checkbox.varName] $= 1)
          {
-            %AOG_CatCheck[%i].numEnabled++;
+            %AOG_CatCheck[%cat].numEnabled++;
             %checkbox.setValue(1);
          }
          %AOG_nextPos += 18;
          
-         %childID = %AOG_CatCheck[%i].numChildren-1;
-         %AOG_CatCheck[%i].child[%childID] = %checkbox;
+         %childID = %AOG_CatCheck[%cat].numChildren-1;
+         %AOG_CatCheck[%cat].child[%childID] = %checkbox;
       }
       
-      if(%AOG_CatCheck[%i].numEnabled $= %AOG_CatCheck[%i].numChildren)
-         %AOG_CatCheck[%i].setValue(1);
+      if(%AOG_CatCheck[%cat].numEnabled $= %AOG_CatCheck[%cat].numChildren)
+         %AOG_CatCheck[%cat].setValue(1);
    }
    %swatch.resize(0,0,261,%AOG_nextPos);
 }
 
+//- AOG_tickCategory (Handles a category checkbox)
 function AOG_tickCategory(%checkbox)
 {
    for(%i=0;%i<%checkbox.numChildren;%i++)
@@ -5843,6 +7069,7 @@ function AOG_tickCategory(%checkbox)
       %checkbox.numEnabled = 0;
 }
 
+//- AOG_selectNone (Deselects all add-ons except RTB sneakily)
 function AOG_selectNone()
 {
    for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
@@ -5857,6 +7084,7 @@ function AOG_selectNone()
    }
 }
 
+//- AOG_selectAll (Selects all add-ons)
 function AOG_selectAll()
 {
    for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
@@ -5871,25 +7099,18 @@ function AOG_selectAll()
    }
 }
 
+//- AOG_selectDefault (Selects all default add-ons and rtb sneakily)
 function AOG_selectDefault()
 {
+   %defaultList = " Brick_Arch Brick_Large_Cubes Emote_Alarm Emote_Confusion Emote_Hate Emote_Love Item_Skis Light_Animated Light_Basic Particle_Basic Particle_FX_Cans Particle_Grass Particle_Player Player_Fuel_Jet Player_Jump_Jet Player_Leap_Jet Player_No_Jet Player_Quake Print_1x2f_Default Print_2x2f_Default Print_2x2r_Default Print_2x2r_Monitor3 Print_Letters_Default Projectile_GravityRocket Projectile_Pinball Projectile_Pong Projectile_Radio_Wave Sound_Beeps Sound_Phone Sound_Synth4 System_ReturnToBlockland Vehicle_Ball Vehicle_Flying_Wheeled_Jeep Vehicle_Horse Vehicle_Jeep Vehicle_Magic_Carpet Vehicle_Tank Weapon_Bow Weapon_Gun Weapon_Guns_Akimbo Weapon_Horse_Ray Weapon_Push_Broom Weapon_Rocket_Launcher Weapon_Spear Weapon_Sword Script_ClearSpam Print_1x2f_BLPRemote Particle_Tools ";
+   
    AOG_selectNone();
    for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
    {
       %obj = AOG_Scroll.getObject(0).getObject(%i);
       if(%obj.varName !$= "")
       {
-         %isDefault = 0;
-         for(%j=0;%j<$RTB::CModManager::DefaultBLMods;%j++)
-         {
-            if(%obj.varName $= $RTB::CModManager::DefaultBLMod[%j])
-            {
-               %isDefault = 1;
-               break;
-            }
-         }
-         
-         if(%isDefault)
+         if(strPos(%defaultList," "@%obj.varName@" ") >= 0)
          {
             %obj.setValue(1);
             AOG_tickAddon(%obj);
@@ -5898,15 +7119,16 @@ function AOG_selectDefault()
    }
 }
 
+//- AOG_selectMinimal (Selects all the kind-of necessary stuff - rtb included)
 function AOG_selectMinimal()
 {
-   %minimalList = " Brick_Large_Cubes Light_Animated Light_Basic Particle_Basic Particle_FX_Cans Particle_Player Print_1x2f_Default Print_2x2f_Default Print_2x2r_Default Print_Letters_Default Sound_Synth4 Sound_Beeps Sound_Phone ";
+   %minimalList = " Brick_Arch Brick_Large_Cubes Light_Animated Light_Basic Particle_Basic Particle_FX_Cans Particle_Player Print_1x2f_Default Print_2x2f_Default Print_2x2r_Default Print_Letters_Default Sound_Synth4 Sound_Beeps Sound_Phone ";
    
    AOG_selectNone();
    for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
    {
       %obj = AOG_Scroll.getObject(0).getObject(%i);
-      if(%obj.varName !$= "")
+      if(%obj.varName !$= "" && %obj.varName !$= "System_ReturnToBlockland")
       {
          if(strPos(%minimalList," "@%obj.varName@" ") >= 0)
          {
@@ -5917,6 +7139,7 @@ function AOG_selectMinimal()
    }
 }
 
+//- AOG_tickAddon (Checks to see if category should be ticked too)
 function AOG_tickAddon(%checkbox)
 {
    if(%checkbox.getValue() $= 1)
@@ -5930,6 +7153,7 @@ function AOG_tickAddon(%checkbox)
       %checkbox.parent.setValue(0);
 }
 
+//- addonsGui::onSleep (Save all the preferences and changes)
 function addonsGui::onSleep()
 {
    for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
@@ -5942,317 +7166,3 @@ function addonsGui::onSleep()
    }
    export("$AddOn__*","config/server/ADD_ON_LIST.cs");
 }
-
-//*********************************************************
-//* Server-Client MOD Support
-//*********************************************************
-function RTBMM_loadExistingRTBMods()
-{
-   clientUpdateAddOnsList();
-   
-   if(isObject(RTBMM_MODManifest))
-      RTBMM_MODManifest.delete();
-      
-   new SimGroup(RTBMM_MODManifest);
-   
-	%mod = FindFirstFile("Add-Ons/*_*/rtbInfo.txt");
-	while(strLen(%mod) > 0)
-	{
-	   %modName = getSubStr(%mod,8,strLen(%mod)-20);
-	   %modVarName = getSafeVariableName(%modName);
-	   if($AddOn__[%modVarName] !$= "" || (isFile("Add-Ons/"@%modName@"/client.cs") && isFile("Add-Ons/"@%modName@"/description.txt")) || %isValidMap)
-	   {
-	      %descriptionData = getFileContents("Add-Ons/"@%modName@"/description.txt");
-	      %rtbData = getFileContents(%mod);
-	      %title = RTBMM_getFieldFromContents(%descriptionData,"Title");
-	      if(%title $= "0")
-            %title = %modName;
-         %author = RTBMM_getFieldFromContents(%descriptionData,"Author");
-         if(%author $= "0")
-            %author = "Unknown";
-         %so = new ScriptObject()
-         {
-            class = "ModSO";
-            variableName = %modVarName;
-            zipName = %modName;
-            name = RTBMM_getFieldFromContents(%rtbData,"Name");
-            title = %title;
-            author = %author;
-            description = RTBMM_getFieldFromContents(%descriptionData);
-            version = RTBMM_getFieldFromContents(%rtbData,"Version");
-            id = RTBMM_getFieldFromContents(%rtbData,"ID");
-            icon = RTBMM_getFieldFromContents(%rtbData,"Icon");
-            type = RTBMM_getFieldFromContents(%rtbData,"Type");
-            path = "Add-Ons/"@%modName@"/";
-            zip = "Add-Ons/"@%modName@".zip";
-         };
-         RTBMM_MODManifest.add(%so);
-         
-         if(isFile("Add-Ons/"@%modName@"/client.cs") && isFile("Add-Ons/"@%modName@"/description.txt") && !isFile("Add-Ons/"@%modName@"/server.cs"))
-            %so.isClientside = 1;
-	   }
-		%mod = FindNextFile("Add-Ons/*_*/rtbInfo.txt");
-	}
-	
-	%mod = FindFirstFile("Add-Ons/*_*/*.mis");
-	while(strLen(%mod) > 0)
-	{
-	   %misName = getSubStr(getField(strReplace(%mod,"/","\t"),2),0,strLen(getField(strReplace(%mod,"/","\t"),2))-4);
-	   %modName = getField(strReplace(%mod,"/","\t"),1);
-	   %modVarName = getSafeVariableName(%modName);
-	   if(isFile("Add-Ons/"@%modName@"/"@%misName@".txt") && isFile("Add-Ons/"@%modName@"/rtbInfo.txt"))
-	   {
-	      %descriptionData = getFileContents("Add-Ons/"@%modName@"/"@%misName@".txt");
-	      %rtbData = getFileContents("Add-Ons/"@%modName@"/rtbInfo.txt");
-	      %title = RTBMM_getFieldFromContents(%descriptionData,"Title");
-	      if(%title $= "0")
-            %title = %modName;
-         %author = RTBMM_getFieldFromContents(%descriptionData,"Author");
-         if(%author $= "0")
-            %author = "Unknown";
-         %so = new ScriptObject()
-         {
-            class = "ModSO";
-            variableName = %modVarName;
-            zipName = %modName;
-            name = RTBMM_getFieldFromContents(%rtbData,"Name");
-            title = %title;
-            author = %author;
-            description = RTBMM_getFieldFromContents(%descriptionData);
-            version = RTBMM_getFieldFromContents(%rtbData,"Version");
-            id = RTBMM_getFieldFromContents(%rtbData,"ID");
-            icon = RTBMM_getFieldFromContents(%rtbData,"Icon");
-            type = RTBMM_getFieldFromContents(%rtbData,"Type");
-            path = "Add-Ons/"@%modName@"/";
-            zip = "Add-Ons/"@%modName@".zip";
-            isMap = 1;
-         };
-         RTBMM_MODManifest.add(%so);
-	   }
-		%mod = FindNextFile("Add-Ons/*_*/*.mis");
-	}
-}
-RTBMM_InitiateDownloadQueue();
-RTBMM_InitiateScreenshotGrabber();
-RTBMM_InitateFeedControl();
-
-//*********************************************************
-//* Public Support Functions
-//*********************************************************
-function RTBMM_getDelimitedMods()
-{
-   for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-   {
-      %SO = RTBMM_MODManifest.getObject(%i);
-      if(%delimitedString $= "")
-         %delimitedString = %SO.id;
-      else
-         %delimitedString = %delimitedString@","@%SO.id;
-   }
-   return %delimitedString;
-}
-function RTBMM_hasFile(%id)
-{
-   if(RTBMM_DownloadQueue.hasFile(%id))
-      return 1;
-      
-   for(%i=0;%i<RTBMM_MODManifest.getCount();%i++)
-   {
-      %SO = RTBMM_MODManifest.getObject(%i);
-      if(%SO.id $= %id)
-         return 1;
-   }
-   return 0;
-}
-function RTBMM_parseComment(%comment,%commentOdd)
-{
-   %comment = strReplace(%comment,"&quot;","\"");
-   %comment = strReplace(%comment,"&amp;","&");
-   %comment = strReplace(%comment,"&lt;","<<spush><spop>");
-   %comment = strReplace(%comment,"&gt;","<spush><spop>>");
-   %comment = strReplace(%comment,"[/color]","<spop>");
-   
-   %size = 14;
-   for(%i=0;%i<strLen(%comment);%i++)
-   {
-      if(getSubStr(%comment,%i,7) $= "[color=")
-      {
-         %colorType = getSubStr(%comment,%i+7,strLen(%comment));
-         %endBracket = strPos(%colorType,"]");
-         %colorType = getSubStr(%colorType,0,strPos(%colorType,"]"));
-         if(getSubStr(%colorType,0,1) $= "#")
-         {
-            %colorType = getSubStr(%colorType,1,6);
-         }
-         else
-         {
-            %colorType = strUpr(%colorType);
-            if($RTB::CModManager::Style::Color[%colorType] !$= "")
-               %colorType = $RTB::CModManager::Style::Color[%colorType];
-         }
-         %comment = getSubStr(%comment,0,%i)@"<spush><color:"@%colorType@">"@getSubStr(%comment,%i+%endBracket+8,strLen(%comment));
-         %i = %i+%endBracket+8;
-      }
-      else if(getSubStr(%comment,%i,4) $= "[url")
-      {
-         if(getSubStr(%comment,%i+4,1) $= "=")
-         {
-            %remain = getSubStr(%comment,%i+5,strLen(%comment));
-            %url = getSubStr(%remain,0,strPos(%remain,"]"));
-            %remain = getSubStr(%remain,strPos(%remain,"]")+1,strLen(%remain));
-            %text = getSubStr(%remain,0,strPos(%remain,"[/url]"));
-            
-            %comment = getSubStr(%comment,0,%i)@"<a:"@%url@">"@%text@"</a>"@getSubStr(%comment,%i+6+strLen(%url)+6+strLen(%text),strLen(%comment));
-         }
-         else
-         {
-            %remain = getSubStr(%comment,%i+5,strLen(%comment));
-            %url = getSubStr(%remain,0,strPos(%remain,"[/url]"));
-            
-            %comment = getSubStr(%comment,0,%i)@"<a:"@%url@">"@%url@"</a>"@getSubStr(%comment,%i+5+strLen(%url)+6,strLen(%comment));
-         }
-      }
-      else if(getSubStr(%comment,%i,6) $= "[size=")
-      {
-         %size = getSubStr(%comment,%i+6,strLen(%comment));
-         %endBracket = strPos(%size,"]");
-         %size = getSubStr(%size,0,%endBracket);
-         %size += 2;
-         
-         %comment = getSubStr(%comment,0,%i)@"<spush><font:Arial"@%fontBold@%fontItalic@":"@%size@">"@getSubStr(%comment,%i+%endBracket+7,strLen(%comment));
-         %i = %i+%endBracket+7;
-      }
-      else if(getSubStr(%comment,%i,7) $= "[/size]")
-      {
-         %size = 14;
-         %comment = getSubStr(%comment,0,%i)@"<spush><font:Arial"@%fontBold@%fontItalic@":"@%size@">"@getSubStr(%comment,%i+7,strLen(%comment));
-         %i = %i+3;
-      }
-      else if(getSubStr(%comment,%i,3) $= "[i]")
-      {
-         %fontItalic = " Italic";
-         %comment = getSubStr(%comment,0,%i)@"<spush><font:Arial"@%fontBold@%fontItalic@":"@%size@">"@getSubStr(%comment,%i+3,strLen(%comment));
-         %i = %i+3;
-      }
-      else if(getSubStr(%comment,%i,4) $= "[/i]")
-      {
-         %fontItalic = "";
-         %comment = getSubStr(%comment,0,%i)@"<spop>"@getSubStr(%comment,%i+4,strLen(%comment));
-         %i = %i+4;
-      }
-      else if(getSubStr(%comment,%i,3) $= "[b]")
-      {
-         %fontBold = " Bold";
-         %comment = getSubStr(%comment,0,%i)@"<spush><font:Arial"@%fontBold@%fontItalic@":"@%size@">"@getSubStr(%comment,%i+3,strLen(%comment));
-         %i = %i+3;
-      }
-      else if(getSubStr(%comment,%i,4) $= "[/b]")
-      {
-         %fontBold = "";
-         %comment = getSubStr(%comment,0,%i)@"<spop>"@getSubStr(%comment,%i+4,strLen(%comment));
-         %i = %i+4;
-      }
-      else if(getSubStr(%comment,%i,6) $= "[quote")
-      {
-         if(getSubStr(%comment,%i+6,1) $= "=")
-         {
-            %author = getSubStr(%comment,%i+7,strLen(%comment));
-            %endBracket = strPos(%author,"]");
-            %endQuote = strPos(%author,"[/quote]");
-            %author = getSubStr(%author,0,%endBracket);
-            %author = strReplace(%author,"\"","");
-            %endBracket++;
-         }
-         else
-         {
-            %remaining = getSubStr(%comment,%i+7,strLen(%comment));
-            %endBracket = 0;
-            %endQuote = strPos(%remaining,"[/quote]");
-         }
-
-         //one of the worst hacks i've had to do ever :(
-         %ml = new GuiMLTextCtrl()
-         {
-            extent = "339 0";
-            text = "<color:FFFFFF>"@getSubStr(%comment,0,%i)@"<font:Arial Bold:14><br>";
-         };
-         RTBMM_WindowSwatch.add(%ml);
-         %ml.forceReflow();
-         %extent = getWord(%ml.extent,1);
-         %ml.delete();
-         
-         %text = getSubStr(%comment,%i+%endBracket+7,strLen(%comment));
-         %text = getSubStr(%text,0,strPos(%text,"[/quote]"));
-         
-         $RTB::CModManager::Cache::QuoteAuthor[$RTB::CModManager::Cache::NumCommentQuotes] = %author;
-         $RTB::CModManager::Cache::QuoteText[$RTB::CModManager::Cache::NumCommentQuotes] = %text;
-         $RTB::CModManager::Cache::QuoteStart[$RTB::CModManager::Cache::NumCommentQuotes] = %extent;
-         $RTB::CModManager::Cache::NumCommentQuotes++;
-         
-         if(%commentOdd)
-            %color = "F0F0F0";
-         else
-            %color = "DCDCDC";
-         
-         %ml = new GuiMLTextCtrl()
-         {
-            extent = "339 0";
-            text = "<color:777777>"@%text;
-         };
-         RTBMM_WindowSwatch.add(%ml);
-         %ml.forceReflow();
-         %extent = getWord(%ml.extent,1);
-         %ml.delete();
-      
-         %textadd = "<br><spush><color:FFFFFF>"@%text@"<spop><br>";
-         if(%author $= "")
-            %quoteText = "Quote:";
-         else
-            %quoteText = %author@" wrote:";
-            
-         %comment = getSubStr(%comment,0,%i)@"<spush><font:Arial Bold:14><br><color:000000>    "@%quoteText@%textadd@"<spop>"@getSubStr(%comment,%i+%endQuote+7+8,strLen(%comment));
-      }
-   }
-   return %comment;
-}
-
-//*********************************************************
-//* Module Package
-//*********************************************************
-package RTBC_ModManager
-{
-   function verTCPObj::connect(%this,%address)
-   {
-      Parent::connect(%this,%address);
-      
-      if($RTB::Options::CheckForUpdates)
-         RTBMM_ModsView_checkForUpdates(1);
-   }
-
-   function SM_StartMission()
-   {
-      if(RTBMM_DownloadQueue.totalDownloads >= 1)
-      {
-         MessageBoxYesNo("Whoops!","You are not able to start a server while you have files in your Download Queue.\n\nWould you like to view your queue?","canvas.pushDialog(RTB_ModManager);RTBMM_getModsView();","");
-         return;
-      }
-      Parent::SM_StartMission();
-   }
-   
-   function GuiMLTextCtrl::onURL(%this,%url)
-   {
-      if(strPos(%url,"rtb-") $= 0)
-      {
-         RTBMM_OpenDirect();
-         RTBMM_getFileView(getSubStr(%url,4,strLen(%url)-4));
-      }
-      else if(strPos(%url,"pagination-") $= 0)
-      {
-         %page = getSubStr(%url,11,strLen(%url)-11);
-         schedule(1,0,"RTBMM_handlePagination",%page);
-      }
-      else
-         Parent::onURL(%this,%url);
-   }
-};
-activatePackage(RTBC_ModManager);

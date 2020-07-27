@@ -4,7 +4,7 @@ new GuiControl(RTB_ModManager) {
    horizSizing = "right";
    vertSizing = "bottom";
    position = "0 0";
-   extent = "640 480";
+   extent = "800 600";
    minExtent = "8 2";
    visible = "1";
       helpTag = "0";
@@ -13,8 +13,8 @@ new GuiControl(RTB_ModManager) {
       profile = "BlockWindowProfile";
       horizSizing = "center";
       vertSizing = "center";
-      position = "11 6";
-      extent = "618 467";
+      position = "0 0";
+      extent = "800 600";
       minExtent = "8 2";
       visible = "1";
       command = "canvas.popDialog(RTB_ModManager);";
@@ -30,27 +30,65 @@ new GuiControl(RTB_ModManager) {
       minSize = "50 50";
       closeCommand = "canvas.popDialog(RTB_ModManager);";
          helpTag = "0";
-
-      new GuiBitmapButtonCtrl(RTBMM_btnNewsFeed) {
+         
+      new GuiBitmapButtonCtrl(RTBMM_Refresh) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "11 34";
+         position = "10 34";
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getNewsFeedView();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_newsFeed";
+         bitmap = "./images/buttons/large/btnRefresh";
+         command = "RTBMM_Zones_Refresh();";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_HistoryForward) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "63 34";
+         extent = "30 25";
+         minExtent = "8 2";
+         visible = "1";
+         text = "\c1";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./images/buttons/large/btnHistoryForward";
+         command = "RTBMM_Zones_Forward();";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiBitmapButtonCtrl(RTBMM_HistoryBack) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "11 34";
+         extent = "29 25";
+         minExtent = "8 2";
+         visible = "1";
+         text = "\c1";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./images/buttons/large/btnHistoryBack";
+         command = "RTBMM_Zones_Back();";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiBitmapButtonCtrl(RTBMM_btnNewsFeed) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
@@ -58,18 +96,18 @@ new GuiControl(RTB_ModManager) {
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getCategoryView();";
+         command = "RTBMM_NewsFeedView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_browse";
+         bitmap = "./images/buttons/large/btnNewsFeed";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnBrowse) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
@@ -77,18 +115,18 @@ new GuiControl(RTB_ModManager) {
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getPresetsView();";
+         command = "RTBMM_CategoryView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_presets";
+         bitmap = "./images/buttons/large/btnBrowse";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnPacks) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
@@ -96,18 +134,18 @@ new GuiControl(RTB_ModManager) {
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getUserFavouritesView();";
+         command = "RTBMM_PacksView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_toplist";
+         bitmap = "./images/buttons/large/btnPacks";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnToplist) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
@@ -115,18 +153,18 @@ new GuiControl(RTB_ModManager) {
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getSearchView();";
+         command = "RTBMM_TopListView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_search";
+         bitmap = "./images/buttons/large/btnTopList";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnSearch) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
@@ -134,499 +172,306 @@ new GuiControl(RTB_ModManager) {
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getAllFilesView();";
+         command = "RTBMM_SearchView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_allfiles";
+         bitmap = "./images/buttons/large/btnSearch";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnRecent) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "11 234";
+         position = "11 214";
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getDownloadsView();";
+         command = "RTBMM_RecentView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_transfers";
+         bitmap = "./images/buttons/large/btnRecent";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiBitmapButtonCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnAllFiles) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "11 264";
+         position = "11 244";
          extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         command = "RTBMM_getModsView();";
+         command = "RTBMM_AllFilesView_Init();";
          text = "\c1";
          groupNum = "-1";
          buttonType = "PushButton";
-         bitmap = "./images/buttons/link_yourmods";
+         bitmap = "./images/buttons/large/btnAllFiles";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
-      new GuiSwatchCtrl() {
+      new GuiBitmapButtonCtrl(RTBMM_btnTransfers) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "100 35";
-         extent = "505 421";
+         position = "11 294";
+         extent = "82 25";
          minExtent = "8 2";
          visible = "1";
-         color = "255 255 255 255";
+         command = "RTBMM_TransferView_Init();";
+         text = "\c1";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./images/buttons/large/btnTransfers";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
       };
-      new GuiBitmapCtrl() {
+      new GuiBitmapCtrl(RTBMM_iconTransfers) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "131 155";
-         extent = "434 150";
+         position = "15 286";
+         extent = "16 16";
          minExtent = "8 2";
-         visible = "1";
-         bitmap = "./images/rtbmsbackground";
+         visible = "0";
+         bitmap = "./images/icon_rounder";
          wrap = "0";
          lockAspectRatio = "0";
          alignLeft = "0";
          overflowImage = "0";
          keepCached = "0";
+         
+         new GuiMLTextCtrl(RTBMM_iconTransfers_lDigit) {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "-2 3";
+            extent = "16 10";
+            minExtent = "8 2";
+            visible = "1";
+            lineSpacing = "2";
+            allowColorChars = "0";
+            maxChars = "-1";
+            text = "<color:FFFFFF><font:Verdana Bold:10><just:center>0";
+            maxBitmapHeight = "-1";
+            selectable = "1";
+         };
+         
+         new GuiMLTextCtrl(RTBMM_iconTransfers_rDigit) {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "2 3";
+            extent = "16 10";
+            minExtent = "8 2";
+            visible = "1";
+            lineSpacing = "2";
+            allowColorChars = "0";
+            maxChars = "-1";
+            text = "<color:FFFFFF><font:Verdana Bold:10><just:center>0";
+            maxBitmapHeight = "-1";
+            selectable = "1";
+         };
+         
+         new GuiMLTextCtrl(RTBMM_iconTransfers_cDigit) {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "0 3";
+            extent = "16 10";
+            minExtent = "8 2";
+            visible = "1";
+            lineSpacing = "2";
+            allowColorChars = "0";
+            maxChars = "-1";
+            text = "<color:FFFFFF><font:Verdana Bold:10><just:center>0";
+            maxBitmapHeight = "-1";
+            selectable = "1";
+         };
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "11 324";
+         extent = "82 25";
+         minExtent = "8 2";
+         visible = "1";
+         command = "RTBMM_ModsView_Init();";
+         text = "\c1";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "./images/buttons/large/btnYourMods";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      //new GuiBitmapButtonCtrl() {
+         //profile = "GuiDefaultProfile";
+         //horizSizing = "right";
+         //vertSizing = "bottom";
+         //position = "11 536";
+         //extent = "82 25";
+         //minExtent = "8 2";
+         //visible = "1";
+         //command = "RTBBT_PushBugReporter(\"MOD Manager\");";
+         //text = "\c1";
+         //groupNum = "-1";
+         //buttonType = "PushButton";
+         //bitmap = "./images/buttons/large/btnSendBug";
+         //lockAspectRatio = "0";
+         //alignLeft = "0";
+         //overflowImage = "0";
+         //mKeepCached = "0";
+         //mColor = "255 255 255 255";
+      //};
+      //new GuiBitmapButtonCtrl() {
+         //profile = "GuiDefaultProfile";
+         //horizSizing = "right";
+         //vertSizing = "bottom";
+         //position = "11 566";
+         //extent = "82 25";
+         //minExtent = "8 2";
+         //visible = "1";
+         //command = "canvas.pushdialog(RTB_Manual);";
+         //text = "\c1";
+         //groupNum = "-1";
+         //buttonType = "PushButton";
+         //bitmap = "./images/buttons/large/btnManual";
+         //lockAspectRatio = "0";
+         //alignLeft = "0";
+         //overflowImage = "0";
+         //mKeepCached = "0";
+         //mColor = "255 255 255 255";
+      //};
+      new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "99 34";
+         extent = "681 557";
+         minExtent = "8 2";
+         visible = "1";
+         color = "150 150 150 255";
       };
       new GuiSwatchCtrl() {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
          position = "100 35";
-         extent = "505 421";
-         minExtent = "8 2";
-         visible = "1";
-         color = "255 255 255 200";
-      };
-      new GuiScrollCtrl(RTBMM_ModWindow) {
-         profile = "ColorScrollProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "99 34";
-         extent = "510 423";
-         minExtent = "8 2";
-         visible = "1";
-         willFirstRespond = "1";
-         hScrollBar = "alwaysOff";
-         vScrollBar = "alwaysOn";
-         constantThumbHeight = "0";
-         childMargin = "1 1";
-         rowHeight = "10";
-         columnWidth = "30";
-      };
-      new GuiBitmapButtonCtrl() {
-         profile = "GuiDefaultProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "11 432";
-         extent = "82 25";
-         minExtent = "8 2";
-         visible = "1";
-         command = "canvas.pushdialog(RTB_Manual);";
-         text = "\c1";
-         groupNum = "-1";
-         buttonType = "PushButton";
-         bitmap = "./images/buttons/link_manual";
-         lockAspectRatio = "0";
-         alignLeft = "0";
-         overflowImage = "0";
-         mKeepCached = "0";
-         mColor = "255 255 255 255";
-      };
-      new GuiBitmapButtonCtrl() {
-         profile = "GuiDefaultProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "11 402";
-         extent = "82 25";
-         minExtent = "8 2";
-         visible = "1";
-         command = "RTBBT_PushBugReporter(\"MOD Manager\");";
-         text = "\c1";
-         groupNum = "-1";
-         buttonType = "PushButton";
-         bitmap = "./images/buttons/link_sendbug";
-         lockAspectRatio = "0";
-         alignLeft = "0";
-         overflowImage = "0";
-         mKeepCached = "0";
-         mColor = "255 255 255 255";
-      };
-   };
-};
-
-new GuiControl(RTBMM_AddComment) {
-   profile = "GuiDefaultProfile";
-   horizSizing = "right";
-   vertSizing = "bottom";
-   position = "0 0";
-   extent = "640 480";
-   minExtent = "8 2";
-   visible = "1";
-
-   new GuiWindowCtrl() {
-      profile = "GuiWindowProfile";
-      horizSizing = "center";
-      vertSizing = "center";
-      position = "132 138";
-      extent = "375 204";
-      minExtent = "8 2";
-      visible = "1";
-      text = "Add Comment";
-      maxLength = "255";
-      resizeWidth = "0";
-      resizeHeight = "0";
-      canMove = "1";
-      canClose = "1";
-      canMinimize = "0";
-      canMaximize = "0";
-      minSize = "50 50";
-      command = "canvas.popDialog(RTBMM_AddComment);";
-
-      new GuiBitmapButtonCtrl(RTBMM_SendCommentBtn) {
-         profile = "BlockButtonProfile";
-         horizSizing = "left";
-         vertSizing = "top";
-         position = "271 157";
-         extent = "91 38";
-         minExtent = "8 2";
-         visible = "1";
-         command = "RTBMM_SendComment();";
-         text = "GO >>";
-         groupNum = "-1";
-         buttonType = "PushButton";
-         bitmap = "base/client/ui/button2";
-         lockAspectRatio = "0";
-         alignLeft = "0";
-         overflowImage = "0";
-         mKeepCached = "0";
-         mColor = "100 255 100 255";
-      };
-      new GuiBitmapButtonCtrl() {
-         profile = "BlockButtonProfile";
-         horizSizing = "right";
-         vertSizing = "top";
-         position = "173 157";
-         extent = "91 38";
-         minExtent = "8 2";
-         visible = "1";
-         command = "canvas.popDialog(RTBMM_AddComment);";
-         accelerator = "escape";
-         text = "Cancel";
-         groupNum = "-1";
-         buttonType = "PushButton";
-         bitmap = "base/client/ui/button2";
-         lockAspectRatio = "0";
-         alignLeft = "0";
-         overflowImage = "0";
-         mKeepCached = "0";
-         mColor = "255 255 255 255";
-      };
-      new GuiScrollCtrl() {
-         profile = "GuiScrollProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "13 37";
-         extent = "348 115";
-         minExtent = "8 2";
-         visible = "1";
-         willFirstRespond = "1";
-         hScrollBar = "alwaysOff";
-         vScrollBar = "alwaysOn";
-         constantThumbHeight = "0";
-         childMargin = "1 0";
-         rowHeight = "40";
-         columnWidth = "30";
-
-         new GuiMLTextEditCtrl(RTBMM_CommentText) {
-            profile = "GuiMLTextEditProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "2 1";
-            extent = "331 115";
-            minExtent = "8 2";
-            visible = "1";
-            lineSpacing = "2";
-            allowColorChars = "0";
-            maxChars = "-1";
-            maxBitmapHeight = "-1";
-         };
-      };
-   };
-};
-
-new GuiControl(RTBMM_ViewScreenshot) {
-   profile = "GuiDefaultProfile";
-   horizSizing = "right";
-   vertSizing = "bottom";
-   position = "0 0";
-   extent = "640 480";
-   minExtent = "8 2";
-   visible = "1";
-
-   new GuiSwatchCtrl() {
-      profile = "GuiDefaultProfile";
-      horizSizing = "center";
-      vertSizing = "center";
-      position = "38 15";
-      extent = "564 450";
-      minExtent = "8 2";
-      visible = "1";
-      color = "100 100 100 255";
-
-      new GuiSwatchCtrl() {
-         profile = "GuiDefaultProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "0 0";
-         extent = "562 448";
+         extent = "679 555";
          minExtent = "8 2";
          visible = "1";
          color = "255 255 255 255";
-      };
-      new GuiSwatchCtrl() {
-         profile = "GuiDefaultProfile";
-         horizSizing = "center";
-         vertSizing = "center";
-         position = "2 2";
-         extent = "560 446";
-         minExtent = "8 2";
-         visible = "1";
-         color = "235 235 235 255";
 
-         new GuiBitmapCtrl(RTBMM_VS_Bitmap) {
+         new GuiBitmapCtrl() {
             profile = "GuiDefaultProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "5 5";
-            extent = "550 413";
+            horizSizing = "center";
+            vertSizing = "center";
+            position = "123 202";
+            extent = "434 150";
             minExtent = "8 2";
             visible = "1";
+            bitmap = "./images/image_logoGray";
             wrap = "0";
             lockAspectRatio = "0";
             alignLeft = "0";
             overflowImage = "0";
             keepCached = "0";
          };
-         new GuiMLTextCtrl(RTBMM_VS_Caption) {
-            profile = "RTB_Verdana12Pt";
-            horizSizing = "right";
+      };
+      new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "100 35";
+         extent = "679 555";
+         minExtent = "8 2";
+         visible = "1";
+         color = "255 255 255 200";
+      };
+      new GuiScrollCtrl(RTBMM_ModWindow) {
+         profile = "RTBMM_ScrollProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "99 34";
+         extent = "694 557";
+         minExtent = "8 2";
+         visible = "1";
+         willFirstRespond = "1";
+         hScrollBar = "alwaysOff";
+         vScrollBar = "alwaysOn";
+         constantThumbHeight = "0";
+         childMargin = "0 0";
+         rowHeight = "40";
+         columnWidth = "30";
+      };
+      new GuiSwatchCtrl(RTBMM_WindowOverlay) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "100 35";
+         extent = "679 555";
+         minExtent = "8 2";
+         visible = "0";
+         color = "255 255 255 150";
+      };
+      new GuiSwatchCtrl(RTBMM_BarredOverlay) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "100 35";
+         extent = "679 555";
+         minExtent = "8 2";
+         visible = "0";
+         color = "220 220 220 200";
+
+         new GuiBitmapCtrl() {
+            profile = "GuiDefaultProfile";
+            horizSizing = "center";
+            vertSizing = "center";
+            position = "211 213";
+            extent = "256 128";
+            minExtent = "8 2";
+            visible = "1";
+            bitmap = "./images/image_mmBarred";
+            wrap = "0";
+            lockAspectRatio = "0";
+            alignLeft = "0";
+            overflowImage = "0";
+            keepCached = "0";
+         };
+         new GuiMLTextCtrl(RTBMM_BarredReason) {
+            profile = "GuiMLTextProfile";
+            horizSizing = "center";
             vertSizing = "bottom";
-            position = "6 425";
-            extent = "547 12";
+            position = "26 430";
+            extent = "627 18";
             minExtent = "8 2";
             visible = "1";
             lineSpacing = "2";
             allowColorChars = "0";
             maxChars = "-1";
-            text = " ";
+            text = "<just:center><font:Verdana Bold:18><color:AAAAAA>No reason has been specified.";
             maxBitmapHeight = "-1";
             selectable = "1";
          };
-         new GuiBitmapButtonCtrl() {
-            profile = "GuiDefaultProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "540 5";
-            extent = "15 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "canvas.popDialog(RTBMM_ViewScreenshot);";
-            text = " ";
-            groupNum = "-1";
-            buttonType = "PushButton";
-            bitmap = "./images/buttons/btnLBox";
-            lockAspectRatio = "0";
-            alignLeft = "0";
-            overflowImage = "0";
-            mKeepCached = "0";
-            mColor = "255 255 255 255";
-         };
-      };
-   };
-};
-
-new GuiControl(RTBMM_SyncMods) {
-   profile = "GuiDefaultProfile";
-   horizSizing = "right";
-   vertSizing = "bottom";
-   position = "0 0";
-   extent = "640 480";
-   minExtent = "8 2";
-   visible = "1";
-
-   new GuiWindowCtrl() {
-      profile = "GuiWindowProfile";
-      horizSizing = "center";
-      vertSizing = "center";
-      position = "132 96";
-      extent = "418 287";
-      minExtent = "8 2";
-      visible = "1";
-      text = "Synchronising your Add-Ons";
-      maxLength = "255";
-      resizeWidth = "0";
-      resizeHeight = "0";
-      canMove = "1";
-      canClose = "1";
-      canMinimize = "0";
-      canMaximize = "0";
-      minSize = "50 50";
-      closeCommand = "canvas.popDialog(RTBMM_SyncMods);";
-
-      new GuiScrollCtrl(RTBMM_SyncScroll) {
-         profile = "GuiScrollProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "10 51";
-         extent = "399 189";
-         minExtent = "8 2";
-         visible = "1";
-         willFirstRespond = "1";
-         hScrollBar = "alwaysOff";
-         vScrollBar = "alwaysOn";
-         constantThumbHeight = "0";
-         childMargin = "0 0";
-         rowHeight = "40";
-         columnWidth = "30";
-
-         new GuiSwatchCtrl() {
-            profile = "GuiDefaultProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "1 1";
-            extent = "384 63";
-            minExtent = "8 2";
-            visible = "1";
-            color = "0 0 0 0";
-         };
-      };
-      new GuiTextCtrl(RTBMM_SyncText) {
-         profile = "RTB_Verdana12Pt";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "10 30";
-         extent = "370 18";
-         minExtent = "8 2";
-         visible = "1";
-         text = "Attempting to match your non-rtb add-ons with ones in the RTB system...";
-         maxLength = "255";
-      };
-      new GuiBitmapButtonCtrl(RTBMM_SyncButton) {
-         profile = "GuiDefaultProfile";
-         horizSizing = "center";
-         vertSizing = "bottom";
-         position = "168 250";
-         extent = "82 25";
-         minExtent = "8 2";
-         visible = "1";
-         command = "RTBMM_ModsView_downloadSyncs();";
-         text = " ";
-         groupNum = "-1";
-         buttonType = "PushButton";
-         bitmap = "./images/buttons/link_syncmods";
-         lockAspectRatio = "0";
-         alignLeft = "0";
-         overflowImage = "0";
-         mKeepCached = "0";
-         mColor = "255 255 255 255";
-      };
-   };
-};
-
-new GuiControl(RTBMM_Updates) {
-   profile = "GuiDefaultProfile";
-   horizSizing = "right";
-   vertSizing = "bottom";
-   position = "0 0";
-   extent = "640 480";
-   minExtent = "8 2";
-   visible = "1";
-
-   new GuiWindowCtrl() {
-      profile = "GuiWindowProfile";
-      horizSizing = "center";
-      vertSizing = "center";
-      position = "132 96";
-      extent = "375 287";
-      minExtent = "8 2";
-      visible = "1";
-      closeCommand = "canvas.popDialog(RTBMM_Updates);";
-      text = "Updates Available";
-      maxLength = "255";
-      resizeWidth = "0";
-      resizeHeight = "0";
-      canMove = "1";
-      canClose = "1";
-      canMinimize = "0";
-      canMaximize = "0";
-      minSize = "50 50";
-
-      new GuiScrollCtrl(RTBMM_UpdateScroll) {
-         profile = "GuiScrollProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "10 51";
-         extent = "356 189";
-         minExtent = "8 2";
-         visible = "1";
-         willFirstRespond = "1";
-         hScrollBar = "alwaysOff";
-         vScrollBar = "alwaysOn";
-         constantThumbHeight = "0";
-         childMargin = "0 0";
-         rowHeight = "40";
-         columnWidth = "30";
-      };
-      new GuiTextCtrl() {
-         profile = "RTB_Verdana12Pt";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "10 30";
-         extent = "325 18";
-         minExtent = "8 2";
-         visible = "1";
-         text = "The following updates are available for Add-Ons you have:";
-         maxLength = "255";
-      };
-      new GuiBitmapButtonCtrl() {
-         profile = "GuiDefaultProfile";
-         horizSizing = "center";
-         vertSizing = "bottom";
-         position = "146 250";
-         extent = "82 25";
-         minExtent = "8 2";
-         visible = "1";
-         text = " ";
-         groupNum = "-1";
-         command = "RTBMM_ModsView_downloadUpdates();";
-         buttonType = "PushButton";
-         bitmap = "./images/buttons/link_download";
-         lockAspectRatio = "0";
-         alignLeft = "0";
-         overflowImage = "0";
-         mKeepCached = "0";
-         mColor = "255 255 255 255";
       };
    };
 };

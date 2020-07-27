@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 53 $
+//#      $Date: 2009-04-19 16:12:47 +0100 (Sun, 19 Apr 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_InfoTips.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBC_InfoTips.cs $
 //#
-//#      $Id: RTBC_InfoTips.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBC_InfoTips.cs 53 2009-04-19 15:12:47Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -78,7 +78,7 @@ $RTB::InfoTip[$RTB::InfoTips++] = "You can look at previous chats by pressing <k
 $RTB::InfoTip[$RTB::InfoTips++] = "You can hold the <key:Crouch> key to dive when in water." TAB "Set your crouch key to allow you to dive in water!";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that a person's Blockland ID (BL ID) is unique to them only?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can type <color:FF0000>/zombie<color:000000> to raise your hands infront of you like a zombie?";
-$RTB::InfoTip[$RTB::InfoTips++] = "Do you know what happens when the clock in the Bedroom reaches 99:99? I do, but I won't tell!";
+$RTB::InfoTip[$RTB::InfoTips++] = "Do you know what happens when the clock in the Bedroom reaches 99:59? I do, but I won't tell!";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can press <color:FF0000>tab<color:000000> when in the Brick Selector to switch categories?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that if you spray someone with your paint can, they will temporarily turn the color of your paint can?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that the Hammer can be used as a melee weapon in a mini-game?";
@@ -90,12 +90,12 @@ $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that turning collision off of a 
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that turning rendering off of a brick will make it invisible?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that the delay time of an event is measured in milliseconds? Although it may be inaccurate sometimes if the server is lagging!";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can change between WASD steering and mouse steering for vehicles on the Advanced Configuration section of the options menu?";
-$RTB::InfoTip[$RTB::InfoTips++] = "Bricks that have been fake killed or disappear effectively have raycasting turned off. Bricks without raycasting won't play sounds, so if you want a window to make a breaking sound when shot, you need to put a 33 millisecond delay between the sound and the destruction of the brick.";
 $RTB::InfoTip[$RTB::InfoTips++] = "When mixing a Mojito Cocktail, Did you know that avoiding damage to the the tissue of the mint leaves during mashing, and instead letting the crushed ice cut up the leaves naturally while stirring will give a much more balanced taste?";
-$RTB::InfoTip[$RTB::InfoTips++] = "Pepper! You have to deliver these pizzas to people so you can build your house! ...oops wrong game!";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can double-click a person's name in the IRC to have a private chat with them?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know you can type /me to perform an action in the IRC? For example /me gives a tip would be *Infomaniac gives a tip.";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can open the RTB Server Control using <key:RTBSC_ToggleSC>?" TAB "Did you know that you can bind the Server Control window to a key in your Controls?";
+$RTB::InfoTip[$RTB::InfoTips++] = "You'll never guess what happened - I got picked to help test Ephialtes' RPG! I can't wait!";
+$RTB::RTBInfoTips = $RTB::InfoTips;
 
 //*********************************************************
 //* Main Package
@@ -106,7 +106,7 @@ package RTBC_InfoTips
    {
       Parent::onWake(%this);
       
-      if($RTB::Options::EnableInfoTips)
+      if($RTB::Options::IT::Enable)
          schedule(100,0,"RTBIT_CreateInfoTip");
    }
    
@@ -122,7 +122,8 @@ activatePackage(RTBC_InfoTips);
 //*********************************************************
 //* The Meat
 //*********************************************************
-function RTBIT_CreateInfoTip()
+//- RTBIT_createInfoTip (draws an info tip on the loading gui)
+function RTBIT_createInfoTip()
 {
    if(isEventPending($RTB::CInfoTips::Schedule))
       cancel($RTB::CInfoTips::Schedule);
@@ -141,7 +142,13 @@ function RTBIT_CreateInfoTip()
 
    while(%msg $= "")
    {
-      %tipnum = getRandom(1,$RTB::InfoTips);
+      if($RTB::Options::IT::ShowAddonTips)
+         %tipnum = getRandom(1,$RTB::InfoTips);
+      else
+         %tipnum = getRandom(1,$RTB::RTBInfoTips);
+      
+      if($RTB::LastTip $= %tipnum)
+         continue;      
       
       %tip = $RTB::InfoTip[%tipnum];
       %msg = getField(%tip,0);
@@ -159,7 +166,7 @@ function RTBIT_CreateInfoTip()
       if(%k > 500)
          %msg = "Did you know that I just malfunctioned?\n\nPlease Report It!";
    }
-   $RPG::LastTip = %tipnum;
+   $RTB::LastTip = %tipnum;
 
    %bottom = new GuiBitmapCtrl(LOAD_TipBottom)
    {
@@ -168,7 +175,7 @@ function RTBIT_CreateInfoTip()
       vertSizing = "top";
       position = getWord(LoadingGui.extent,0)-290 SPC getWord(LoadingProgress.position,1)-182;
       extent = "271 161";
-      bitmap = "./images/tipbottom";
+      bitmap = "./images/image_tipBottom";
    };
    LoadingGui.add(%bottom);
 
@@ -189,7 +196,7 @@ function RTBIT_CreateInfoTip()
       vertSizing = "top";
       position = getWord(LoadingGui.extent,0)-290 SPC getWord(%bottom.position,1)-getWord(%text.extent,1);
       extent = "218" SPC getWord(%text.extent,1);
-      bitmap = "./images/tipmiddle";
+      bitmap = "./images/image_tipMiddle";
    };
    LoadingGui.add(%middle);
    %middle.add(%text);
@@ -201,19 +208,20 @@ function RTBIT_CreateInfoTip()
       vertSizing = "top";
       position = getWord(LoadingGui.extent,0)-290 SPC getWord(%middle.position,1)-33;
       extent = "218 33";
-      bitmap = "./images/tiptop";
+      bitmap = "./images/image_tipTop";
    };
    LoadingGui.add(%top);
    
    %msgTime = strLen(%msg)*160;
-   if(%msgTime < 10000)
-      %msgTime = 10000;
+   if(%msgTime < 8000)
+      %msgTime = 8000;
    $RTB::CInfoTips::Schedule = schedule(%msgTime,0,"RTBIT_CreateInfoTip");
 }
 
 //*********************************************************
 //* Support Functions
 //*********************************************************
+//- getKeyBind (gets a text-version of a keybind)
 function getKeyBind(%bindName)
 {
    %device = getField(movemap.getBinding(%bindName), 0);
@@ -250,7 +258,7 @@ function getKeyBind(%bindName)
             %key = "right shift";
          case "lalt":
             %key = "left alt";
-         case "raltt":
+         case "ralt":
             %key = "right alt";
       }
       

@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.03
+//#   Return to Blockland - Version 3.0
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 48 $
-//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Rev: 39 $
+//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBR_InfoTips_Hook.cs $
+//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBR_InfoTips_Hook.cs $
 //#
-//#      $Id: RTBR_InfoTips_Hook.cs 48 2009-03-14 13:47:40Z Ephialtes $
+//#      $Id: RTBR_InfoTips_Hook.cs 39 2009-02-23 10:45:55Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -22,6 +22,7 @@ $RTB::RTBR_InfoTips_Hook = 1;
 //*********************************************************
 //* The Meat
 //*********************************************************
+//- RTB_addInfoTip (allows add-ons to add their own info tips)
 function RTB_addInfoTip(%tip,%nobindtip,%category)
 {
    if(%tip $= "")
@@ -30,7 +31,7 @@ function RTB_addInfoTip(%tip,%nobindtip,%category)
       return 0;
    }
    
-   //category is deprecated for 2.0
+   //category is deprecated for 3.0
    
    $RTB::InfoTip[$RTB::InfoTips++] = %tip TAB %nobindtip;
    
