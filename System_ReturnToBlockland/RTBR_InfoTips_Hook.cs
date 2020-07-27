@@ -1,39 +1,27 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.5
+//#   Return to Blockland - Version 4
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 39 $
-//#      $Date: 2009-02-23 10:45:55 +0000 (Mon, 23 Feb 2009) $
+//#      $Rev: 405 $
+//#      $Date: 2011-03-05 22:09:06 +0000 (Sat, 05 Mar 2011) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.returntoblockland.com/trunk/old/RTBR_InfoTips_Hook.cs $
+//#      $URL: http://svn.returntoblockland.com/code/trunk/client.cs $
 //#
-//#      $Id: RTBR_InfoTips_Hook.cs 39 2009-02-23 10:45:55Z Ephialtes $
+//#      $Id: client.cs 405 2011-03-05 22:09:06Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#   Info Tips Hook (RTBIT/RInfoTipsHook)
+//#   Legacy File
 //#
 //#############################################################################
-//Register that this module has been loaded
-$RTB::RTBR_InfoTips_Hook = 1;
 
-//*********************************************************
-//* The Meat
-//*********************************************************
-//- RTB_addInfoTip (allows add-ons to add their own info tips)
-function RTB_addInfoTip(%tip,%nobindtip,%category)
-{
-   if(%tip $= "")
-   {
-      echo("\c2ERROR: No tip specified in RTB_addInfoTip");
-      return 0;
-   }
+//Load Real Module
+if(!$RTB::Hooks::InfoTips)
+   exec("Add-Ons/System_ReturnToBlockland/hooks/infoTips.cs");
    
-   //category is deprecated for ???
+//Set old indication var
+$RTB::RTBR_InfoTips_Hook = 1;   
    
-   $RTB::InfoTip[$RTB::InfoTips++] = %tip TAB %nobindtip;
-   
-   return 1;
-}
+echo("\c2WARNING: RTBR_InfoTips_Hook.cs has moved. Please alter to use hooks/infoTips.cs");

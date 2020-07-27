@@ -1,21 +1,23 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.5
+//#   Return to Blockland - Version 4
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 112 $
-//#      $Date: 2009-09-05 18:17:49 +0100 (Sat, 05 Sep 2009) $
+//#      $Rev: 515 $
+//#      $Date: 2011-10-16 17:17:04 +0100 (Sun, 16 Oct 2011) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.returntoblockland.com/trunk/client.cs $
+//#      $URL: http://svn.returntoblockland.com/code/trunk/client.cs $
 //#
-//#      $Id: client.cs 112 2009-09-05 17:17:49Z Ephialtes $
+//#      $Id: client.cs 515 2011-10-16 16:17:04Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
 //#   Client Initiation
 //#
 //#############################################################################
+//Register that this module has been loaded
+$RTB::Client = 1;
 
 //*********************************************************
 //* Debug
@@ -28,274 +30,141 @@
 $RTB::Debug = 0;
 
 //*********************************************************
-//* Demo Users
-//* -------------------------------------------------------
-//* Believe it or not this is here for a reason. Go ahead
-//* and remove it and be amazed and astounded when every-
-//* thing falls to shit before your fucking eyes. Idiots.
+//* Variables
 //*********************************************************
-if(!isUnlocked())
-   return;
-
-//*********************************************************
-//* RTB Variables
-//*********************************************************
-$RTB::Version = "3.5";
+$RTB::Version = "4.01";
 $RTB::Path = "Add-Ons/System_ReturnToBlockland/";
 
 //*********************************************************
-//* Load Preferences
+//* Demo Users
+//* -------------------------------------------------------
+//* Believe it or not this is here for a reason.
 //*********************************************************
-$RTB::Options::AU::Enable = 1;
-$RTB::Options::CA::AuthWithRTB = 1;
-$RTB::Options::CA::Privacy::ShowOnline = 1;
-$RTB::Options::CA::Privacy::ShowServer = 1;
-$RTB::Options::CD::DownloadContent = 1;
-$RTB::Options::GT::Enable = 1;
-$RTB::Options::IC::AllowPM = 1;
-$RTB::Options::IC::AutoConnect = 1;
-$RTB::Options::IC::PMAudioNotify = 1;
-$RTB::Options::IC::PMVisualNotify = 1;
-$RTB::Options::IC::Filter::ShowActions = 1;
-$RTB::Options::IC::Filter::ShowConnects = 1;
-$RTB::Options::IC::Filter::ShowDisconnects = 0;
-$RTB::Options::IT::Enable = 1;
-$RTB::Options::IT::ShowAddonTips = 1;
-$RTB::Options::MM::AnimateGUI = 1;
-$RTB::Options::MM::WarnFailed = 1;
-$RTB::Options::MM::DisableFailed = 1;
-$RTB::Options::MM::CheckForUpdates = 1;
-$RTB::Options::MM::DownloadScreenshots = 1;
-$RTB::Options::SA::PostServer = 1;
-$RTB::Options::SA::Privacy::ShowPlayers = 1;
-
-if(isFile("config/client/rtb/prefs.cs"))
-	exec("config/client/rtb/prefs.cs");
-else
+if(!isUnlocked())
 {
-   echo("Exporting rtb prefs");
-   export("$RTB::Options*","config/client/rtb/prefs.cs");
+   $RTB::Client = 0;
+   echo("\c2ERROR: RTB failed to load because you are in demo mode.");
+   return;
 }
 
+//*********************************************************
+//* RTB Group for keeping stuff in
+//*********************************************************
+if(!isObject(RTBGroup))
+   new SimGroup(RTBGroup);
+
+//*********************************************************
+//* Load Prefs
+//*********************************************************
+exec("./modules/client/options.cs");
+RTBCO_setDefaultPrefs();
+if(isFile("config/client/rtb/prefs.cs"))
+   exec("config/client/rtb/prefs.cs");
+   
+//*********************************************************
+//* Always enable RTB
+//*********************************************************
 if(isFile("config/server/ADD_ON_LIST.cs"))
    exec("config/server/ADD_ON_LIST.cs");
 else
    exec("base/server/defaultAddonList.cs");
-   
 $AddOn__System_ReturnToBlockland = 1;
 export("$AddOn__*","config/server/ADD_ON_LIST.cs");
 
 //*********************************************************
-//* RTB Support Functions
+//* Load GUI Profiles
 //*********************************************************
-//- RTB_LoadDefaultPrefs (Deletes RTB variables and replaces them with default ones)
-function RTB_LoadDefaultPrefs()
-{
-   deleteVariables("$RTB::Options*");
-   $RTB::Options::AU::Enable = 1;
-   $RTB::Options::CA::AuthWithRTB = 1;
-   $RTB::Options::CA::Privacy::ShowOnline = 1;
-   $RTB::Options::CA::Privacy::ShowServer = 1;
-   $RTB::Options::GT::Enable = 1;
-   $RTB::Options::IC::AllowPM = 1;
-   $RTB::Options::IC::AutoConnect = 1;
-   $RTB::Options::IC::PMAudioNotify = 1;
-   $RTB::Options::IC::PMVisualNotify = 1;
-   $RTB::Options::IC::Filter::ShowActions = 1;
-   $RTB::Options::IC::Filter::ShowConnects = 1;
-   $RTB::Options::IC::Filter::ShowDisconnects = 0;
-   $RTB::Options::IT::Enable = 1;
-   $RTB::Options::IT::ShowAddonTips = 1;
-   $RTB::Options::MM::AnimateGUI = 1;
-   $RTB::Options::MM::WarnFailed = 1;
-   $RTB::Options::MM::DisableFailed = 1;
-   $RTB::Options::MM::CheckForUpdates = 1;
-   $RTB::Options::MM::DownloadScreenshots = 1;
-   $RTB::Options::SA::PostServer = 1;
-   $RTB::Options::SA::Privacy::ShowPlayers = 1;
-   echo("Exporting rtb prefs");
-   export("$RTB::Options*","config/client/rtb/prefs.cs");
-}
-
-//- If this pref is unset, we have outdated prefs so purge & reload
-if($RTB::Options::CA::AuthWithRTB $= "")
-{
-   RTB_LoadDefaultPrefs();
-}
+exec("./interface/profiles/generic.cs");
+exec("./interface/profiles/connectClient.cs");
+exec("./interface/profiles/infoTips.cs");
+exec("./interface/profiles/modManager.cs");
 
 //*********************************************************
-//* Load Prerequisites
+//* Load Support
 //*********************************************************
-exec("./RTBC_Profiles.cs");
-exec("./RTBH_Support.cs");
+exec("./support/fileCache.cs");
+exec("./support/functions.cs");
+exec("./support/gui.cs");
+exec("./support/networking.cs");
+exec("./support/overlay.cs");
+exec("./support/xmlParser.cs");
+
+//*********************************************************
+//* Runtime Functions
+//*********************************************************
+RTB_FileCache.refresh();
+
+//*********************************************************
+//* Load Interface
+//*********************************************************
+exec("./interface/overlay.gui");
+exec("./interface/mods/addOns.cs");
+exec("./interface/mods/joinServer.cs");
+exec("./interface/mods/loading.cs");
+exec("./interface/mods/mainMenu.cs");
+exec("./interface/mods/startMission.cs");
+exec("./interface/colorManager.gui");
+exec("./interface/connectClient.gui");
+exec("./interface/manual.gui");
+exec("./interface/modManager.gui");
+exec("./interface/modUpdates.gui");
+exec("./interface/options.gui");
+exec("./interface/serverControl.gui");
+exec("./interface/serverInformation.gui");
+exec("./interface/updater.gui");
 
 //*********************************************************
 //* Load Modules
 //*********************************************************
-exec("./RTBC_Authentication.cs");
-exec("./RTBC_ColorManager.cs");
-exec("./RTBC_ContentDownload.cs");
-exec("./RTBC_GUITransfer.cs");
-exec("./RTBC_InfoTips.cs");
-exec("./RTBC_IRCClient.cs");
-exec("./RTBC_Manual.cs");
-exec("./RTBC_ModManager.cs");
-exec("./RTBC_Options.cs");
-exec("./RTBC_ServerControl.cs");
-exec("./RTBC_ServerInformation.cs");
-exec("./RTBC_Updater.cs");
+exec("./modules/client/authentication.cs");
+exec("./modules/client/colorManager.cs");
+exec("./modules/client/connectClient.cs");
+exec("./modules/client/guiControl.cs");
+exec("./modules/client/guiTransfer.cs");
+exec("./modules/client/infoTips.cs");
+exec("./modules/client/manual.cs");
+exec("./modules/client/modManager.cs");
+exec("./modules/client/serverControl.cs");
+exec("./modules/client/serverInformation.cs");
+exec("./modules/client/updater.cs");
 
 //*********************************************************
-//* Load Replacement GUI
+//* Activate Packages
 //*********************************************************
-if(isObject(AddOnsGui))
-{
-   AddOnsGui.delete();
-   exec("./BL_AddOnsGui.gui");
-}
+activatePackage(RTB_Support_Networking);
+activatePackage(RTB_Modules_Client_Authentication);
+activatePackage(RTB_Modules_Client_ConnectClient);
+activatePackage(RTB_Modules_Client_InfoTips);
+activatePackage(RTB_Modules_Client_GuiTransfer);
+activatePackage(RTB_Modules_Client_ServerControl);
+activatePackage(RTB_Modules_Client_ServerInformation);
 
-if(isObject(JoinServerGui))
+//*********************************************************
+//* Version Establishment
+//*********************************************************
+//- clientCmdSendRTBVersion (Receives the server's RTB version and whether it has RTB)
+function clientCmdSendRTBVersion(%version)
 {
-   JoinServerGui.clear();
-   exec("./BL_JoinServerGui.gui");
-   JoinServerGui.add(RTBJS_window);
-   RTBJS_window.setName("JS_window");
-}
-
-if(!isObject(MM_RTBForumsButton))
-{
-   %btn = new GuiBitmapButtonCtrl(MM_RTBForumsButton)
-   {
-      profile = "GuiDefaultProfile";
-      horizSizing = "relative";
-      vertSizing = "relative";
-      position = "416 240";
-      extent = "224 40";
-      minExtent = "8 2";
-      visible = "1";
-      text = " ";
-      groupNum = "-1";
-      buttonType = "PushButton";
-      bitmap = $RTB::Path@"images/buttons/menu/btnForums";
-      command = "gotoWebPage(\"http://forum.returntoblockland.com/\");";
-      lockAspectRatio = "1";
-      alignLeft = "1";
-      overflowImage = "0";
-      mKeepCached = "1";
-      mColor = "255 255 255 255";
-   };
-   MainMenuGui.add(%btn);
-}
-function MM_RTBForumsButton::onMouseEnter(%this)
-{
-   if($Pref::Audio::MenuSounds)
-	   alxPlay(Note11Sound);
-}
-
-if(!isObject(MM_RTBLogo))
-{
-   %bitmap = new GuiBitmapCtrl(MM_RTBLogo)
-   {
-      profile = "GuiDefaultProfile";
-      horizSizing = "relative";
-      vertSizing = "relative";
-      position = "460 -10";
-      extent = "193 131";
-      minExtent = "8 2";
-      visible = "1";
-      bitmap = $RTB::Path@"images/image_logo";
-      lockAspectRatio = "1";
-      alignLeft = "1";
-      overflowImage = "0";
-      mKeepCached = "1";
-      mColor = "255 255 255 255";
-   };
-   MainMenuGui.add(%bitmap);
-   
-   %bitmap = new GuiBitmapCtrl(MM_RTBAmpersand)
-   {
-      profile = "GuiDefaultProfile";
-      horizSizing = "relative";
-      vertSizing = "relative";
-      position = "414 16";
-      extent = "36 64";
-      minExtent = "8 2";
-      visible = "1";
-      bitmap = $RTB::Path@"images/image_ampersand";
-      lockAspectRatio = "1";
-      alignLeft = "1";
-      overflowImage = "0";
-      mKeepCached = "1";
-      mColor = "255 255 255 255";
-   };
-   MainMenuGui.add(%bitmap);
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = "GuiDefaultProfile";
-      horizSizing = "relative";
-      vertSizing = "relative";
-      position = "385 160";
-      extent = "95 45";
-      minExtent = "8 2";
-      visible = "1";
-      color = "0 0 0 0";
-   };
-   MainMenuGui.add(%swatch);
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = "GuiDefaultProfile";
-      horizSizing = "relative";
-      vertSizing = "relative";
-      position = "368 200";
-      extent = "146 80";
-      minExtent = "8 2";
-      visible = "1";
-      color = "0 0 0 0";
-   };
-   MainMenuGui.add(%swatch);
-   
-   %swatch = new GuiSwatchCtrl()
-   {
-      profile = "GuiDefaultProfile";
-      horizSizing = "relative";
-      vertSizing = "relative";
-      position = "397 278";
-      extent = "167 80";
-      minExtent = "8 2";
-      visible = "1";
-      color = "0 0 0 0";
-   };
-   MainMenuGui.add(%swatch);
-   
-   %version = new GuiTextCtrl()
-   {
-      profile = "RTB_VersionProfile";
-      horizSizing = "left";
-      vertSizing = "bottom";
-      position = "469 1";
-      extent = "165 16";
-      minExtent = "8 2";
-      visible = "1";
-      text = "Version: "@$RTB::Version;
-   };
-   MainMenuGui.add(%version);
+   $RTB::Client::Cache::ServerHasRTB = 1;
+   $RTB::Client::Cache::ServerRTBVersion = firstWord(%version);
 }
 
 //*********************************************************
-//* RTB Client Package
+//* Packaged Functions
 //*********************************************************
 package RTB_Client
 {
    function disconnectedCleanup()
    {
-      deleteVariables("$RTB::CServerControl::Cache::*");
+      deleteVariables("$RTB::Client::Cache::*");
       Parent::disconnectedCleanup();
    }
    
 	function onExit()
 	{
+	   if(RTBCC_Socket.connected)
+	      RTBCC_Socket.hardDisconnect();
+	      
 		Parent::onExit();
 		echo("Exporting rtb prefs");
 		export("$RTB::Options*","config/client/rtb/prefs.cs");
@@ -304,18 +173,6 @@ package RTB_Client
    function GameConnection::setConnectArgs(%a,%b,%c,%d,%e,%f)
    {
       Parent::setConnectArgs(%a,%b,%c,%d,%e,%f,$RTB::Version);
-   }
-   
-   function loadMainMenu()
-   {
-      Parent::loadMainMenu();
-      
-      RTBMM_checkForUpdates();
-      
-      if($platform !$= "windows")
-      {
-         RTBCA_getWinFonts();
-      }
    }
 };
 activatePackage(RTB_Client);
