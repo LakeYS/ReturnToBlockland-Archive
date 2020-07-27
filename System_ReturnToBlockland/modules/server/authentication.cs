@@ -125,10 +125,7 @@ function RTB_Server_Authentication::getPlayerList(%this)
       if(%client_ip $= "local")
          %client_state = 3;
       else
-      {
-         %client_ip = getSubStr(%client_ip,3,strLen(%client_ip));
          %client_ip = getSubStr(%client_ip,0,strPos(%client_ip,":"));
-      }
          
       %playerList = (%playerList $= "") ? %client_name@";"@%client_ip@";"@%client_score@";"@%client_state : %playerList@"~"@%client_name@";"@%client_ip@";"@%client_score@";"@%client_state;
    }

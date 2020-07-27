@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 283 $
-//#      $Date: 2012-08-12 12:33:12 +0100 (Sun, 12 Aug 2012) $
+//#      $Rev: 492 $
+//#      $Date: 2013-04-21 12:36:33 +0100 (Sun, 21 Apr 2013) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/client/serverControl.cs $
 //#
-//#      $Id: serverControl.cs 283 2012-08-12 11:33:12Z Ephialtes $
+//#      $Id: serverControl.cs 492 2013-04-21 11:36:33Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -742,6 +742,57 @@ function RTBSC_Pane3::render()
             };
             %ctrlRow.add(%input);
          }
+         else if(firstWord(%type) $= "num")  //basically int with support for decimals
+         {
+            %input = new GuiTextEditCtrl(%inputName) {
+               profile = "RTB_TextEditProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "150 7";
+               extent = "150 16";
+               minExtent = "8 2";
+               visible = "1";
+               maxLength = strLen(getWord(%type,2))+1;
+               historySize = "0";
+               password = "0";
+               tabComplete = "0";
+               sinkAllKeyEvents = "0";
+               fieldMin = getWord(%type,1);
+               fieldMax = getWord(%type,2);
+               command = "RTBSC_PF_ValidateNum($ThisControl);";
+            };
+            %ctrlRow.add(%input);
+         }
+         else if(firstWord(%type) $= "float")
+         {
+            %inputnameB = %inputname@"_ChildText";
+
+            %input = new GuiSliderCtrl(%inputName) {
+               profile = "GuiSliderProfile";
+               horizSizing = "right";
+               vertSizing = "bottom";
+               position = "150 5";
+               extent = "100 20";
+               minExtent = "8 2";
+               visible = "1";
+               ticks = "12";
+               snap = "0";
+               range = getWord(%type, 1) SPC getWord(%type, 2);
+               textbox = %inputnameB;
+               command = "RTBSC_PF_ValidateFloat($ThisControl);";
+            };
+            %ctrlRow.add(%input);
+
+            %inputB = new GuiTextCtrl(%inputnameB) {
+               profile = "GuiTextProfile";
+               horizSizing = "right";
+               VertSizing = "bottom";
+               position = "255 5";
+               text = " ";
+               visible = "1";
+            };
+            %ctrlRow.add(%inputB);
+         }
          else if(firstWord(%type) $= "bool")
          {
             %input = new GuiCheckboxCtrl(%inputName) {
@@ -868,6 +919,9 @@ function RTBSC_applyPrefsToControls()
          %ctrl.setSelected(%value);
       else
          %ctrl.setValue(%value);
+         
+      if(isObject(%ctrl.textbox)) //currently, the only pref that uses this is the slider
+         RTBSC_PF_ValidateFloat(%ctrl);
    }
 }
 
@@ -957,6 +1011,43 @@ function RTBSC_PF_ValidateInt(%ctrl)
       %value = %ctrl.fieldMin;
       
    %ctrl.setValue(%value);
+}
+
+//- RTBSC_PF_ValidateNum (Validates "real numbers" - Implemented by Wheatley BL_ID 11953)
+function RTBSC_PF_ValidateNum(%ctrl)
+{
+   if(%ctrl.getValue() $= "")
+      return;
+   if(%ctrl.getValue() $= "-")
+      return;   
+   
+   %decPos = strPos(%ctrl.getValue(), ".");
+   %floatLen = strLen(getSubStr(%ctrl.getValue(), %decPos+1, 2));
+   if(%decPos != -1 && %floatLen != 0)
+   {
+      %value = mFloatLength(%ctrl.getValue(),%floatLen);
+   
+      if(%value > %ctrl.fieldMax)
+         %value = %ctrl.fieldMax;
+      
+      if(%value < %ctrl.fieldMin)
+         %value = %ctrl.fieldMin;
+   }
+   else 
+   {
+      %value = %ctrl.getValue();
+   }
+      
+   %ctrl.setValue(%value);
+}
+
+//- RTBSC_PF_ValidateFloat (Validates floats - Implemented by Wheatley BL_ID 11953)
+function RTBSC_PF_ValidateFloat(%ctrl)
+{
+   %value = mFloatLength(%ctrl.getValue(),1); //round it to 1 decimal place
+   %value = mFloatLength(%value, 3); //add some zeros to make it look nice for the textbox
+   %ctrl.setValue(%value);
+   %ctrl.textbox.setText(%value);
 }
 
 //*********************************************************

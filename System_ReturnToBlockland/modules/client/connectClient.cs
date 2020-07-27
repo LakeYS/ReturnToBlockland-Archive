@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 284 $
-//#      $Date: 2012-08-16 09:53:35 +0100 (Thu, 16 Aug 2012) $
+//#      $Rev: 494 $
+//#      $Date: 2013-04-21 12:52:43 +0100 (Sun, 21 Apr 2013) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/client/connectClient.cs $
 //#
-//#      $Id: connectClient.cs 284 2012-08-16 08:53:35Z Ephialtes $
+//#      $Id: connectClient.cs 494 2013-04-21 11:52:43Z Ephialtes $
 //#
 //#      Copyright (c) 2008 - 2010 by Nick "Ephialtes" Matthews
 //#
@@ -916,7 +916,8 @@ function RTBCC_Modal_AddFriend::send(%this)
 //- RTBCC_Window_Chat::addRoom (opens a window to create a room)
 function RTBCC_Window_Chat::addRoom(%this)
 {
-   RTB_ConnectClient.messageBoxError("Oops ...","Creating your own chat rooms is not yet available, sorry.<br><br><just:center><bitmap:add-ons/system_Returntoblockland/images/icons/emoticon_unhappy>");
+   RTB_ConnectClient.messageBox("Creating Room ...","Your new room is being created.");
+   RTB_ConnectClient.schedule(1500,"messageBoxError","Just Kidding","Creating your own chat rooms is still not available yet.<br><br>Keep an eye on the RTB Development forum thread for more information.<br><br><just:center><bitmap:add-ons/system_Returntoblockland/images/icons/hot-dog_16>");
 }
 
 //- RTBCC_Window_Chat::refreshRooms (clears & refreshes room list)
@@ -1564,12 +1565,11 @@ function RTBCC_Socket::sendPresence(%this,%probe,%disconnect)
       }
       else
       {
-         %address = getSubStr(%address,3,strLen(%address));
          %address = strReplace(%address,":"," "); 
          %ip = getWord(%address,0);
          %port = getWord(%address,1);
 
-         if(strPos(%ip,"192.") $= 0 || strPos(%ip,"10.") $= 0)
+         if(strPos(%ip,"192.168.") $= 0 || strPos(%ip,"10.") $= 0)
          {
             %xml = %xml.newElement("status",4,1);
             RTB_ConnectClient.status = 4;

@@ -122,7 +122,6 @@ function RTB_Client_Authentication::establishLocation(%this)
       }
       else
       {
-         %address = getSubStr(%address,3,strLen(%address));
          %address = strReplace(%address,":"," ");  
          %ip = getWord(%address,0);
          %port = getWord(%address,1);

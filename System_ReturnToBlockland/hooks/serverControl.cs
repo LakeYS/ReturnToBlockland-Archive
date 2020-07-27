@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 216 $
-//#      $Date: 2011-06-29 21:08:29 +0100 (Wed, 29 Jun 2011) $
+//#      $Rev: 492 $
+//#      $Date: 2013-04-21 12:36:33 +0100 (Sun, 21 Apr 2013) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/hooks/serverControl.cs $
 //#
-//#      $Id: serverControl.cs 216 2011-06-29 20:08:29Z Ephialtes $
+//#      $Id: serverControl.cs 492 2013-04-21 11:36:33Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -94,6 +94,40 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
          return 0;
       }
    }
+   else if(%pType $= "num")
+   {
+      if(getWordCount(%vartype) $= 3)
+      {
+         %max = getWord(%vartype,2);
+         if(%max <= %min)
+         {
+            echo("\c2ERROR: Number max value supplied for pref ("@%pref@") is less than or equal to min value in RTB_registerPref");
+            return 0;
+         }
+      }
+      else
+      {
+         echo("\c2ERROR: Number variable type expects 2 parameters in RTB_registerPref");
+         return 0;
+      }
+   }
+   else if(%pType $= "float")
+   {
+      if(getWordCount(%vartype) $= 3)
+      {
+         %max = getWord(%vartype,2);
+         if(%max <= %min)
+         {
+            echo("\c2ERROR: Float max value supplied for pref ("@%pref@") is less than or equal to min value in RTB_registerPref");
+            return 0;
+         }
+      }
+      else
+      {
+         echo("\c2ERROR: Float variable type expects 2 parameters in RTB_registerPref");
+         return 0;
+      }
+   }
    else if(%pType $= "string")
    {
       %length = getWord(%vartype,1);
@@ -143,3 +177,6 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
    $RTB::MSSC::Prefs++;
    return 1;
 }
+
+RTB_registerPref("Test 1","Tests","$Pref::Test1","num 1 100","Test",5,0,0);
+RTB_registerPref("Test 2","Tests","$Pref::Test2","float 1 100","Test",5,0,0);

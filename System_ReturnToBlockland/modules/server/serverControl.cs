@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 284 $
-//#      $Date: 2012-08-16 09:53:35 +0100 (Thu, 16 Aug 2012) $
+//#      $Rev: 492 $
+//#      $Date: 2013-04-21 12:36:33 +0100 (Sun, 21 Apr 2013) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/server/serverControl.cs $
 //#
-//#      $Id: serverControl.cs 284 2012-08-16 08:53:35Z Ephialtes $
+//#      $Id: serverControl.cs 492 2013-04-21 11:36:33Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -106,10 +106,17 @@ function serverCmdRTB_setServerOptions(%client,%notify,%options,%v1,%v2,%v3,%v4,
    if(strPos(%options,"D") >= 1)
    {
       commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
-      if(!$Server::LAN)
-         WebCom_PostServer();
+         
+      // FUCK!
+      $Pref::Server::Name = $Server::Name;
+      $Pref::Server::WelcomeMessage = $Server::WelcomeMessage;
+      $Pref::Server::MaxBricksPerSecond = $Server::MaxBricksPerSecond;
+      $Pref::Server::WrenchEventsAdminOnly = $Server::WrenchEventsAdminOnly;
          
       export("$Pref::Server::*","config/server/prefs.cs");
+      
+      if(!$Server::LAN)
+         WebCom_PostServer();
       
       for(%i=0;%i<ClientGroup.getCount();%i++)
       {
@@ -471,7 +478,7 @@ function serverCmdRTB_setServerPrefs(%client,%prefs,%var0,%var1,%var2,%var3,%var
          %value = strReplace(%value,"\\","\\\\");
          %value = strReplace(%value,"\"","\\\"");
       }
-      else if(firstWord(%type) $= "int")
+      else if(firstWord(%type) $= "int" || firstWord(%type) $= "num" || firstWord(%type) $= "float")
       {
          %min = getWord(%type,1);
          %max = getWord(%type,2);
