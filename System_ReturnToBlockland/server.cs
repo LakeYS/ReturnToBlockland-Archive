@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 94 $
-//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
+//#      $Rev: 112 $
+//#      $Date: 2009-09-05 18:17:49 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/server.cs $
 //#
-//#      $Id: server.cs 94 2009-08-09 00:28:21Z Ephialtes $
+//#      $Id: server.cs 112 2009-09-05 17:17:49Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -26,7 +26,7 @@ if(!isUnlocked())
 //*********************************************************
 //* RTB Variables
 //*********************************************************
-$RTB::Version = "3b4";
+$RTB::Version = "3.5";
 
 //*********************************************************
 //* Dedicated Handling
@@ -38,5 +38,6 @@ if($Server::Dedicated)
 //* Load Modules
 //*********************************************************
 exec("./RTBS_Authentication.cs");
+exec("./RTBS_ContentDownload.cs");
 exec("./RTBS_GUITransfer.cs");
 exec("./RTBS_ServerControl.cs");

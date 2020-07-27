@@ -302,9 +302,9 @@ new GuiControl(RTB_IRCClient) {
          extent = "106 30";
          minExtent = "8 2";
          visible = "1";
-         variable = "$RTB::Options::CustomUsername";
+         variable = "$RTB::Options::IC::CustomUsername";
          text = "Custom Username";
-         command = "if($RTB::Options::CustomUsername){RTBIC_CustomUserBlock.setVisible(0);}else{RTBIC_CustomUserBlock.setVisible(1);}";
+         command = "if($RTB::Options::IC::CustomUsername){RTBIC_CustomUserBlock.setVisible(0);}else{RTBIC_CustomUserBlock.setVisible(1);}";
          groupNum = "-1";
          buttonType = "ToggleButton";
       };
@@ -332,7 +332,7 @@ new GuiControl(RTB_IRCClient) {
          password = "0";
          tabComplete = "0";
          sinkAllKeyEvents = "0";
-         variable = "$RTB::Options::CustomUser";
+         variable = "$RTB::Options::IC::CustomUser";
       };
       new GuiTextCtrl() {
          profile = "GuiTextProfile";
@@ -358,7 +358,7 @@ new GuiControl(RTB_IRCClient) {
          password = "1";
          tabComplete = "0";
          sinkAllKeyEvents = "0";
-         variable = "$RTB::Options::CustomPass";
+         variable = "$RTB::Options::IC::CustomPass";
       };
       new GuiSwatchCtrl(RTBIC_CustomUserBlock) {
          profile = "GuiDefaultProfile";
@@ -387,7 +387,7 @@ new GuiControl(RTBIC_Filters) {
       profile = "BlockWindowProfile";
       horizSizing = "center";
       vertSizing = "center";
-      position = "227 129";
+      position = "227 109";
       extent = "186 174";
       minExtent = "8 2";
       visible = "1";
@@ -411,7 +411,7 @@ new GuiControl(RTBIC_Filters) {
          extent = "162 18";
          minExtent = "8 2";
          visible = "1";
-         variable = "$RTB::Options::ShowIRCDisconnects";
+         variable = "$RTB::Options::IC::Filter::ShowDisconnects";
          text = "Show Disconnect Messages";
          groupNum = "-1";
          buttonType = "ToggleButton";
@@ -445,7 +445,7 @@ new GuiControl(RTBIC_Filters) {
          extent = "145 18";
          minExtent = "8 2";
          visible = "1";
-         variable = "$RTB::Options::ShowIRCConnects";
+         variable = "$RTB::Options::IC::Filter::ShowConnects";
          text = "Show Connect Messages";
          groupNum = "-1";
          buttonType = "ToggleButton";
@@ -459,21 +459,7 @@ new GuiControl(RTBIC_Filters) {
          extent = "162 18";
          minExtent = "8 2";
          visible = "1";
-         variable = "$RTB::Options::HideNonRTBUsers";
-         text = "Show Guests/Old RTB Users";
-         groupNum = "-1";
-         buttonType = "ToggleButton";
-            helpTag = "0";
-      };
-      new GuiCheckBoxCtrl() {
-         profile = "GuiCheckBoxProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "12 95";
-         extent = "162 18";
-         minExtent = "8 2";
-         visible = "1";
-         variable = "$RTB::Options::ShowIRCActions";
+         variable = "$RTB::Options::IC::Filter::ShowActions";
          text = "Show Actions";
          groupNum = "-1";
          buttonType = "ToggleButton";

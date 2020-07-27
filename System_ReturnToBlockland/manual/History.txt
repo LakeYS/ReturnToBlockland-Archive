@@ -1,24 +1,24 @@
 <font:Palatino Linotype:24>RTB Timeline<font:Palatino Linotype:18>
 Here is, as far as I can tell, the definitive RTB timeline. These are the most accurate dates that anyone will ever find, and anyone who says otherwise is itching for a fight. The timeline will be presented as a list, with a short note on why that date was important. The number indicated afterwards in parentheses contains little snippets of information cut from help files, websites, and posts, interjected with personal comments.
 
-<spush><font:Palatino Linotype Bold:18>June 23, 2005<spop>: RTB 1.0 released (1)
-<spush><font:Palatino Linotype Bold:18>June 28, 2005<spop>: RTB 1.01 released
-<spush><font:Palatino Linotype Bold:18>July 15, 2005<spop>: RTB forums go online
-<spush><font:Palatino Linotype Bold:18>July 17, 2005<spop>:RTB 1.02 released (2)
-<spush><font:Palatino Linotype Bold:18>Aug 21 2005<spop>: RTB Forums and website go Public
-<spush><font:Palatino Linotype Bold:18>September 2, 2005<spop>: RTB 1.03 released (3)
-<spush><font:Palatino Linotype Bold:18>September 3, 2005<spop>: RTB 1.03.2 Released
-<spush><font:Palatino Linotype Bold:18>October 31, 2005<spop>: Return to Blockland Browser IRC Applet goes public
-<spush><font:Palatino Linotype Bold:18>December 28, 2005<spop>: RTB RSS feed online
-<spush><font:Palatino Linotype Bold:18>March 04, 2006<spop>: RTB 1.04 Released - Features the RTB Update Alert System (4)
-<spush><font:Palatino Linotype Bold:18>March 22, 2006<spop>: RTB 1.041 Patch
-<spush><font:Palatino Linotype Bold:18>March 30, 2006<spop>: RTB 1.042 Patch
-<spush><font:Palatino Linotype Bold:18>April 1, 2006<spop>: April Fools Joke, see excerpt (5) below
-<spush><font:Palatino Linotype Bold:18>June 12, 2006<spop>: RTB 1.044 Patch
-<spush><font:Palatino Linotype Bold:18>June 15, 2006<spop>: RTB 1.045 Patch
-<spush><font:Palatino Linotype Bold:18>February 14, 2007<spop>: RTB 1051, test of an auto-updater, see excerpt below (6)
-<spush><font:Palatino Linotype Bold:18>August 25, 2008<spop>: RTB2 enters closed beta (7)
-<spush><font:Palatino Linotype Bold:18>November 3, 2008<spop>: RTB2 is released
+<spush><font:Palatino Linotype Bold:18>June 23, 2005<spop><just:right>RTB 1.0 released (1)<just:left>
+<spush><font:Palatino Linotype Bold:18>June 28, 2005<spop><just:right>RTB 1.01 released<just:left>
+<spush><font:Palatino Linotype Bold:18>July 15, 2005<spop><just:right>RTB forums go online<just:left>
+<spush><font:Palatino Linotype Bold:18>July 17, 2005<spop><just:right>RTB 1.02 released (2)<just:left>
+<spush><font:Palatino Linotype Bold:18>Aug 21 2005<spop><just:right>RTB Forums and website go Public<just:left>
+<spush><font:Palatino Linotype Bold:18>September 2, 2005<spop><just:right>RTB 1.03 released (3)<just:left>
+<spush><font:Palatino Linotype Bold:18>September 3, 2005<spop><just:right>RTB 1.03.2 Released<just:left>
+<spush><font:Palatino Linotype Bold:18>October 31, 2005<spop><just:right>Return to Blockland Browser IRC Applet goes public<just:left>
+<spush><font:Palatino Linotype Bold:18>December 28, 2005<spop><just:right>RTB RSS feed online<just:left>
+<spush><font:Palatino Linotype Bold:18>March 04, 2006<spop><just:right>RTB 1.04 Released - Features the RTB Update Alert System (4)<just:left>
+<spush><font:Palatino Linotype Bold:18>March 22, 2006<spop><just:right>RTB 1.041 Patch<just:left>
+<spush><font:Palatino Linotype Bold:18>March 30, 2006<spop><just:right>RTB 1.042 Patch<just:left>
+<spush><font:Palatino Linotype Bold:18>April 1, 2006<spop><just:right>April Fools Joke, see excerpt (5) below<just:left>
+<spush><font:Palatino Linotype Bold:18>June 12, 2006<spop><just:right>RTB 1.044 Patch<just:left>
+<spush><font:Palatino Linotype Bold:18>June 15, 2006<spop><just:right>RTB 1.045 Patch<just:left>
+<spush><font:Palatino Linotype Bold:18>February 14, 2007<spop><just:right>RTB 1051, test of an auto-updater, see excerpt below (6)<just:left>
+<spush><font:Palatino Linotype Bold:18>August 25, 2008<spop><just:right>RTB2 enters closed beta (7)<just:left>
+<spush><font:Palatino Linotype Bold:18>November 3, 2008<spop><just:right>RTB2 is released<just:left>
 
 <font:Palatino Linotype:24>Appendix<font:Palatino Linotype:18>
 <spush><font:Palatino Linotype Bold:18>(1)<spop>

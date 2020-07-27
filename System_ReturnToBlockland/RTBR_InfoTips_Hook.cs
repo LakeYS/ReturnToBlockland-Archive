@@ -1,6 +1,6 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -31,7 +31,7 @@ function RTB_addInfoTip(%tip,%nobindtip,%category)
       return 0;
    }
    
-   //category is deprecated for 3.0
+   //category is deprecated for ???
    
    $RTB::InfoTip[$RTB::InfoTips++] = %tip TAB %nobindtip;
    

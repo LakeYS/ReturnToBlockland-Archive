@@ -1,6 +1,6 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -175,7 +175,7 @@ function RTBIT_createInfoTip()
       vertSizing = "top";
       position = getWord(LoadingGui.extent,0)-290 SPC getWord(LoadingProgress.position,1)-182;
       extent = "271 161";
-      bitmap = "./images/image_tipBottom";
+      bitmap = "./images/ui/image_tipBottom";
    };
    LoadingGui.add(%bottom);
 
@@ -196,7 +196,7 @@ function RTBIT_createInfoTip()
       vertSizing = "top";
       position = getWord(LoadingGui.extent,0)-290 SPC getWord(%bottom.position,1)-getWord(%text.extent,1);
       extent = "218" SPC getWord(%text.extent,1);
-      bitmap = "./images/image_tipMiddle";
+      bitmap = "./images/ui/image_tipMiddle";
    };
    LoadingGui.add(%middle);
    %middle.add(%text);
@@ -208,7 +208,7 @@ function RTBIT_createInfoTip()
       vertSizing = "top";
       position = getWord(LoadingGui.extent,0)-290 SPC getWord(%middle.position,1)-33;
       extent = "218 33";
-      bitmap = "./images/image_tipTop";
+      bitmap = "./images/ui/image_tipTop";
    };
    LoadingGui.add(%top);
    

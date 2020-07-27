@@ -1,7 +1,7 @@
 <font:Palatino Linotype:24>IRC Client<font:Palatino Linotype:18>
 The IRC Client allows you to connect to our irc channel (irc.centralchat.net, #rtb) where you'll be able to talk with other people playing RTB. By default, you will connect automatically to the irc channel with your net name and _RTB added to the end.
 
-<font:Palatino Linotype Bold:20>Private Messaging<font:Palatino Linotype:18>
+<lmargin:20><font:Palatino Linotype Bold:20>Private Messaging<font:Palatino Linotype:18>
 Just double-click a name in the users list to open a chat session with them.
 
 <font:Palatino Linotype Bold:20>Options<font:Palatino Linotype:18>
@@ -14,6 +14,17 @@ There are various options for the IRC in the RTB Options window:
 
 There is also an option on the IRC window itself:
 - <spush><font:Palatino Linotype Bold:18>Filter Non-RTB Users<spop> - This will hide most of the non-rtb users from the IRC so you won't see their messages, or get their pms.
+
+<font:Palatino Linotype Bold:20>Register your Nickname<font:Palatino Linotype:18>
+You can register your nickname by doing the following command:
+
+/msg NickServ Register password email
+
+And you can then tick Custom Username at the bottom of the IRC and enter your username and the password you registered. If you find someone using your nickname you can kick them by doing:
+
+/msg NickServ Release Username Password
+
+And then you can disconnect and reconnect for your nickname to take effect.
 
 <font:Palatino Linotype Bold:20>Commands<font:Palatino Linotype:18>
 There are various commands that can be used in the irc. If you've used irc before you should be familiar with them. The main ones you'll want to know are the following:

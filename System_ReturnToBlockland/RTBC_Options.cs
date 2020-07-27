@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 64 $
-//#      $Date: 2009-07-08 20:24:38 +0100 (Wed, 08 Jul 2009) $
+//#      $Rev: 95 $
+//#      $Date: 2009-08-16 03:52:44 +0100 (Sun, 16 Aug 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBC_Options.cs $
 //#
-//#      $Id: RTBC_Options.cs 64 2009-07-08 19:24:38Z Ephialtes $
+//#      $Id: RTBC_Options.cs 95 2009-08-16 02:52:44Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -82,10 +82,7 @@ function RTB_Options::onWake(%this)
 	applyRadioOption(RTBO_OptCA_ShowServer);
 	
 	applyRadioOption(RTBO_OptMM_AnimateGUI);
-	applyRadioOption(RTBO_OptMM_WarnFailed);
-	applyRadioOption(RTBO_OptMM_DisableFailed);
 	applyRadioOption(RTBO_OptMM_CheckForUpdates);
-	applyRadioOption(RTBO_OptMM_DownloadScreenshots);
 	
 	applyRadioOption(RTBO_OptIC_AutoConnect);
 	applyRadioOption(RTBO_OptIC_AllowPM);
@@ -98,12 +95,22 @@ function RTB_Options::onWake(%this)
 	applyRadioOption(RTBO_OptGT_EnableGUITransfer);
 	
 	applyRadioOption(RTBO_OptAU_EnableAutoUpdate);
+	
+   applyRadioOption(RTBO_OptCD_DownloadContent);
 }
 
 function RTB_Options::onSleep(%this)
 {
-   echo("Exporting rtb prefs");
-   export("$RTB::Options*","config/client/rtb/prefs.cs");
+   if(isReadonly("config/client/rtb/prefs.cs"))
+   {
+      echo("Failed to export rtb prefs");
+      MessageBoxOK("Ooops","RTB was unable to save your prefs. Please check that the following file is NOT read-only:\n\nBlockland/config/client/rtb/prefs.cs");
+   }
+   else
+   {
+      echo("Exporting rtb prefs");
+      export("$RTB::Options*","config/client/rtb/prefs.cs");
+   }
 	RTBCA_SendPrefs();
 	RTBCA_Post();
 }

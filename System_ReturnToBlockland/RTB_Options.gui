@@ -82,9 +82,9 @@ new GuiControl(RTB_Options) {
             text = "Yes";
             groupNum = "0";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptSA_Block";
                optionBlockVisible = "0";
                optionVariable = "RTB::Options::SA::PostServer";
+               optionBlock = "RTBO_OptSA_Block";
          };
          new GuiRadioCtrl(RTBO_OptSA_PostServerN) {
             profile = "GuiRadioProfile";
@@ -98,9 +98,9 @@ new GuiControl(RTB_Options) {
             text = "No";
             groupNum = "0";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptSA_Block";
                optionBlockVisible = "1";
                optionVariable = "RTB::Options::SA::PostServer";
+               optionBlock = "RTBO_OptSA_Block";
          };
          new GuiTextCtrl() {
             profile = "GuiTextProfile";
@@ -209,9 +209,9 @@ new GuiControl(RTB_Options) {
             text = "Yes";
             groupNum = "0";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptCA_Block";
                optionBlockVisible = "0";
                optionVariable = "RTB::Options::CA::AuthWithRTB";
+               optionBlock = "RTBO_OptCA_Block";
          };
          new GuiRadioCtrl(RTBO_OptCA_AuthWithRTBN) {
             profile = "GuiRadioProfile";
@@ -225,9 +225,9 @@ new GuiControl(RTB_Options) {
             text = "No";
             groupNum = "0";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptCA_Block";
                optionBlockVisible = "1";
                optionVariable = "RTB::Options::CA::AuthWithRTB";
+               optionBlock = "RTBO_OptCA_Block";
          };
          new GuiTextCtrl() {
             profile = "GuiTextProfile";
@@ -326,7 +326,7 @@ new GuiControl(RTB_Options) {
          horizSizing = "right";
          vertSizing = "bottom";
          position = "11 228";
-         extent = "291 141";
+         extent = "291 77";
          minExtent = "8 2";
          visible = "1";
          color = "255 255 255 200";
@@ -396,87 +396,7 @@ new GuiControl(RTB_Options) {
             profile = "GuiTextProfile";
             horizSizing = "right";
             vertSizing = "bottom";
-            position = "15 53";
-            extent = "134 18";
-            minExtent = "8 8";
-            visible = "1";
-            text = " Warn about failed add-ons:";
-            maxLength = "255";
-               helpTag = "0";
-         };
-         new GuiRadioCtrl(RTBO_OptMM_WarnFailedY) {
-            profile = "GuiRadioProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "172 55";
-            extent = "38 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "setRadioOption(RTBO_OptMM_WarnFailed,1);";
-            text = "Yes";
-            groupNum = "1";
-            buttonType = "RadioButton";
-               optionVariable = "RTB::Options::MM::WarnFailed";
-         };
-         new GuiRadioCtrl(RTBO_OptMM_WarnFailedN) {
-            profile = "GuiRadioProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "231 55";
-            extent = "38 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "setRadioOption(RTBO_OptMM_WarnFailed,0);";
-            text = "No";
-            groupNum = "1";
-            buttonType = "RadioButton";
-               optionVariable = "RTB::Options::MM::WarnFailed";
-         };
-         new GuiTextCtrl() {
-            profile = "GuiTextProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "11 73";
-            extent = "138 18";
-            minExtent = "8 8";
-            visible = "1";
-            text = "Auto-remove failed add-ons:";
-            maxLength = "255";
-               helpTag = "0";
-         };
-         new GuiRadioCtrl(RTBO_OptMM_DisableFailedY) {
-            profile = "GuiRadioProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "172 75";
-            extent = "38 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "setRadioOption(RTBO_OptMM_DisableFailed,1);";
-            text = "Yes";
-            groupNum = "2";
-            buttonType = "RadioButton";
-               optionVariable = "RTB::Options::MM::DisableFailed";
-         };
-         new GuiRadioCtrl(RTBO_OptMM_DisableFailedN) {
-            profile = "GuiRadioProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "231 75";
-            extent = "38 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "setRadioOption(RTBO_OptMM_DisableFailed,0);";
-            text = "No";
-            groupNum = "2";
-            buttonType = "RadioButton";
-               optionVariable = "RTB::Options::MM::DisableFailed";
-         };
-         new GuiTextCtrl() {
-            profile = "GuiTextProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "20 93";
+            position = "20 53";
             extent = "129 18";
             minExtent = "8 8";
             visible = "1";
@@ -488,7 +408,7 @@ new GuiControl(RTB_Options) {
             profile = "GuiRadioProfile";
             horizSizing = "right";
             vertSizing = "bottom";
-            position = "172 95";
+            position = "172 55";
             extent = "38 15";
             minExtent = "8 2";
             visible = "1";
@@ -502,7 +422,7 @@ new GuiControl(RTB_Options) {
             profile = "GuiRadioProfile";
             horizSizing = "right";
             vertSizing = "bottom";
-            position = "231 95";
+            position = "231 55";
             extent = "38 15";
             minExtent = "8 2";
             visible = "1";
@@ -511,46 +431,6 @@ new GuiControl(RTB_Options) {
             groupNum = "3";
             buttonType = "RadioButton";
                optionVariable = "RTB::Options::MM::CheckForUpdates";
-         };
-         new GuiTextCtrl() {
-            profile = "GuiTextProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "33 113";
-            extent = "116 18";
-            minExtent = "8 8";
-            visible = "1";
-            text = "Download screenshots:";
-            maxLength = "255";
-               helpTag = "0";
-         };
-         new GuiRadioCtrl(RTBO_OptMM_DownloadScreenshotsY) {
-            profile = "GuiRadioProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "172 115";
-            extent = "38 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "setRadioOption(RTBO_OptMM_DownloadScreenshots,1);";
-            text = "Yes";
-            groupNum = "4";
-            buttonType = "RadioButton";
-               optionVariable = "RTB::Options::MM::DownloadScreenshots";
-         };
-         new GuiRadioCtrl(RTBO_OptMM_DownloadScreenshotsN) {
-            profile = "GuiRadioProfile";
-            horizSizing = "right";
-            vertSizing = "bottom";
-            position = "231 115";
-            extent = "38 15";
-            minExtent = "8 2";
-            visible = "1";
-            command = "setRadioOption(RTBO_OptMM_DownloadScreenshots,0);";
-            text = "No";
-            groupNum = "4";
-            buttonType = "RadioButton";
-               optionVariable = "RTB::Options::MM::DownloadScreenshots";
          };
       };
       new GuiSwatchCtrl() {
@@ -648,9 +528,9 @@ new GuiControl(RTB_Options) {
             text = "Yes";
             groupNum = "1";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptIC_NotifyBlock";
                optionBlockVisible = "0";
                optionVariable = "RTB::Options::IC::AllowPM";
+               optionBlock = "RTBO_OptIC_NotifyBlock";
          };
          new GuiRadioCtrl(RTBO_OptIC_AllowPMN) {
             profile = "GuiRadioProfile";
@@ -664,9 +544,9 @@ new GuiControl(RTB_Options) {
             text = "No";
             groupNum = "1";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptIC_NotifyBlock";
                optionBlockVisible = "1";
                optionVariable = "RTB::Options::IC::AllowPM";
+               optionBlock = "RTBO_OptIC_NotifyBlock";
          };
          new GuiTextCtrl() {
             profile = "GuiTextProfile";
@@ -815,9 +695,9 @@ new GuiControl(RTB_Options) {
             text = "Yes";
             groupNum = "0";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptIT_Block";
                optionBlockVisible = "0";
                optionVariable = "RTB::Options::IT::Enable";
+               optionBlock = "RTBO_OptIT_Block";
          };
          new GuiRadioCtrl(RTBO_OptIT_EnableInfoTipsN) {
             profile = "GuiRadioProfile";
@@ -831,9 +711,9 @@ new GuiControl(RTB_Options) {
             text = "No";
             groupNum = "0";
             buttonType = "RadioButton";
-               optionBlock = "RTBO_OptIT_Block";
                optionBlockVisible = "1";
                optionVariable = "RTB::Options::IT::Enable";
+               optionBlock = "RTBO_OptIT_Block";
          };
          new GuiTextCtrl() {
             profile = "GuiTextProfile";
@@ -1050,6 +930,78 @@ new GuiControl(RTB_Options) {
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
+      };
+      new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "11 309";
+         extent = "291 60";
+         minExtent = "8 2";
+         visible = "1";
+         color = "255 255 255 200";
+
+         new GuiSwatchCtrl() {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "2 2";
+            extent = "287 21";
+            minExtent = "8 2";
+            visible = "1";
+            color = "0 0 0 255";
+         };
+         new GuiTextCtrl() {
+            profile = "OptionsMenuTextProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "9 3";
+            extent = "128 18";
+            minExtent = "8 2";
+            visible = "1";
+            text = "Content Downloading";
+            maxLength = "255";
+         };
+         new GuiTextCtrl() {
+            profile = "GuiTextProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "34 33";
+            extent = "115 18";
+            minExtent = "8 8";
+            visible = "1";
+            text = "Download RTB Content:";
+            maxLength = "255";
+               helpTag = "0";
+         };
+         new GuiRadioCtrl(RTBO_OptCD_DownloadContentY) {
+            profile = "GuiRadioProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "172 35";
+            extent = "38 15";
+            minExtent = "8 2";
+            visible = "1";
+            command = "setRadioOption(RTBO_OptCD_DownloadContent,1);";
+            text = "Yes";
+            groupNum = "0";
+            buttonType = "RadioButton";
+               optionVariable = "RTB::Options::CD::DownloadContent";
+         };
+         new GuiRadioCtrl(RTBO_OptCD_DownloadContentN) {
+            profile = "GuiRadioProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "231 35";
+            extent = "38 15";
+            minExtent = "8 2";
+            visible = "1";
+            command = "setRadioOption(RTBO_OptCD_DownloadContent,0);";
+            text = "No";
+            groupNum = "0";
+            buttonType = "RadioButton";
+               optionVariable = "RTB::Options::CD::DownloadContent";
+         };
       };
    };
 };

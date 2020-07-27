@@ -1,6 +1,6 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -16,6 +16,39 @@
 //#   Dedicated Handling
 //#
 //#############################################################################
+
+//*********************************************************
+//* Variables
+//*********************************************************
+$RTB::Options::AU::Enable = 1;
+$RTB::Options::CA::AuthWithRTB = 1;
+$RTB::Options::CA::Privacy::ShowOnline = 1;
+$RTB::Options::CA::Privacy::ShowServer = 1;
+$RTB::Options::GT::Enable = 1;
+$RTB::Options::IC::AllowPM = 1;
+$RTB::Options::IC::AutoConnect = 1;
+$RTB::Options::IC::PMAudioNotify = 1;
+$RTB::Options::IC::PMVisualNotify = 1;
+$RTB::Options::IC::Filter::ShowActions = 1;
+$RTB::Options::IC::Filter::ShowConnects = 1;
+$RTB::Options::IC::Filter::ShowDisconnects = 0;
+$RTB::Options::IT::Enable = 1;
+$RTB::Options::IT::ShowAddonTips = 1;
+$RTB::Options::MM::AnimateGUI = 1;
+$RTB::Options::MM::WarnFailed = 1;
+$RTB::Options::MM::DisableFailed = 1;
+$RTB::Options::MM::CheckForUpdates = 1;
+$RTB::Options::MM::DownloadScreenshots = 1;
+$RTB::Options::SA::PostServer = 1;
+$RTB::Options::SA::Privacy::ShowPlayers = 1;
+
+if(isFile("config/client/rtb/prefs.cs"))
+	exec("config/client/rtb/prefs.cs");
+else
+{
+   echo("Exporting rtb prefs");
+   export("$RTB::Options*","config/client/rtb/prefs.cs");
+}
 
 //*********************************************************
 //* Load Prerequisites
@@ -35,8 +68,8 @@ function rtbHelp()
 {
    RTBDU_drawSpacer();
    RTBDU_drawDOSRow("");
-   RTBDU_drawDOSRow("Setting up RTB:");
-   RTBDU_drawDOSRow("Enter promptRTBSetup(); for more help.");
+   RTBDU_drawDOSRow("Saving bricks on the server:");
+   RTBDU_drawDOSRow("Enter saveBricks(); for more help.");
    RTBDU_drawDOSRow("");
    RTBDU_drawDOSRow("");
    RTBDU_drawDOSRow("Updating RTB:");
@@ -46,85 +79,96 @@ function rtbHelp()
 }
 
 //*********************************************************
-//* Setting up the Server
+//* Saving Bricks
 //*********************************************************
-//- promptRTBSetup (displays a setup guide)
-function promptRTBSetup()
+//- saveBricks (function by Randy for saving bricks on a dedicated)
+function saveBricks(%name,%events,%ownership)
 {
-   if($Pref::Server::RTBSetup::User !$= "")
+   if(%name $= "" || %events $= "" || %ownership $= "" || (%events !$= 1 && %events !$= 0) || (%ownership !$= 1 && %ownership !$= 0))
    {
-      RTBDU_drawSpacer();
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("Your server appears to be working with RTB!");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("Type the following command into the dedicated server");
-      RTBDU_drawDOSRow("to change setup options:");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("setupRTBDedicated(\"YourUsername\");");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("YourUsername is the username you use for your BL ID ("@getNumKeyID()@")");
-      RTBDU_drawDOSRow("that runs this server.");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawSpacer();
-   }
-   else
-   {
-      echo("");
-      RTBDU_drawSpacer();
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("Your server has not been setup to work with RTB yet!");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("Type the following command into the dedicated server");
-      RTBDU_drawDOSRow("to complete setup:");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("setupRTBDedicated(\"YourUsername\");");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("YourUsername is the username you use for your BL ID ("@getNumKeyID()@")");
-      RTBDU_drawDOSRow("that runs this server.");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow(" - OR - ");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawDOSRow("Simply join your dedicated server to do this automatically.");
-      RTBDU_drawDOSRow("");
-      RTBDU_drawSpacer();
-      echo("");
-   }
-}
-
-//- setupRTBDedicated (a command to setup the server for RTB usage)
-function setupRTBDedicated(%name)
-{
-   if(%name $= "")
-   {
-      echo("Usage: setupRTBDedicated(\"your username\");");
+      echo("Usage: saveBricks(\"savename\",save events,save ownership);");
       return;
    }
    
-   $Pref::Server::RTBSetup::User = %name;
-   $Pref::Player::NetName = %name;
-   
-   export("$Pref::Server*","config/server/prefs.cs");
-   export("$Pref::*","config/client/prefs.cs");
-   
-   RTBSA_Post();
-}
-
-//*********************************************************
-//* Runtime
-//*********************************************************
-if($Pref::Server::RTBSetup::User !$= "")
-{
-   $Pref::Player::NetName = $Pref::Server::RTBSetup::User;
-}
-else
-{
-   schedule(5000,0,"promptRTBSetup");
+	%path = "saves/" @ MissionInfo.saveName @ "/" @ %name @ ".bls";
+	if(!isWriteableFileName(%path))
+	{
+		echo("Error: Cannot save to file: "@%path);
+		return;
+	}
+	
+	%bricks = 0;
+	for(%i=0;%i<mainBrickGroup.getCount();%i++)
+		%bricks += mainBrickGroup.getObject(%i).getCount();
+		
+   if(%bricks <= 0)
+   {
+      echo("Error: There are no bricks to save.");
+      return;
+   }
+	echo("Saving to "@%path@" ...");
+	
+	%file = new FileObject();
+	%file.openForWrite(%path);
+	%file.writeLine("This is a Blockland save file.  You probably shouldn't modify it cause you'll screw it up.");
+	%file.writeLine("1");
+	%file.writeLine(%desc);
+	for(%i=0;%i<64;%i++)
+		%file.writeLine(getColorIDTable(%i));
+	%file.writeLine("Linecount " @ %bricks);
+	for(%d=0;%d<2;%d++)
+	{
+		for(%i=0;%i<mainBrickGroup.getCount();%i++)
+		{
+			%group = mainBrickGroup.getObject(%i);
+			for(%a=0;%a<%group.getCount();%a++)
+			{
+				%brick = %group.getObject(%a);
+				if(!(%d ^ %brick.isBasePlate()))
+					continue;
+				%print = (%brick.getDataBlock().subCategory $= "Prints") ? getPrintTexture(%brick.getPrintID()) : "";
+				%file.writeLine(%brick.getDataBlock().uiName @ "\" " @ %brick.getPosition() SPC %brick.getAngleID() SPC %brick.isBasePlate() SPC %brick.getColorID() SPC %print SPC %brick.getColorFXID() SPC %brick.getShapeFXID() SPC %brick.isRayCasting() SPC %brick.isColliding() SPC %brick.isRendering());
+				if(%ownership && %brick.isBasePlate() && !$Server::LAN)
+					%file.writeLine("+-OWNER " @ getBrickGroupFromObject(%brick).bl_id);
+				if(%events)
+				{
+					if(%brick.getName() !$= "")
+						%file.writeLine("+-NTOBJECTNAME " @ %brick.getName());
+					if(%brick.numEvents > 0)
+					{
+						for(%b=0;%b<%brick.numEvents;%b++)
+						{
+							%targetClass = %brick.eventTargetIdx[%b] >= 0 ? getWord(getField($InputEvent_TargetListfxDTSBrick_[%brick.eventInputIdx[%b]], %brick.eventTargetIdx[%b]), 1) : "fxDtsBrick";
+							%paramList = $OutputEvent_parameterList[%targetClass, %brick.eventOutputIdx[%b]];
+							%params = "";
+							for(%c=0;%c<4;%c++)
+							{
+								if(firstWord(getField(%paramList, %c)) $= "dataBlock" && %brick.eventOutputParameter[%b, %c + 1] >= 0)
+									%params = %params TAB %brick.eventOutputParameter[%b, %c + 1].uiName;
+								else
+									%params = %params TAB %brick.eventOutputParameter[%b, %c + 1];
+							}
+							%file.writeLine("+-EVENT" TAB %b TAB %brick.eventEnabled[%b] TAB %brick.eventInput[%b] TAB %brick.eventDelay[%b] TAB %brick.eventTarget[%b] TAB %brick.eventNT[%b] TAB %brick.eventOutput[%b] @ %params);
+						}
+					}
+				}
+				if(isObject(%brick.emitter))
+					%file.writeLine("+-EMITTER " @ %brick.emitter.emitter.uiName @ "\" " @ %brick.emitterDirection);
+				if(%brick.getLightID() >= 0)
+					%file.writeLine("+-LIGHT " @ %brick.getLightID().getDataBlock().uiName @ "\" ");
+				if(isObject(%brick.item))
+					%file.writeLine("+-ITEM " @ %brick.item.getDataBlock().uiName @ "\" " @ %brick.itemPosition SPC %brick.itemDirection SPC %brick.itemRespawnTime);
+				if(isObject(%brick.audioEmitter))
+					%file.writeLine("+-AUDIOEMITTER " @ %brick.audioEmitter.getProfileID().uiName @ "\" ");
+				if(isObject(%brick.vehicleSpawnMarker))
+					%file.writeLine("+-VEHICLE " @ %brick.vehicleSpawnMarker.uiName @ "\" " @ %brick.reColorVehicle);
+			}
+		}
+	}
+	%file.close();
+	%file.delete();
+	
+	echo(%bricks@" bricks saved to "@%path@" successfully.");
 }
 
 //*********************************************************

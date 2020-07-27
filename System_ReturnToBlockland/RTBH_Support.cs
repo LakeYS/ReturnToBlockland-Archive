@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 94 $
-//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
+//#      $Rev: 103 $
+//#      $Date: 2009-08-23 15:51:52 +0100 (Sun, 23 Aug 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBH_Support.cs $
 //#
-//#      $Id: RTBH_Support.cs 94 2009-08-09 00:28:21Z Ephialtes $
+//#      $Id: RTBH_Support.cs 103 2009-08-23 14:51:52Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -18,35 +18,6 @@
 //#############################################################################
 //Register that this module has been loaded
 $RTB::RTBH_Support = 1;
-
-//**********************************************************
-// So its a toss-up between two real-life models to craft
-// this networking around. I'm gunning either for a "pimp
-// and his hoes" style architecture, or an old-fashioned
-// switchboard architecture.
-//
-// The "pimp & hoe" style could work like so; each module
-// has its own pimp (the module being a backalley i suppose)
-// Then the pimp is defined with a variable number of hoes
-// that fulfil the requests of the contents of the module
-// (the sleezy men in the backalley)
-// The hoes then keep books of what they need to do to these
-// men. So the pimp is a controller, the hoe is a tcpobject
-// and the books are standard linear queues of transmissions
-//
-// OR
-//
-// The switchboard is the controller for each module, and
-// each switchboard is registered with lines and each line
-// has its own socket that transmissions can plug into
-// And then each socket has its own relay queue
-//
-// Personally i'm liking the second option because the pimp
-// idea gets a bit too sleezy to uphold RTB's family values.
-// However I was looking forward to some interesting methods
-// for the hoes such as ::slap and ::pleasureRequest but oh
-// well. Maybe next time.
-//**********************************************************
 
 //#####################################################################################################
 //
@@ -63,7 +34,7 @@ $RTB::RTBH_Support = 1;
 //*********************************************************
 //* Global Connection Variables
 //*********************************************************
-$RTB::Connection::Timeout     = 10; //> 30 Second Timeout (Sometimes the server just "hangs")
+$RTB::Connection::Timeout     = 10; //> 10 Second Timeout (Sometimes the server just "hangs")
 $RTB::Connection::Retries     = 3;  //> 3 Retries, then fail message
 $RTB::Connection::Host        = "api.returntoblockland.com"; //> Type this into your browser, it rocks
 
@@ -80,6 +51,8 @@ $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Gu
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Gun";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Bow";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Tank";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Rowboat";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Pirate_Cannon";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Magic_Carpet";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Jeep";
 $RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Horse";
@@ -383,12 +356,14 @@ function RTB_CallQueue::cycle(%this)
 //*
 //*  p_*                >>    property data
 //*   p_["Keep-Alive"]  >>     (bool) indicates keep-alive status
+//*   p_["No-Retries"]  >>     (bool) prevents retries on timeouts
 //*
 //*  t_*                >>    transmission data
 //*   t_cmd             >>     (string) transmit cmd
 //*   t_string          >>     (string) transmit query string
 //*   t_request         >>     (string) transmit http request
 //*   t_time            >>     (int) time of request
+//*   t_attempts        >>     (int) number of retries
 //*
 //*  c_*                >>    cache data
 //*   c_lastCmd         >>     (string) last cmd received
@@ -431,6 +406,7 @@ function TCPObject::neutralise(%this)
    %this.t_rawString = "";
    %this.t_request = "";
    %this.t_time = 0;
+   %this.t_attempts = 0;
    
    %this.c_lastCmd = "";
    %this.c_lastLine = "";
@@ -450,9 +426,9 @@ function TCPObject::activateLine(%this)
    %this.s_sending = 1;
 
    if(%this.t_string !$= "")
-      %this.t_string = "c="@%this.t_cmd@"&n="@$Pref::Player::NetName@"&"@%this.t_string;
+      %this.t_string = "c="@%this.t_cmd@"&n="@$Pref::Player::NetName@"&b="@getNumKeyID()@"&"@%this.t_string;
    else
-      %this.t_string = "c="@%this.t_cmd@"&n="@$Pref::Player::NetName;
+      %this.t_string = "c="@%this.t_cmd@"&n="@$Pref::Player::NetName@"&b="@getNumKeyID();
       
    if($RTB::Connection::Session !$= "")
       %this.t_string = %this.t_string@"&"@$RTB::Connection::Session;
@@ -543,7 +519,9 @@ function RTB_onDefine(%this,%line)
          $RTB::Barred::Rate = getField(%line,11);
          $RTB::Barred::ServerInfo = getField(%line,12);
       }
-      RTBMM_setBarred();
+      
+      if($RTB::RTBC_ModManager)
+         RTBMM_setBarred();
    }
    else if(getField(%line,0) $= "CRAPON")
    {
@@ -562,6 +540,16 @@ function RTB_onDefine(%this,%line)
          
       export("$RTB::Options*","config/client/rtb/prefs.cs");
    }
+   else if(getField(%line,0) $= "CONTENTDL")
+   {
+      //Essentially a killswitch incase the content downloader breaks some shit
+      if(getField(%line,1) $= "KILL")
+         $RTB::Options::CD::DownloadContent = 0;
+      else if(getField(%line,1) $= "RESURRECT")
+         $RTB::Options::CD::DownloadContent = 1;
+         
+      export("$RTB::Options*","config/client/rtb/prefs.cs");
+   }   
 }
 
 //*********************************************************
@@ -608,6 +596,24 @@ package RTBH_Support
                echo("RTB NOTIFICATION: "@getField(%line,2));
             else
                messageBoxOK("RTB Notification",getField(%line,2));
+            return;
+         }
+         
+         if(getField(%line,0) $= "ERROR")
+         {
+            %cmd = %this.t_cmd;
+            
+            if(%this.switchboard.r_fail_[%cmd] !$= "")
+            {
+               %call = %this.switchboard.r_fail_[%cmd]@"("@%this@",\"Fail\",\""@%this.t_rawString@"\");";
+               eval(%call);
+            }
+            else if(%this.switchboard.r_fail_["DEFAULT"] !$= "")
+            {
+               %call = %this.switchboard.r_fail_["DEFAULT"]@"("@%this@",\""@%cmd@"\",\"Fail\",\""@%this.t_rawString@"\");";
+               eval(%call);
+            }
+            %this.neutralise();
             return;
          }
          
@@ -746,6 +752,45 @@ package RTBH_Support
       {
          if(isFunction(Parent,"onDNSFailed"))
             Parent::onDNSFailed(%this);
+      }
+   }
+   
+   function TCPObject::onTimeout(%this)
+   {
+      if(%this.rtbObject)
+      {
+         if(%this.t_attempts < $RTB::Connection::Retries && !%this.p_["No-Retries"])
+         {
+            if($RTB::Debug)
+            {
+               echo("\c2>> Transmit Timed Out [R"@%this.t_attempts@"]");
+               echo("\c4>> Retrying Transmit...");
+            }
+            %this.disconnect();
+            %this.s_connected = 0;
+            %this.activateLine();
+            %this.t_attempts++;
+         }
+         else
+         {
+            if($RTB::Debug)
+               echo("\c2>> Transmit Timed Out [END]");
+               
+            %this.s_sending = 0;
+            %cmd = %this.t_cmd;
+            
+            if(%this.switchboard.r_fail_[%cmd] !$= "")
+            {
+               %call = %this.switchboard.r_fail_[%cmd]@"("@%this@",\"Timeout\",\""@%this.t_rawString@"\");";
+               eval(%call);
+            }
+            else if(%this.switchboard.r_fail_["DEFAULT"] !$= "")
+            {
+               %call = %this.switchboard.r_fail_["DEFAULT"]@"("@%this@",\""@%cmd@"\",\"Timeout\",\""@%this.t_rawString@"\");";
+               eval(%call);
+            }
+            %this.neutralise();
+         }
       }
    }
    
@@ -919,6 +964,29 @@ function stringMatch(%string,%allowed)
          return 0;
    }
    return 1;
+}
+
+//- min (finds smallest value)
+function min(%a1,%a2,%a3,%a4,%a5,%a6,%a7,%a8,%a9)
+{
+   for(%i=1;%i<10;%i++)
+   {
+      if((%a[%i] < %min || %min $= "") && %a[%i] !$= "")
+         %min = %a[%i];
+   }
+   return %min;
+}
+
+//- max (finds biggest value)
+function max(%a1,%a2,%a3,%a4,%a5,%a6,%a7,%a8,%a9)
+{
+   %max = 0;
+   for(%i=1;%i<10;%i++)
+   {
+      if((%a[%i] > %max || %max $= "") && %a[%i] !$= "")
+         %max = %a[%i];
+   }
+   return %max;
 }
 
 //- isReadonly (determines whether a particular file is read only or not)
@@ -1119,4 +1187,43 @@ function getFileContents(%file)
    }
    else
       return 0;
+}
+
+//- filterKey (locates bl key-like strings)
+function filterKey(%string)
+{
+   %string = strReplace(%string,"-","\t");
+   %string = strReplace(%string," ","\t");
+   
+   %stageCheck = 0;
+   for(%i=0;%i<getFieldCount(%string);%i++)
+   {
+      if(stringMatch(getField(%string,%i),"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
+      {
+         if(%stageCheck $= 0)
+         {
+            if(strlen(getField(%string,%i)) $= 5)
+            {
+               %stageCheck++;
+            }
+         }
+         else
+         {
+            if(strlen(getField(%string,%i)) $= 4)
+            {
+               %stageCheck++;
+               
+               if(%stageCheck > 3)
+                  return 1;
+            }
+            else
+            {
+               %stageCheck = 0;
+            }
+         }
+      }
+      else
+         %stageCheck = 0;
+   }
+   return 0;
 }

@@ -6,6 +6,11 @@ A list of people who have helped in the production of RTB.
 Mocheeze (Graphics)
 Wedge (Documentation)
 
+<lmargin:20%><font:Palatino Linotype:24>Support Team
+<lmargin:40%><font:Palatino Linotype:20>BlockBot
+Mod Bot
+Save Daemon
+
 <lmargin:20%><font:Palatino Linotype:24>Testing
 <lmargin:40%><font:Palatino Linotype:20>Mocheeze
 Nitramtj

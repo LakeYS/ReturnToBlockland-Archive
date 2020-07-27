@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 93 $
-//#      $Date: 2009-08-01 20:32:18 +0100 (Sat, 01 Aug 2009) $
+//#      $Rev: 112 $
+//#      $Date: 2009-09-05 18:17:49 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBR_GUITransfer_Hook.cs $
 //#
-//#      $Id: RTBR_GUITransfer_Hook.cs 93 2009-08-01 19:32:18Z Ephialtes $
+//#      $Id: RTBR_GUITransfer_Hook.cs 112 2009-09-05 17:17:49Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -289,5 +289,3 @@ RTBRT_registerControl("GuiMLTextCtrl","profile horizSizing vertSizing position e
 RTBRT_registerControl("GuiSwatchCtrl","profile horizSizing vertSizing position extent color");
 RTBRT_registerControl("GuiWindowCtrl","profile horizSizing vertSizing position extent text=>f{setText} resizeWidth resizeHeight canMove canClose canMinimize canMaximize minSize");
 RTBRT_registerControl("GuiScrollCtrl","profile horizSizing vertSizing position extent hScrollBar vScrollBar childMargin rowHeight columnWidth");
-
-RTB_registerGUI("Add-Ons/System_ReturnToBlockland/RTB_Example.gui");

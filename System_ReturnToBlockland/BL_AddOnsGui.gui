@@ -158,6 +158,25 @@ new GuiControl(AddOnsGui) {
          mKeepCached = "0";
          mColor = "255 255 255 255";
       };
+      new GuiBitmapButtonCtrl(AOG_Groups) {
+         profile = "BlockButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "280 181";
+         extent = "91 38";
+         minExtent = "8 2";
+         visible = "1";
+         command = "";
+         text = "Groups";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "base/client/ui/button2";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
    };
 };
 //--- OBJECT WRITE END ---

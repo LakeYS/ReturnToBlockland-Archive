@@ -1,6 +1,6 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -139,6 +139,11 @@ function RTBCU_InitFC()
 //- RTBCU_downloadUpdate (Attempts to download an rtb update)
 function RTBCU_downloadUpdate(%version)
 {
+   if(!isWriteableFilename("Add-Ons/System_ReturnToBlockland.zip"))
+   {
+      MessageBoxOK("Oh Dear!","Your System_ReturnToBlockland.zip is read-only and cannot be overwritten.\n\nPlease download the latest RTB manually from our website, or set System_ReturnToBlockland.zip to not be read-only.");
+      return;
+   }
    RTBCU_InitFC();
    
    RTBCU_FC.targetVersion = %version;
@@ -163,17 +168,18 @@ function RTBCU_FC::onLine(%this,%line)
    if(strPos(%line,"404 Not Found") >= 0)
    {
       %this.disconnect();
-      MessageBoxOK("Error!","There appears to be an error with the update and the ZIP cannot be located.");
+      MessageBoxOK("Error!","An error occured with the updater service and the update could not be located.");
       canvas.popDialog(RTB_Updater);
       return;
    }
    
    if(strPos(%line,"DL-Result:") $= 0)
    {
+      %this.dlResult = getWord(%line,1);
       if(getWord(%line,1) $= 0)
       {
          %this.disconnect();
-         MessageBoxOK("Error!","There appears to be an error with the update and the ZIP cannot be located.");
+         MessageBoxOK("Error!","An error occured with the updater service and the update could not be located.");
          Canvas.popDialog(RTB_Updater);
          return;
       }
@@ -183,7 +189,16 @@ function RTBCU_FC::onLine(%this,%line)
       %this.contentSize = getWord(%line,1);
       
    if(%line $= "")
+   {
+      if(%this.dlResult !$= 1)
+      {
+         %this.disconnect();
+         MessageBoxOK("Error!","An error occured with the updater service and the update could not be located.");
+         Canvas.popDialog(RTB_Updater);
+         return;
+      }
       %this.setBinarySize(%this.contentSize);
+   }
 }
 
 //- RTBCU_FC::onBinChunk (On binary chunk received)
@@ -194,15 +209,22 @@ function RTBCU_FC::onBinChunk(%this,%chunk)
       
    if(%chunk >= %this.contentSize)
    {
-      %this.saveBufferToFile("Add-Ons/System_ReturnToBlockland.zip");
-      %this.disconnect();
-      
-      RTBCU_Progress.setValue(1);
-      RTBCU_ProgressText.setText("Download Complete");
-      RTBCU_Speed.setText("N/A");
-      RTBCU_Done.setText(byteRound(%this.contentSize));
-      
-      MessageBoxOK("Huzzah!","You have successfully downloaded RTB v"@%this.targetVersion@".\n\nBlockland must now close to complete the install.","quit();");
+      if(isWriteableFilename("Add-Ons/System_ReturnToBlockland.zip"))
+      {
+         %this.saveBufferToFile("Add-Ons/System_ReturnToBlockland.zip");
+         %this.disconnect();
+         
+         RTBCU_Progress.setValue(1);
+         RTBCU_ProgressText.setText("Download Complete");
+         RTBCU_Speed.setText("N/A");
+         RTBCU_Done.setText(byteRound(%this.contentSize));
+         
+         MessageBoxOK("Huzzah!","You have successfully downloaded RTB v"@%this.targetVersion@".\n\nBlockland must now close to complete the install.","quit();");
+      }
+      else
+      {
+         MessageBoxOK("Oh Dear!","Unable to save RTB v"@%this.targetVersion@". Your System_ReturnToBlockland.zip is Read-Only and cannot be overwritten.\n\nPlease download the latest RTB manually from our website.");
+      }
    }
    else
    {

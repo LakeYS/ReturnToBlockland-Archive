@@ -1,6 +1,6 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -43,6 +43,12 @@ function RTBSC_ToggleSC(%val)
    if(!%val)
       return;
       
+   if($IamAdmin !$= 2)
+      return;
+      
+   if(!$RTB::CServerControl::Cache::ServerHasRTB)
+      return;
+      
    if(RTB_ServerControl.isAwake())
       canvas.popDialog(RTB_ServerControl);
    else
@@ -76,7 +82,7 @@ function RTBSC_cacheServerOption(%optionName,%type,%style,%description,%category
 //*********************************************************
 RTBSC_cacheServerOption("Server Name","string 150","100 7 200 18","The Server Name is what is displayed to people who are browsing for servers to join.","Main Settings");
 RTBSC_cacheServerOption("Welcome Message","string 255","100 7 200 18","The Welcome Message is what is sent to users when they join the server. %1 is replaced with the player's name.","Main Settings");
-RTBSC_cacheServerOption("Max Players","playerlist 1 64","100 7 84 16","The Max Players is the max ammount of people allowed in the server. This includes the Server Host and the Admin. You can set this to less than the current number of players in the server.","Main Settings");
+RTBSC_cacheServerOption("Max Players","playerlist 1 32","100 7 84 16","The Max Players is the max ammount of people allowed in the server. This includes the Server Host and the Admin. You can set this to less than the current number of players in the server.","Main Settings");
 RTBSC_cacheServerOption("Server Password","string 30","100 7 200 18","The Server Password prevents people without the password from joining the server.","Main Settings");
 RTBSC_cacheServerOption("Admin Password","string 30","100 7 200 18","The Admin Password allows people to enter a password to become Admin.","Main Settings");
 RTBSC_cacheServerOption("Super Admin Password","string 30","130 7 170 18","The Super Admin Password allows people to enter a password to become a Super Admin.","Main Settings");
@@ -87,15 +93,6 @@ RTBSC_cacheServerOption("Falling Damage","bool","200 0 140 30","Falling Damage m
 RTBSC_cacheServerOption("\"Too Far\" Distance for Building","int 0 9999","200 7 100 18","The Too Far distance is how close people have to be to their ghost brick to plant it.","Gameplay Settings");
 RTBSC_cacheServerOption("Wrench Events Admin Only","bool","200 0 140 30"," Wrench Events can be made Admin Only by using this setting.","Gameplay Settings");
 RTBSC_cacheServerOption("Bricks lose ownership after (minutes)","int -1 99999","200 7 100 18","This will make bricks lose their ownership if the owner is gone for more than the number of minutes in the box. This means any player will be able to build on or destroy those bricks. -1 disables this.","Gameplay Settings");
-RTBSC_cacheServerOption("Total Player Vehicles","int 0 1000","200 7 100 18","The total number of Player-based Vehicles or Bots that can be in the server at one time.","Vehicle Limits");
-RTBSC_cacheServerOption("Total Physics Vehicles","int 0 1000","200 7 100 18","The total number of Physics-based Vehicles that can be in the server at one time.","Vehicle Limits");
-RTBSC_cacheServerOption("Total Player Vehicles per Player","int 0 1000","200 7 100 18","The total number of Player-based Vehicles or Bots that a single player can have at one time.","Vehicle Limits");
-RTBSC_cacheServerOption("Total Physics Vehicles per Player","int 0 1000","200 7 100 18","The total number of Physics-based Vehicles that a single player can have at one time.","Vehicle Limits");
-RTBSC_cacheServerOption("Schedule Event Quota","int 0 1000","200 7 100 18","The total number of schedules that can be used at once per player.","Event Quotas");
-RTBSC_cacheServerOption("Miscellaneous Event Quota","int 0 1000","200 7 100 18","You know, I honestly don't know what this one does.","Event Quotas");
-RTBSC_cacheServerOption("Projectile Event Quota","int 5 1000","200 7 100 18","The total number of projectiles that can exist as a result of events per player.","Event Quotas");
-RTBSC_cacheServerOption("Item Event Quota","int 5 1000","200 7 100 18","The total number of spawned items that can exist as a result of events per player.","Event Quotas");
-RTBSC_cacheServerOption("Effects Event Quota","int 0 1000","200 7 100 18","The total number of lights/emitters that can exist as a result of events per player.","Event Quotas");
 
 //*********************************************************
 //* Prefs Registration
@@ -160,6 +157,35 @@ package RTBC_ServerControl
       adminGui.getObject(0).add(%btn);
    }
    
+   function unBanGui::onWake(%this)
+   {
+      Parent::onWake(%this);
+      
+      if(isObject(rtbClearBansBtn))
+      {
+         if($IamAdmin !$= 2 || $RTB::CServerControl::Cache::ServerHasRTB !$= 1)
+            rtbClearBansBtn.delete();
+         return;
+      }
+      
+      if($IamAdmin !$= 2 || $RTB::CServerControl::Cache::ServerHasRTB !$= 1)
+         return;
+         
+      %btn = new GuiBitmapButtonCtrl(rtbClearBansBtn)
+      {
+         profile = BlockButtonProfile;
+         horizSizing = "left";
+         vertSizing = "bottom";
+         position = "502 100";
+         extent = "91 38";
+         command = "unBanGui.clickClear();";
+         text = "Clear All";
+         bitmap = "base/client/ui/button2";
+         mcolor = "255 0 0 255";
+      };
+      unBanGui.getObject(0).add(%btn);
+   }
+   
    function NewPlayerListGui::update(%this,%client,%name,%blid,%isAdmin,%isSuperAdmin,%score)
    {
       Parent::update(%this,%client,%name,%blid,%isAdmin,%isSuperAdmin,%score);
@@ -170,6 +196,7 @@ package RTBC_ServerControl
 };
 activatePackage(RTBC_ServerControl);
 
+//- RTB_ServerControl::onWake (onwake callback for gui)
 function RTB_ServerControl::onWake(%this)
 {
    for(%i=3;%i<%this.getObject(0).getCount();%i++)
@@ -758,10 +785,9 @@ function RTBSC_Pane3::render()
          %ctrl.add(%ctrlRow);
          
          %type = getField(%pref,2);
-         %inputName = "RTBSC_SP_Pref"@getField(%pref,0);
          if(firstWord(%type) $= "string")
          {
-            %input = new GuiTextEditCtrl(%inputName) {
+            %input = new GuiTextEditCtrl() {
                profile = "RTBMM_TextEditProfile";
                horizSizing = "right";
                vertSizing = "bottom";
@@ -779,7 +805,7 @@ function RTBSC_Pane3::render()
          }
          else if(firstWord(%type) $= "int")
          {
-            %input = new GuiTextEditCtrl(%inputName) {
+            %input = new GuiTextEditCtrl() {
                profile = "RTBMM_TextEditProfile";
                horizSizing = "right";
                vertSizing = "bottom";
@@ -800,7 +826,7 @@ function RTBSC_Pane3::render()
          }
          else if(firstWord(%type) $= "bool")
          {
-            %input = new GuiCheckboxCtrl(%inputName) {
+            %input = new GuiCheckboxCtrl() {
                profile = "RTBMM_CheckboxProfile";
                horizSizing = "right";
                vertSizing = "bottom";
@@ -814,7 +840,7 @@ function RTBSC_Pane3::render()
          }
          else if(firstWord(%type) $= "list")
          {
-            %input = new GuiPopupMenuCtrl(%inputName) {
+            %input = new GuiPopupMenuCtrl() {
                profile = "RTBMM_PopupProfile";
                horizSizing = "right";
                vertSizing = "bottom";
@@ -831,6 +857,7 @@ function RTBSC_Pane3::render()
                %input.add(getWord(%type,%l),getWord(%type,%l+1));
             }
          }
+         $RTB::CServerControl::Pref[getField(%pref,0)] = %input;
          %ctrl.resize(0,1,316,%y+30);
          %y+=30;
       }
@@ -860,7 +887,7 @@ function clientCmdRTB_setServerPrefs(%prefs,%v1,%v2,%v3,%v4,%v5,%v6,%v7,%v8,%v9,
       %oldPref = $RTB::CServerControl::Cache::SP::Value[getWord(%prefs,%i)];
       %value = %v[%i+1];
       $RTB::CServerControl::Cache::SP::Value[getWord(%prefs,%i)] = %value;
-      %ctrl = "RTBSC_SP_Pref"@getWord(%prefs,%i);
+      %ctrl = $RTB::CServerControl::Pref[getWord(%prefs,%i)];
       
       if(RTB_ServerControl.isAwake() && $RTB::CServerControl::Cache::currentTab $= 3)
       {
@@ -890,7 +917,7 @@ function RTBSC_applyPrefsToControls()
    for(%i=0;%i<$RTB::CServerControl::Cache::SP::Prefs;%i++)
    {
       %pref = $RTB::CServerControl::Cache::SP::Pref[%i];
-      %ctrl = "RTBSC_SP_Pref"@%i;
+      %ctrl = $RTB::CServerControl::Pref[%i];
       if(!isObject(%ctrl))
          continue;
          
@@ -909,7 +936,7 @@ function RTBSC_Pane3::saveOptions()
    for(%i=0;%i<$RTB::CServerControl::Cache::SP::Prefs;%i++)
    {
       %pref = $RTB::CServerControl::Cache::SP::Pref[%i];
-      %ctrl = "RTBSC_SP_Pref"@%i;
+      %ctrl = $RTB::CServerControl::Pref[%i];
       if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
          %value = %ctrl.getSelected();
       else
@@ -928,7 +955,7 @@ function RTBSC_Pane3::saveOptions()
       
       for(%i=0;%i<getWordCount(%changes);%i++)
       {
-         %ctrl = "RTBSC_SP_Pref"@getWord(%changes,%i);
+         %ctrl = $RTB::CServerControl::Pref[getWord(%changes,%i)];
          if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
             %value = %ctrl.getSelected();
          else
@@ -989,6 +1016,21 @@ function RTBSC_PF_ValidateInt(%ctrl)
       %value = %ctrl.fieldMin;
       
    %ctrl.setValue(%value);
+}
+
+//*********************************************************
+//* Ban List Clearing
+//*********************************************************
+//- unBanGui::clickClear (clears all the bans on the banlist)
+function unBanGui::clickClear(%this,%confirm)
+{
+	if(!%confirm)
+	{
+		MessageBoxYesNo("Really?","Are you sure you want to clear ALL the bans on the server ban list?","unBanGui::clickClear("@%this@",1);","");
+		return;
+	}
+	unBan_list.clear();
+	commandtoserver('RTB_clearBans');
 }
 
 //*********************************************************

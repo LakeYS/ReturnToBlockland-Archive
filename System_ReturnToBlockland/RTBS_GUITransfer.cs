@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 82 $
-//#      $Date: 2009-07-25 15:51:53 +0100 (Sat, 25 Jul 2009) $
+//#      $Rev: 108 $
+//#      $Date: 2009-09-05 11:39:30 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBS_GUITransfer.cs $
 //#
-//#      $Id: RTBS_GUITransfer.cs 82 2009-07-25 14:51:53Z Ephialtes $
+//#      $Id: RTBS_GUITransfer.cs 108 2009-09-05 10:39:30Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -110,7 +110,7 @@ function GameConnection::transmitGUI(%client,%gui,%element)
       %gui++;
       %element = -1;
    }
-   %client.schedule(50,"transmitGUI",%gui,%element);
+   %client.schedule(5,"transmitGUI",%gui,%element);
 }
 
 //- GameConnection::onGUIDone (Callback when gui is completely downloaded)
@@ -127,38 +127,19 @@ function GameConnection::onGUIDone(%client)
 //*********************************************************
 package RTBS_GUITransfer
 {
-   function GameConnection::loadMission(%this)
+   function serverCmdMissionPreparePhase2Ack(%client,%skip)
    {
-      if(%this.isAIControlled())
-      {
-         %this.onClientEnterGame();
-      }
-      else
-      {
-         if(RTBRT_GUIManifest.getCount() >= 1 && %this.hasRTB && %this.rtbVersion >= 3 && !%this.hasDownloadedGUI)
-         {
-            %this.currentPhase = -1;
-            commandToClient(%this,'MissionStartPhase0',RTBRT_getControlCRC(),RTBRT_GUIManifest.getCount(),RTBRT_GUIManifest.elements);
-            echo("*** Sending mission load to client: " @ $Server::MissionFile);
-         }
-         else
-            Parent::loadMission(%this);
-      }
-   }
-   
-   function serverCmdMissionStartPhase0Ack(%client,%skip)
-   {
-      if(%client.currentPhase !$= "-1")
+      if(%client.currentPhase !$= "-1" || %client.currentPreparePhase !$= "1")
          return;
          
       if(%skip)
       {
-         %client.currentPhase = "";
+         %client.currentPhase = 0;
          commandToClient(%client,'MissionStartPhase1',$missionSequence,$Server::MissionFile);
          return;
       }
          
-      %client.currentPhase = -0.5;
+      %client.currentPreparePhase = 2;
       %client.transmitGUI();
    }
 };

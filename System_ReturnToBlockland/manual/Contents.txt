@@ -8,13 +8,7 @@ images/icons/doc3|Server Control|Server Control.txt
 images/icons/doc3|Colorset Manager|Colorset Manager.txt
 images/icons/doc3|Server Information|Server Information.txt
 <sep>
-images/icons/doc1|Modding Overview|Modding Overview.txt
-images/icons/doc1|Info Tips|Info Tips.txt
-images/icons/doc1|Pref Manager|Pref Manager.txt
-images/icons/doc1|Colorsets|Colorsets.txt
-<sep>
 images/icons/doc2|Dedicated Servers|Dedicated.txt
 <sep>
-images/house_link|Linking|Linking.txt
 images/icons/man|Credits|Credits.txt
 images/icons/heart|Support|Support.txt

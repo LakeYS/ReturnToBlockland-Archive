@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 94 $
-//#      $Date: 2009-08-09 01:28:21 +0100 (Sun, 09 Aug 2009) $
+//#      $Rev: 108 $
+//#      $Date: 2009-09-05 11:39:30 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBS_ServerControl.cs $
 //#
-//#      $Id: RTBS_ServerControl.cs 94 2009-08-09 00:28:21Z Ephialtes $
+//#      $Id: RTBS_ServerControl.cs 108 2009-09-05 10:39:30Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -67,6 +67,8 @@ function serverCmdRTB_setServerOptions(%client,%notify,%options,%v1,%v2,%v3,%v4,
       if(firstWord(%type) $= "int" || firstWord(%type) $= "playerlist")
       {
          %newValue = mFloatLength(%newValue,0);
+         if(%newValue $= "")
+            %newValue = getWord(%type,1);
          if(%newValue < getWord(%type,1))
             %newValue = getWord(%type,1);
          else if(%newValue > getWord(%type,2))
@@ -106,7 +108,7 @@ function serverCmdRTB_setServerOptions(%client,%notify,%options,%v1,%v2,%v3,%v4,
    
    if(strPos(%options,"D") >= 1)
    {
-      commandtoclient(%client,'closeGui',"RTB_ServerControl");
+      commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
       if(!$Server::LAN)
          WebCom_PostServer();
          
@@ -147,26 +149,11 @@ function serverCmdRTB_getServerOptions(%client)
 }
    
 //*********************************************************
-//* Server Options Callbacks
-//*********************************************************
-function RTBSC_changeQuota(%quotaType)
-{
-   for(%i=0;%i<mainBrickGroup.getCount();%i++)
-   {
-      %brickGroup = mainBrickGroup.getObject(%i);
-      %quota = %brickGroup.quotaObject;
-      
-      if(isObject(%quota))
-         %quota.killObjects();
-   }
-}
-   
-//*********************************************************
 //* Server Options Definitions (Must match on client)
 //*********************************************************
 RTBSC_registerServerOption("Server Name","string 150","$Pref::Server::Name","","The %1 has been changed to %2");
 RTBSC_registerServerOption("Welcome Message","string 255","$Pref::Server::WelcomeMessage","","The %1 has been changed to %2");
-RTBSC_registerServerOption("Max Players","playerlist 1 64","$Pref::Server::MaxPlayers","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Max Players","playerlist 1 32","$Pref::Server::MaxPlayers","","The %1 has been changed to %2");
 RTBSC_registerServerOption("Server Password","string 30","$Pref::Server::Password","","The %1 has been changed");
 RTBSC_registerServerOption("Admin Password","string 30","$Pref::Server::AdminPassword","","The %1 has been changed");
 RTBSC_registerServerOption("Super Admin Password","string 30","$Pref::Server::SuperAdminPassword","","The %1 has been changed");
@@ -177,29 +164,6 @@ RTBSC_registerServerOption("Falling Damage","bool","$Pref::Server::FallingDamage
 RTBSC_registerServerOption("Too Far Distance","int 0 9999","$Pref::Server::TooFarDistance","","The %1 has been changed to %2");
 RTBSC_registerServerOption("Admin Only Wrench Events","bool","$Pref::Server::WrenchEventsAdminOnly","","%1 have been turned %2");
 RTBSC_registerServerOption("Brick Ownership Decay","int -1 99999","$Pref::Server::BrickPublicDomainTimeout","","%1 has been changed to %2");
-RTBSC_registerServerOption("Total Player Vehicles","int 0 1000","$Pref::Server::MaxPlayerVehicles_Total","","%1 has been changed to %2");
-RTBSC_registerServerOption("Total Physics Vehicles","int 0 1000","$Pref::Server::MaxPhysVehicles_Total","","%1 has been changed to %2");
-
-if($Server::LAN)
-{
-   RTBSC_registerServerOption("Total Player Vehicles per Player","int 0 100","$Pref::Server::QuotaLAN::Player","RTBSC_changeQuota(\"Player\");","%1 has been changed to %2");
-   RTBSC_registerServerOption("Total Physics Vehicles per Player","int 0 50","$Pref::Server::QuotaLAN::Vehicle","RTBSC_changeQuota(\"Vehicle\");","%1 has been changed to %2");
-   RTBSC_registerServerOption("Schedule Event Quota","int 0 1000","$Pref::Server::QuotaLAN::Schedules","RTBSC_changeQuota(\"Schedules\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Miscellaneous Event Quota","int 0 1000","$Pref::Server::QuotaLAN::Misc","RTBSC_changeQuota(\"Misc\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Projectile Event Quota","int 5 1000","$Pref::Server::QuotaLAN::Projectile","RTBSC_changeQuota(\"Projectile\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Item Event Quota","int 5 1000","$Pref::Server::QuotaLAN::Item","RTBSC_changeQuota(\"Item\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Effects Event Quota","int 0 1000","$Pref::Server::QuotaLAN::Environment","RTBSC_changeQuota(\"Environment\");","The %1 has been changed to %2");
-}
-else
-{
-   RTBSC_registerServerOption("Total Player Vehicles per Player","int 0 100","$Pref::Server::Quota::Player","RTBSC_changeQuota(\"Player\");","%1 has been changed to %2");
-   RTBSC_registerServerOption("Total Physics Vehicles per Player","int 0 50","$Pref::Server::Quota::Vehicle","RTBSC_changeQuota(\"Vehicle\");","%1 has been changed to %2");
-   RTBSC_registerServerOption("Schedule Event Quota","int 0 1000","$Pref::Server::Quota::Schedules","RTBSC_changeQuota(\"Schedules\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Miscellaneous Event Quota","int 0 1000","$Pref::Server::Quota::Misc","RTBSC_changeQuota(\"Misc\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Projectile Event Quota","int 5 1000","$Pref::Server::Quota::Projectile","RTBSC_changeQuota(\"Projectile\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Item Event Quota","int 5 1000","$Pref::Server::Quota::Item","RTBSC_changeQuota(\"Item\");","The %1 has been changed to %2");
-   RTBSC_registerServerOption("Effects Event Quota","int 0 1000","$Pref::Server::Quota::Environment","RTBSC_changeQuota(\"Environment\");","The %1 has been changed to %2");
-}
 
 //*********************************************************
 //* Auto Admin
@@ -240,6 +204,8 @@ function serverCmdRTB_addAutoStatus(%client,%bl_id,%status)
 		{
 			$Pref::Server::AutoSuperAdminList = addItemToList($Pref::Server::AutoSuperAdminList,%bl_id);
 		}
+		export("$Pref::Server::*","config/server/prefs.cs");
+		
 		serverCmdRTB_getAutoAdminList(%client);
 		
 		for(%i=0;%i<ClientGroup.getCount();%i++)
@@ -254,8 +220,8 @@ function serverCmdRTB_addAutoStatus(%client,%bl_id,%status)
                
                %cl.isAdmin = 1;
                %cl.isSuperAdmin = 1;
+               %cl.sendPlayerListUpdate();
                commandtoclient(%cl,'setAdminLevel',2);
-               messageAll('MsgClientJoin','',%cl.name,%cl,%cl.bl_id,%cl.score,0,%cl.isAdmin,%cl.isSuperAdmin);
                messageAll('MsgAdminForce','\c2%1 has become Super Admin (Auto)',%cl.name);
             
                RTBSC_SendPrefList(%client);
@@ -267,8 +233,8 @@ function serverCmdRTB_addAutoStatus(%client,%bl_id,%status)
                
                %cl.isAdmin = 1;
                %cl.isSuperAdmin = 0;
+               %cl.sendPlayerListUpdate();
                commandtoclient(%cl,'setAdminLevel',1);
-               messageAll('MsgClientJoin','',%cl.name,%cl,%cl.bl_id,%cl.score,0,%cl.isAdmin,%cl.isSuperAdmin);
                messageAll('MsgAdminForce','\c2%1 has become Admin (Auto)',%cl.name);
             }
 			}
@@ -283,7 +249,8 @@ function serverCmdRTB_removeAutoStatus(%client,%bl_id)
 	{
 		$Pref::Server::AutoAdminList = removeItemFromList($Pref::Server::AutoAdminList,%bl_id);
 		$Pref::Server::AutoSuperAdminList = removeItemFromList($Pref::Server::AutoSuperAdminList,%bl_id);
-
+      export("$Pref::Server::*","config/server/prefs.cs");
+      
 		serverCmdRTB_getAutoAdminList(%client);
 	}
 }
@@ -295,7 +262,8 @@ function serverCmdRTB_clearAutoAdminList(%client)
 	{
 		$Pref::Server::AutoAdminList = "";
 		$Pref::Server::AutoSuperAdminList = "";
-
+      export("$Pref::Server::*","config/server/prefs.cs");
+      
 		serverCmdRTB_getAutoAdminList(%client);
 	}
 }
@@ -320,8 +288,8 @@ function serverCmdRTB_deAdminPlayer(%client,%victim)
    {
       %victim.isAdmin = 0;
       %victim.isSuperAdmin = 0;
+      %victim.sendPlayerListUpdate();
       commandtoclient(%victim,'setAdminLevel',0);
-      messageAll('MsgClientJoin','',%victim.name,%victim,%victim.bl_id,%victim.score,0,%victim.isAdmin,%victim.isSuperAdmin);
       messageAll('MsgAdminForce','\c2%1 has been De-Admined (Manual)',%victim.name);
    }
 }
@@ -337,13 +305,17 @@ function serverCmdRTB_adminPlayer(%client,%victim)
       messageClient(%client,'','\c2You cannot de-admin the host.');
       return;
    }
-      
-   if(!%victim.isAdmin || (%victim.isAdmin && %victim.isSuperAdmin))
+   else if(%victim.isSuperAdmin && %client.bl_id !$= getNumKeyID())
+   {
+      messageClient(%client,'','\c2Only the host can de-admin a Super Admin.');
+      return;
+   }
+   else if(!%victim.isAdmin || (%victim.isAdmin && %victim.isSuperAdmin))
    {
       %victim.isAdmin = 1;
       %victim.isSuperAdmin = 0;
+      %victim.sendPlayerListUpdate();
       commandtoclient(%victim,'setAdminLevel',1);
-      messageAll('MsgClientJoin','',%victim.name,%victim,%victim.bl_id,%victim.score,0,%victim.isAdmin,%victim.isSuperAdmin);
       messageAll('MsgAdminForce','\c2%1 has become Admin (Manual)',%victim.name);
    }
 }
@@ -358,8 +330,8 @@ function serverCmdRTB_superAdminPlayer(%client,%victim)
    {
       %victim.isAdmin = 1;
       %victim.isSuperAdmin = 1;
+      %victim.sendPlayerListUpdate();
       commandtoclient(%victim,'setAdminLevel',2);
-      messageAll('MsgClientJoin','',%victim.name,%victim,%victim.bl_id,%victim.score,0,%victim.isAdmin,%victim.isSuperAdmin);
       messageAll('MsgAdminForce','\c2%1 has become Super Admin (Manual)',%victim.name);
       
       RTBSC_SendPrefList(%victim);
@@ -447,9 +419,13 @@ function serverCmdRTB_defaultServerPrefs(%client)
 
    for(%i=0;%i<$RTB::SServerControl::SP::Prefs;%i++)
    {
+      eval("%currValue = $"@getField(%pref,1)@";");
       %pref = $RTB::SServerControl::SP::Pref[%i];
       %value = $RTB::SServerControl::SP::PrefDefault[%i];
       eval("$"@getField(%pref,1)@" = \""@%value@"\";");
+      
+      if(getField(%pref,7) !$= "")
+         call(getField(%pref,7),%currValue,%value);
    }
    
    commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
@@ -565,7 +541,7 @@ function RTBSC_savePrefValues()
 //*********************************************************
 //* Support Functions
 //*********************************************************
-//- addItemToList (Adds an item to a space delimited list)
+//- addItemToList (adds an item to a space delimited list)
 function addItemToList(%string,%item)
 {
 	if(hasItemOnList(%string,%item))
@@ -577,7 +553,7 @@ function addItemToList(%string,%item)
 		return %string SPC %item;
 }
 
-//- hasItemOnList (Checks for an item in a list)
+//- hasItemOnList (checks for an item in a list)
 function hasItemOnList(%string,%item)
 {
 	for(%i=0;%i<getWordCount(%string);%i++)
@@ -588,7 +564,7 @@ function hasItemOnList(%string,%item)
 	return 0;
 }
 
-//- removeItemFromList (Removes an item from a space-delimited list)
+//- removeItemFromList (removes an item from a space-delimited list)
 function removeItemFromList(%string,%item)
 {
 	if(!hasItemOnList(%string,%item))
@@ -608,7 +584,7 @@ function removeItemFromList(%string,%item)
 	}
 }
 
-//- dumpExecutionErrors (Notifies players of errors with their add-ons because they don't check the console)
+//- dumpExecutionErrors (notifies players of errors with their add-ons because they don't check the console)
 function dumpExecutionErrors()
 {
    %errorArray = strReplace($ScriptError,"\n","\t");
@@ -627,18 +603,48 @@ function dumpExecutionErrors()
 schedule(100,0,"dumpExecutionErrors");
 
 //*********************************************************
+//* Ban List Clearing
+//*********************************************************
+function serverCmdRTB_clearBans(%client)
+{
+   if(!%client.isSuperAdmin)
+      return;
+      
+   %cleared = 0;
+   %numBans = BanManagerSO.numBans;
+   for(%i=0;%i<%numBans;%i++)
+   {
+      BanManagerSO.removeBan(0);
+      %cleared++;
+   }
+   BanManagerSO.saveBans();
+   
+   BanManagerSO.sendBanList(%client);
+   
+   echo("BAN LIST CLEARED by "@%client.name@" BL_ID:"@%client.bl_id@" IP:"@%client.getRawIP());
+   echo("  +- bans cleared = "@%cleared);
+}
+
+//*********************************************************
 //* Packaged Functions
 //*********************************************************
 package RTBS_ServerControl
 {
-   function GameConnection::onConnectRequest(%this,%a,%b,%c,%d,%e,%f)
+   function destroyServer()
    {
-      if(%f !$= "")
+      $RTB::SServerControl::SP::Cats = 0;
+      $RTB::SServerControl::SP::Prefs = 0;
+      Parent::destroyServer();
+   }
+   
+   function GameConnection::onConnectRequest(%this,%a,%b,%c,%d,%e,%f,%g,%h,%i)
+   {
+      if(%g !$= "")
       {
          %this.hasRTB = 1;
-         %this.rtbVersion = %f;
+         %this.rtbVersion = %g;
       }
-      Parent::onConnectRequest(%this,%a,%b,%c,%d,%e);
+      Parent::onConnectRequest(%this,%a,%b,%c,%d,%e,%f,%g,%h,%i);
    }
    
    function serverCmdSAD(%client,%pass)
@@ -650,11 +656,6 @@ package RTBS_ServerControl
    function GameConnection::autoAdminCheck(%this)
    {
       %auto = Parent::autoAdminCheck(%this);
-      
-      if(%this.bl_id $= getNumKeyID() && $Server::Dedicated)
-      {
-         setupRTBDedicated(%this.name,1);
-      }
       
       if(%this.hasRTB)
       {

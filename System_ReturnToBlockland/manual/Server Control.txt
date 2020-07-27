@@ -1,7 +1,7 @@
 <font:Palatino Linotype:24>Server Control<font:Palatino Linotype:18>
 The Server Control System allows you and your Super Admins to administrate your server's settings. It can be accessed by pressing the Server Control button on your Admin Menu.
 
-<font:Palatino Linotype Bold:20>Server Options<font:Palatino Linotype:18>
+<lmargin:20><font:Palatino Linotype Bold:20>Server Options<font:Palatino Linotype:18>
 This panel allows you to view and modify most of the server preferences. You can click on a setting name to view a description about it.
 
 The Notify Users checkbox will list all the settings you changed to the players in the server, unticking it will just display "Name has updated the server settings."

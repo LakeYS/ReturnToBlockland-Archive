@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 67 $
-//#      $Date: 2009-07-18 10:59:39 +0100 (Sat, 18 Jul 2009) $
+//#      $Rev: 108 $
+//#      $Date: 2009-09-05 11:39:30 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBC_Profiles.cs $
 //#
-//#      $Id: RTBC_Profiles.cs 67 2009-07-18 09:59:39Z Ephialtes $
+//#      $Id: RTBC_Profiles.cs 108 2009-09-05 10:39:30Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -25,6 +25,21 @@ new AudioProfile(Note12Sound: Note11Sound)
 if(!isObject(GuiCheckBoxBoldProfile)) new GuiControlProfile(GuiCheckBoxBoldProfile : GuiCheckBoxProfile)
 {
    fontType = "Arial Bold";
+};
+
+if(!isObject(RTBMM_CellLightProfile)) new GuiControlProfile(RTBMM_CellLightProfile : GuiBitmapBorderProfile)
+{
+   bitmap = $RTB::Path@"images/ui/cellArray_light";
+};
+
+if(!isObject(RTBMM_CellYellowProfile)) new GuiControlProfile(RTBMM_CellYellowProfile : RTBMM_CellLightProfile)
+{
+   bitmap = $RTB::Path@"images/ui/cellArray_yellow";
+};
+
+if(!isObject(RTBMM_CellDarkProfile)) new GuiControlProfile(RTBMM_CellDarkProfile : RTBMM_CellLightProfile)
+{
+   bitmap = $RTB::Path@"images/ui/cellArray_dark";
 };
 
 if(!isObject(RTBMM_CheckBoxProfile)) new GuiControlProfile(RTBMM_CheckBoxProfile : GuiCheckBoxProfile)
@@ -331,9 +346,3 @@ if(!isObject(RTB_VersionProfile)) new GuiControlProfile(RTB_VersionProfile)
    numbersOnly = "0";
    cursorColor = "0 0 0 255";
 };
-
-function clientCmdcloseGui(%gui)
-{
-   if(isObject(%gui))
-      canvas.popDialog(%gui);
-}

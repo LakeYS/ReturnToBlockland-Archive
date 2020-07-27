@@ -71,9 +71,9 @@ new GuiWindowCtrl(RTBJS_window) {
          clipColumnText = "1";
             helpTag = "0";
             sortedAsc = "1";
-            sortedBy = "3";
+            sortedBy = "0";
             noDuplicates = "false";
-            sortedNumerical = "1";
+            sortedNumerical = "0";
       };
       new GuiBitmapCtrl(JSG_demoBanner) {
          profile = "GuiDefaultProfile";
@@ -135,7 +135,7 @@ new GuiWindowCtrl(RTBJS_window) {
       extent = "61 19";
       minExtent = "8 2";
       visible = "1";
-      command = "JS_sortNumList(7);";
+      command = "JS_sortNumList(7, 1);";
       text = "# Bricks";
       groupNum = "-1";
       buttonType = "PushButton";
@@ -359,7 +359,7 @@ new GuiWindowCtrl(RTBJS_window) {
       extent = "56 19";
       minExtent = "8 2";
       visible = "1";
-      command = "JS_sortNumList(4);";
+      command = "JS_sortNumList(4, 1);";
       text = "Players";
       groupNum = "-1";
       buttonType = "PushButton";
@@ -379,7 +379,7 @@ new GuiWindowCtrl(RTBJS_window) {
       extent = "33 19";
       minExtent = "8 2";
       visible = "1";
-      command = "JS_sortList(0);";
+      command = "JS_sortList(0, 1);";
       text = "Pass";
       groupNum = "-1";
       buttonType = "PushButton";
@@ -419,7 +419,7 @@ new GuiWindowCtrl(RTBJS_window) {
       extent = "31 19";
       minExtent = "8 2";
       visible = "1";
-      command = "JS_sortList(1);";
+      command = "JS_sortList(1, 1);";
       text = "Ded";
       groupNum = "-1";
       buttonType = "PushButton";

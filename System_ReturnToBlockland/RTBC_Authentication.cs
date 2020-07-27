@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 93 $
-//#      $Date: 2009-08-01 20:32:18 +0100 (Sat, 01 Aug 2009) $
+//#      $Rev: 110 $
+//#      $Date: 2009-09-05 11:48:12 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBC_Authentication.cs $
 //#
-//#      $Id: RTBC_Authentication.cs 93 2009-08-01 19:32:18Z Ephialtes $
+//#      $Id: RTBC_Authentication.cs 110 2009-09-05 10:48:12Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -63,18 +63,7 @@ function RTBCA_onAuthResponse(%this,%line)
 {
    if(getField(%line,0) $= "WELCOME")
    {
-      RTB_LoadDefaultPrefs();
-      %hasAccount = getField(%line,1);
-      canvas.pushDialog(RTB_WelcomeScreen);
-      
-      if(%hasAccount)
-      {
-         //Welcome (with account)
-      }
-      else
-      {
-         //Other Welcome
-      }
+      //Nothing
    }
    else if(%line $= "PREFS")
       RTBCA_SendPrefs();

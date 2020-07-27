@@ -1,6 +1,6 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -50,11 +50,17 @@ function RTBSA_SendRequest(%cmd,%line,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7,
 %RTBSA_SB.registerResponseHandler("POST","RTBSA_onPostResponse");
 function RTBSA_Post()
 {
-   if(!$RTB::Options::SA::PostServer || RTBSA_getServerType() !$= "Multiplayer")
+   if(RTBSA_getServerType() !$= "Multiplayer")
 	   return;
 	   
-   if($Pref::Server::RTBSetup::User $= "" && $Server::Dedicated)
+   if(!$RTB::Options::SA::PostServer)
       return;
+      
+   if($RTB::SAuthentication::LastAuth $= "")
+   {
+      $RTB::SAuthentication::LastAuth = getSimTime();
+      return;
+   }
    
    if(isEventPending($RTB::SAuthentication::Auth))
       cancel($RTB::SAuthentication::Auth);
@@ -147,44 +153,60 @@ function RTBSA_getModList()
       
       if($AddOn__[%zip] $= 1)
       {
+         %type = "";
+         %id = "";
+         %version = "";
+         %author = "";
+         %title = "";
+         
          %fileObject = new FileObject();
-         if(isFile("Add-Ons/"@%zip@"/rtbInfo.txt"))
+         if(%fileObject.openForRead("Add-Ons/"@%zip@"/rtbInfo.txt"))
          {
-            if(%fileObject.openForRead("Add-Ons/"@%zip@"/rtbInfo.txt"))
+            %type = "rtb";
+            while(!%fileObject.isEOF())
             {
-               while(!%fileObject.isEOF())
+               %line = %fileObject.readLine();
+               if(striPos(%line,"id:") !$= -1)
                {
-                  %line = %fileObject.readLine();
-                  if(strPos(%line,"id:") !$= -1)
-                  {
-                     %id = trim(strReplace(%line,"id:",""));
-                  }
-                  else if(strPos(%line,"version:") !$= -1)
-                  {
-                     %version = trim(strReplace(%line,"version:",""));
-                  }
+                  %id = getWord(%line,1);
                }
-               %modArray = %modArray@"rtb~"@%id@"~"@%version@"~"@%zip@".zip;";
-               %fileObject.close();
+               else if(striPos(%line,"version:") !$= -1)
+               {
+                  %version = getWord(%line,1);
+               }
+               else if(striPos(%line,"name:") !$= -1)
+               {
+                  %type = "rtb2";
+               }
             }
+            %fileObject.close();
          }
-         else
+         if(%fileObject.openForRead("Add-Ons/"@%zip@"/description.txt"))
          {
-            if(%fileObject.openForRead("Add-Ons/"@%zip@"/description.txt"))
+            if(%type $= "")
+               %type = "bl";
+               
+            while(!%fileObject.isEOF())
             {
-               while(!%fileObject.isEOF())
+               %line = %fileObject.readLine();
+               if(striPos(%line,"title:") !$= -1)
                {
-                  %line = %fileObject.readLine();
-                  if(strPos(%line,"Title:") !$= -1)
-                  {
-                     %title = trim(strReplace(%line,"Title:",""));
-                     break;
-                  }
+                  %title = trim(strReplace(%line,getSubStr(%line,0,strPos(%line,":")+1),""));
                }
-               %modArray = %modArray@"bl~"@%title@"~"@%zip@".zip;";
-               %fileObject.close();
+               else if(striPos(%line,"author:") !$= -1)
+               {
+                  %author = trim(strReplace(%line,getSubStr(%line,0,strPos(%line,":")+1),""));
+               }
             }
+            %fileObject.close();
          }
+         
+         if(%type $= "bl")
+            %modArray = %modArray@"bl~"@%title@"~"@%author@"~"@%zip@".zip;";
+         else if(%type $= "rtb2")
+            %modArray = %modArray@"rtb2~"@%title@"~"@%author@"~"@%zip@".zip;";
+         else if(%type $= "rtb")
+            %modArray = %modArray@"rtb~"@%id@"~"@%version@"~"@%zip@".zip;";
       }
       %filepath = findNextFile("Add-Ons/*_*/server.cs");
    }
@@ -192,6 +214,12 @@ function RTBSA_getModList()
       %modArray = getSubStr(%modArray,0,strLen(%modArray)-1);
    return %modArray;
 }
+
+//*********************************************************
+//* Runtime Code
+//*********************************************************
+if(!$RTB::Options::SA::PostServer)
+   echo("WARNING: Posting to rtb server (server posting disabled)");
 
 //*********************************************************
 //* Packaged Functions

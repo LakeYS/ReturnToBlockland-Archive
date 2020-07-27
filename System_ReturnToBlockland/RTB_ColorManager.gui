@@ -12,8 +12,8 @@ new GuiControl(RTB_ColorManager) {
       profile = "GuiWindowProfile";
       horizSizing = "center";
       vertSizing = "center";
-      position = "119 76";
-      extent = "402 328";
+      position = "86 58";
+      extent = "467 364";
       minExtent = "8 2";
       visible = "1";
       text = "Color Manager";
@@ -31,8 +31,8 @@ new GuiControl(RTB_ColorManager) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "180 38";
-         extent = "208 276";
+         position = "210 38";
+         extent = "244 312";
          minExtent = "8 2";
          visible = "1";
          wrap = "0";
@@ -45,8 +45,8 @@ new GuiControl(RTB_ColorManager) {
             profile = "GuiDefaultProfile";
             horizSizing = "center";
             vertSizing = "center";
-            position = "35 69";
-            extent = "137 137";
+            position = "82 66";
+            extent = "80 180";
             minExtent = "8 2";
             visible = "1";
             color = "0 0 0 0";
@@ -56,7 +56,7 @@ new GuiControl(RTB_ColorManager) {
          profile = "GuiDefaultProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "190 35";
+         position = "220 35";
          extent = "43 9";
          minExtent = "8 2";
          visible = "1";
@@ -66,19 +66,19 @@ new GuiControl(RTB_ColorManager) {
          profile = "GuiTextProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "192 30";
+         position = "222 30";
          extent = "40 18";
          minExtent = "8 2";
          visible = "1";
          text = "Preview";
          maxLength = "255";
       };
-      new GuiScrollCtrl(RTBCM_Sets) {
+      new GuiScrollCtrl() {
          profile = "GuiScrollProfile";
          horizSizing = "right";
          vertSizing = "bottom";
          position = "13 38";
-         extent = "153 240";
+         extent = "186 276";
          minExtent = "8 2";
          visible = "1";
          willFirstRespond = "1";
@@ -89,12 +89,12 @@ new GuiControl(RTB_ColorManager) {
          rowHeight = "40";
          columnWidth = "30";
 
-         new GuiSwatchCtrl() {
+         new GuiSwatchCtrl(RTBCM_Sets) {
             profile = "GuiDefaultProfile";
             horizSizing = "right";
             vertSizing = "bottom";
             position = "1 1";
-            extent = "153 238";
+            extent = "185 274";
             minExtent = "8 2";
             visible = "1";
             color = "220 220 220 255";
@@ -104,11 +104,31 @@ new GuiControl(RTB_ColorManager) {
          profile = "BlockButtonProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "20 285";
-         extent = "140 30";
+         position = "12 321";
+         extent = "92 30";
          minExtent = "8 2";
          visible = "1";
-         command = "RTB_ColorManager::saveSet();";
+         command = "canvas.popDialog(RTB_ColorManager);";
+         accelerator = "escape";
+         text = "<< Back";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "base/client/ui/button1";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "BlockButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "108 321";
+         extent = "92 30";
+         minExtent = "8 2";
+         visible = "1";
+         command = "RTB_ColorManager.saveSet();";
          text = "Load";
          groupNum = "-1";
          buttonType = "PushButton";

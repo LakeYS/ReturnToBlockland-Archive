@@ -1,15 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 3.0
+//#   Return to Blockland - Version 3.5
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 93 $
-//#      $Date: 2009-08-01 20:32:18 +0100 (Sat, 01 Aug 2009) $
+//#      $Rev: 108 $
+//#      $Date: 2009-09-05 11:39:30 +0100 (Sat, 05 Sep 2009) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/trunk/RTBC_GUITransfer.cs $
 //#
-//#      $Id: RTBC_GUITransfer.cs 93 2009-08-01 19:32:18Z Ephialtes $
+//#      $Id: RTBC_GUITransfer.cs 108 2009-09-05 10:39:30Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -78,7 +78,7 @@ function RTBCT_hasControlGotProp(%control,%prop)
     return 0;
 }
 
-//- RTBCT_getcontrolCRC (Calculates a CRC for server->client comparison)
+//- RTBCT_getControlCRC (Calculates a CRC for server->client comparison)
 function RTBCT_getControlCRC()
 {
    for(%i=0;%i<$RTB::CGUITransfer::Controls;%i++)
@@ -86,6 +86,23 @@ function RTBCT_getControlCRC()
       %string = %string@$RTB::CGUITransfer::Control[%i]@$RTB::CGUITransfer::ControlProps[%i];
    }
    return getStringCRC(%string);
+}
+
+//- RTBCT_checkValue (checks to see if some dumbass entered his key into the gui somewhere)
+function RTBCT_checkValue(%ctrl)
+{
+   %script = %ctrl.control.script;
+
+   for(%i=0;%i<%script.numInputs;%i++)
+   {
+      %ctrl = %script.input[%i];
+      if(strPos(%ctrl.getValue(),getKeyId()) >= 0)
+      {
+         MessageBoxOK("WARNING","NEVER ENTER YOUR BLOCKLAND KEY WHILE ON ANOTHER PLAYER'S SERVER");
+         return 0;
+      }
+   }
+   return 1;
 }
 
 //- RTBCT_setElementProperty (Applies a server-transmitted property to a control)
@@ -96,7 +113,7 @@ function RTBCT_setElementProperty(%ctrl, %prop, %propVal, %incremental)
       
    if(%prop $= "command")
    {
-      %ctrl.command = RTBCT_parseCommandParameter(%ctrl,%propVal);
+      %ctrl.command = "if(RTBCT_checkValue($thisControl)){"@RTBCT_parseCommandParameter(%ctrl,%propVal)@"}";
    }
    else if(%prop $= "closeOnSubmit")
    {
@@ -142,34 +159,34 @@ function RTBCT_setElementProperty(%ctrl, %prop, %propVal, %incremental)
 }
 
 //*********************************************************
-//* New Mission Phase (Phase 0)
+//* Mission Prep Phase (Phase 2)
 //*********************************************************
-//- clientCmdMissionStartPhase0 (New mission phase for gui transfer)
-function clientCmdMissionStartPhase0(%crc,%gui,%elements)
+//- clientCmdMissionStartPhase2 (New mission phase for gui transfer)
+function clientCmdMissionPreparePhase2(%crc,%gui,%elements)
 {
    if($RTB::CGUITransfer::Cache::isReceiving !$= "")
    {
-      echo("\c2*** Phase 0: Download GUI - Skipped (Not Receiving)");
-      commandToServer('MissionStartPhase0Ack',2);
+      echo("\c2*** Prep-Phase 2: Download GUI - Skipped (Not Receiving)");
+      commandToServer('MissionPreparePhase2Ack',2);
       return;
    }
       
    if(!$RTB::Options::GT::Enable)
    {
       $RTB::CGUITransfer::Cache::isReceiving = 0;
-      echo("\c2*** Phase 0: Download GUI - Skipped (Downloading Disabled)");
-      commandToServer('MissionStartPhase0Ack',2);
+      echo("\c2*** Prep-Phase 2: Download GUI - Skipped (Downloading Disabled)");
+      commandToServer('MissionPreparePhase2Ack',2);
       return;
    }    
    else if(%crc !$= RTBCT_getControlCRC())
    {
       $RTB::CGUITransfer::Cache::isReceiving = 0;
-      echo("\c2*** Phase 0: Download GUI - Skipped (CRC MISMATCH)");
-      commandToServer('MissionStartPhase0Ack',1);
+      echo("\c2*** Prep-Phase 2: Download GUI - Skipped (CRC MISMATCH)");
+      commandToServer('MissionPreparePhase2Ack',1);
       return;
    }
-   echo("*** Phase 0: Download GUI");
-   commandToServer('MissionStartPhase0Ack');
+   echo("*** Prep-Phase 2: Download GUI");
+   commandToServer('MissionPreparePhase2Ack');
    
    LoadingProgress.setValue(0);
    $RTB::CGUITransfer::Cache::isReceiving = 1;   
@@ -240,6 +257,9 @@ function clientCmdRTB_receiveElement(%class,%name,%props,%depth)
    {
       %script.serverToClient[%name] = %clName;
       %script.clientToServer[%clName] = %name;
+      
+      %script.input[%script.numInputs] = %ctrl;
+      %script.numInputs++;
    }
    
    %propList = RTBCT_getControlProps(%class);
@@ -319,6 +339,7 @@ function RTBCT_GUIManifest::populate(%this,%name)
    {
       clientName = %clientName;
       serverName = %serverName;
+      numInputs = 0;
    };
    %this.add(%so);
    
@@ -393,7 +414,7 @@ function clientCmdRTB_OpenGui(%gui)
 {
    if(isObject(RTBCT_GUIManifest.serverToClient[%gui]))
       Canvas.pushDialog(RTBCT_GUIManifest.serverToClient[%gui]);
-   if(strPos(%gui,"RTB_") $= 0)
+   else if(strPos(%gui,"RTB_") $= 0)
       Canvas.pushDialog(%gui);
 }
 
@@ -402,7 +423,7 @@ function clientCmdRTB_CloseGui(%gui)
 {
    if(isObject(RTBCT_GUIManifest.serverToClient[%gui]))
       Canvas.popDialog(RTBCT_GUIManifest.serverToClient[%gui]);
-   if(strPos(%gui,"RTB_") $= 0)
+   else if(strPos(%gui,"RTB_") $= 0)
       Canvas.popDialog(%gui);
 }
 
