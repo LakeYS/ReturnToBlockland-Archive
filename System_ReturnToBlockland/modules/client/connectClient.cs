@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 274 $
-//#      $Date: 2012-07-15 09:55:52 +0000 (Sun, 15 Jul 2012) $
+//#      $Rev: 284 $
+//#      $Date: 2012-08-16 09:53:35 +0100 (Thu, 16 Aug 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/client/connectClient.cs $
 //#
-//#      $Id: connectClient.cs 274 2012-07-15 09:55:52Z Ephialtes $
+//#      $Id: connectClient.cs 284 2012-08-16 08:53:35Z Ephialtes $
 //#
 //#      Copyright (c) 2008 - 2010 by Nick "Ephialtes" Matthews
 //#
@@ -5330,7 +5330,10 @@ function RTBCC_RoomSession::send(%this)
    }
    else
    {
-      %this.writeMessage("<color:FF6600>"@RTB_ConnectClient.client_name,parseLinks(stripMLControlChars(%text)));
+      if(%this.manifest.getById(RTB_ConnectClient.client_id).rank > 0)
+         %this.writeRank("<color:FF6600>"@RTB_ConnectClient.client_name,parseLinks(stripMLControlChars(%text)));
+      else
+         %this.writeMessage("<color:FF6600>"@RTB_ConnectClient.client_name,parseLinks(stripMLControlChars(%text)));
       RTBCC_Socket.sendMessage(%this.name,%text);
    }
    
@@ -5356,6 +5359,8 @@ function RTBCC_RoomSession::receive(%this,%message)
       
    if(%message.attrib["type"] $= "action")
       %this.writeAction(%user.name,%message.find("body").cData);
+   else if(%user.rank > 0)
+      %this.writeRank(%name,%message.find("body").cData);
    else
       %this.writeMessage(%name,%message.find("body").cData);
 }
@@ -5367,6 +5372,20 @@ function RTBCC_RoomSession::writeMessage(%this,%sender,%message)
       %this.log(%sender@": "@%message);
       
    %message = "<font:Verdana Bold:12>"@%sender@"<font:Verdana:12><color:444444>: "@%message;
+   
+   if(RTBCO_getPref("CC::ShowTimestamps"))
+      %message = "<font:Verdana Bold:12>["@getSubStr(getWord(getDateTime(),1),0,8)@"] " @ %message;
+      
+   %this.write(%message);
+}
+
+//- RTBCC_Session::writeRank (adds an admin-sent message to the bottom of the ml text)
+function RTBCC_RoomSession::writeRank(%this,%sender,%message)
+{
+   if(RTBCO_getPref("CC::ChatLogging"))
+      %this.log(%sender@": "@%message);
+      
+   %message = "<font:Verdana Bold:12><color:0099FF>"@%sender@"<font:Verdana:12>: "@%message@"<color:444444>";
    
    if(RTBCO_getPref("CC::ShowTimestamps"))
       %message = "<font:Verdana Bold:12>["@getSubStr(getWord(getDateTime(),1),0,8)@"] " @ %message;
@@ -8233,6 +8252,14 @@ package RTB_Modules_Client_ConnectClient
       
       if(RTBCO_getPref("CC::AutoSignIn") && !RTBCC_Socket.connected)
          RTBCC_Socket.connect();
+   }
+   
+   function regNameGui::register()
+   {
+      Parent::register();
+      
+      if(RTBCC_Socket.connected)
+         RTBCC_Socket.softDisconnect();
    }
    
    function keyGui::done()

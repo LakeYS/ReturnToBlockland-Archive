@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 216 $
-//#      $Date: 2011-06-29 20:08:29 +0000 (Wed, 29 Jun 2011) $
+//#      $Rev: 284 $
+//#      $Date: 2012-08-16 09:53:35 +0100 (Thu, 16 Aug 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/server/serverControl.cs $
 //#
-//#      $Id: serverControl.cs 216 2011-06-29 20:08:29Z Ephialtes $
+//#      $Id: serverControl.cs 284 2012-08-16 08:53:35Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -27,8 +27,7 @@ $RTB::MSSC::Options = 0;
 //*********************************************************
 //* Requirements
 //*********************************************************
-if(!$RTB::Hooks::ServerControl)
-   exec($RTB::Path@"hooks/serverControl.cs");
+exec($RTB::Path@"hooks/serverControl.cs");
 
 //*********************************************************
 //* Server Options
@@ -117,6 +116,8 @@ function serverCmdRTB_setServerOptions(%client,%notify,%options,%v1,%v2,%v3,%v4,
          %cl = ClientGroup.getObject(%i);
          if(%cl.isSuperAdmin && %cl.hasRTB)
             serverCmdRTB_getServerOptions(%cl);
+            
+         commandtoclient(%cl,'NewPlayerListGui_UpdateWindowTitle',$Server::Name,$Pref::Server::MaxPlayers);
       }
    }
 }
@@ -149,18 +150,18 @@ function serverCmdRTB_getServerOptions(%client)
 //*********************************************************
 //* Server Options Definitions (Must match on client)
 //*********************************************************
-RTBSC_registerServerOption("Server Name","string 150","$Pref::Server::Name","","The %1 has been changed to %2");
-RTBSC_registerServerOption("Welcome Message","string 255","$Pref::Server::WelcomeMessage","","The %1 has been changed to %2");
-RTBSC_registerServerOption("Max Players","playerlist 1 32","$Pref::Server::MaxPlayers","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Server Name","string 150","$Server::Name","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Welcome Message","string 255","$Server::WelcomeMessage","","The %1 has been changed to %2");
+RTBSC_registerServerOption("Max Players","playerlist 1 99","$Pref::Server::MaxPlayers","","The %1 has been changed to %2");
 RTBSC_registerServerOption("Server Password","string 30","$Pref::Server::Password","","The %1 has been changed");
 RTBSC_registerServerOption("Admin Password","string 30","$Pref::Server::AdminPassword","","The %1 has been changed");
 RTBSC_registerServerOption("Super Admin Password","string 30","$Pref::Server::SuperAdminPassword","","The %1 has been changed");
 RTBSC_registerServerOption("E-Tard Filter","bool","$Pref::Server::EtardFilter","","The %1 has been turned %2");
 RTBSC_registerServerOption("E-Tard Words","string 255","$Pref::Server::EtardList","","The %1 have been changed to %2");
-RTBSC_registerServerOption("Max Bricks per Second","int 0 999","$Pref::Server::MaxBricksPerSecond","","The %1 is now %2");
+RTBSC_registerServerOption("Max Bricks per Second","int 0 999","$Server::MaxBricksPerSecond","","The %1 is now %2");
 RTBSC_registerServerOption("Falling Damage","bool","$Pref::Server::FallingDamage","","%1 has been turned %2");
 RTBSC_registerServerOption("Too Far Distance","int 0 9999","$Pref::Server::TooFarDistance","","The %1 has been changed to %2");
-RTBSC_registerServerOption("Admin Only Wrench Events","bool","$Pref::Server::WrenchEventsAdminOnly","","%1 have been turned %2");
+RTBSC_registerServerOption("Admin Only Wrench Events","bool","$Server::WrenchEventsAdminOnly","","%1 have been turned %2");
 RTBSC_registerServerOption("Brick Ownership Decay","int -1 99999","$Pref::Server::BrickPublicDomainTimeout","","%1 has been changed to %2");
 
 //*********************************************************
@@ -574,12 +575,6 @@ function serverCmdRTB_clearBans(%client)
 //*********************************************************
 package RTB_Modules_Server_ServerControl
 {
-   function destroyServer()
-   {
-     $RTB::MSSC::Prefs = 0;
-     Parent::destroyServer();
-   }
-   
    function serverCmdSAD(%client,%pass)
    {
       Parent::serverCmdSAD(%client,%pass);

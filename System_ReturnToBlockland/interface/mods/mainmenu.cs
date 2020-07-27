@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 109 $
-//#      $Date: 2010-09-04 12:38:06 +0000 (Sat, 04 Sep 2010) $
+//#      $Rev: 283 $
+//#      $Date: 2012-08-12 12:33:12 +0100 (Sun, 12 Aug 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/interface/mods/mainmenu.cs $
 //#
-//#      $Id: mainmenu.cs 109 2010-09-04 12:38:06Z Ephialtes $
+//#      $Id: mainmenu.cs 283 2012-08-12 11:33:12Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -33,6 +33,6 @@ function interfaceFunction()
       visible = "1";
       text = "RTB Version: "@$RTB::Version;
    };
-   MainMenuGui.add(%version);
+   MainMenuButtonsGui.add(%version);
 }
 interfaceFunction();

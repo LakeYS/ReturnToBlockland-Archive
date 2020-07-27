@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 216 $
-//#      $Date: 2011-06-29 20:08:29 +0000 (Wed, 29 Jun 2011) $
+//#      $Rev: 283 $
+//#      $Date: 2012-08-12 12:33:12 +0100 (Sun, 12 Aug 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/client/serverControl.cs $
 //#
-//#      $Id: serverControl.cs 216 2011-06-29 20:08:29Z Ephialtes $
+//#      $Id: serverControl.cs 283 2012-08-12 11:33:12Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -76,7 +76,7 @@ function RTBSC_cacheServerOption(%optionName,%type,%style,%description,%category
 //*********************************************************
 RTBSC_cacheServerOption("Server Name","string 150","100 7 200 18","The Server Name is what is displayed to people who are browsing for servers to join.","Main Settings");
 RTBSC_cacheServerOption("Welcome Message","string 255","100 7 200 18","The Welcome Message is what is sent to users when they join the server. %1 is replaced with the player's name.","Main Settings");
-RTBSC_cacheServerOption("Max Players","playerlist 1 32","100 7 84 16","The Max Players is the max ammount of people allowed in the server. This includes the Server Host and the Admin. You can set this to less than the current number of players in the server.","Main Settings");
+RTBSC_cacheServerOption("Max Players","playerlist 1 99","100 7 84 16","The Max Players is the max ammount of people allowed in the server. This includes the Server Host and the Admin. You can set this to less than the current number of players in the server.","Main Settings");
 RTBSC_cacheServerOption("Server Password","string 30","100 7 200 18","The Server Password prevents people without the password from joining the server.","Main Settings");
 RTBSC_cacheServerOption("Admin Password","string 30","100 7 200 18","The Admin Password allows people to enter a password to become Admin.","Main Settings");
 RTBSC_cacheServerOption("Super Admin Password","string 30","130 7 170 18","The Super Admin Password allows people to enter a password to become a Super Admin.","Main Settings");
@@ -1016,10 +1016,10 @@ package RTB_Modules_Client_ServerControl
          profile = BlockButtonProfile;
          horizSizing = "left";
          vertSizing = "bottom";
-         position = "205 275";
-         extent = "98 38";
+         position = "211 305";
+         extent = "121 38";
          command = "canvas.pushDialog(RTB_ServerControl);";
-         text = "Server Control";
+         text = "Server Settings >>";
          bitmap = "base/client/ui/button1";
          mcolor = "100 255 50 255";
       };

@@ -51,24 +51,32 @@ if(!isFile("Add-Ons/Colorset_Default/colorSet.txt"))
 $RTB::MCCM::Colorsets = 0;
 
 //*********************************************************
-//* Selector Construction
+//* Color Set Gui
 //*********************************************************
-//- RTB_ColorManager::onWake (onWake callback)
-function RTB_ColorManager::onWake(%this)
+//- CustomGameGui::clickColorset (button action on menu)
+function CustomGameGui::clickColorSet(%this)
 {
+   %this.hideAllTabs();
+   
+   CustomGameGui_ColorsetWindow.setVisible(true);
+   CustomGameGui_ColorsetHilight.setVisible(true);
+}
+
+//- CustomGameGui:createColorsetGui (creates the colorset gui and populates)
+function CustomGameGui::createColorsetGui(%this)
+{
+   CustomGameGui_ColorsetSwatch.clear();
+   CustomGameGui_ColorsetPreview.clear();
+   
    if(isReadonly("config/server/colorSet.txt"))
    {
       messageBoxOK("Oops!","It appears as though your colorset.txt file is read-only. That means you can't use the color manager feature.\n\nYou can try deleting colorSet.txt in the config/server/ folder to fix this problem.");
-      canvas.popDialog(%this);
       return;
    }
    
    if($RTB::MCCM::Colorsets <= 0)
-      RTBCM_loadSets();
-
-   %k = 0;
-   RTBCM_Sets.clear();
-   
+      CustomGameGui.loadColorsets();
+      
    $RTB::MCCM::Selected = "";
    %currCS = new FileObject();
    %chckCS = new FileObject();
@@ -100,31 +108,22 @@ function RTB_ColorManager::onWake(%this)
    %currCS.delete();
    %chckCS.delete();
    
-
+   %k = 0;
    if($RTB::MCCM::Selected $= "")
    {
-      %bg = new GuiSwatchCtrl()
-      {
-         profile = GuiDefaultProfile;
-         position = "0" SPC %k*20;
-         extent = "200 20";
-         color = "200 200 200 255";
-      };
-      RTBCM_Sets.add(%bg);
-      
       %ctrl = new GuiRadioCtrl()
       {
-         profile = GuiRadioProfile;
-         position = "4" SPC %k*20;
-         extent = "200 20";
-         text = " Unknown Colorset";
+         profile = "ImpactCheckProfile";
          group = 1;
-         command = "RTBCM_previewSet(\"config/server/colorSet.txt\");$RTB::MCCM::Selected = \"config/server/colorSet.txt\";";
+         
+         command = "CustomGameGui.previewColorset(\"config/server/colorSet.txt\");$RTB::MCCM::Selected = \"config/server/colorSet.txt\";";
       };
-      RTBCM_Sets.add(%ctrl);
+      CustomGameGui_ColorsetSwatch.add(%ctrl);
+      
+      %ctrl.resize(10,0,getWord(CustomGameGui_ColorsetSwatch.extent, 0),%this.fontSize);
       
       %ctrl.setValue(1);
-      RTBCM_previewSet("config/server/colorSet.txt");
+      CustomGameGui.previewColorset("config/server/colorSet.txt");
       
       %k++;
    }
@@ -135,95 +134,31 @@ function RTB_ColorManager::onWake(%this)
       %file = getField(%data,0);
       %name = getField(%data,1);
       
-      if(%k%2 $= 0)
-      {
-         %bg = new GuiSwatchCtrl()
-         {
-            profile = GuiDefaultProfile;
-            position = "0" SPC %k*20;
-            extent = "200 20";
-            color = "200 200 200 255";
-         };
-         RTBCM_Sets.add(%bg);
-      }
-      
       %ctrl = new GuiRadioCtrl()
       {
-         profile = GuiRadioProfile;
-         position = "4" SPC %k*20;
-         extent = "200 20";
-         text = " "@%name;
+         profile = "ImpactCheckProfile";
          group = 1;
-         command = "RTBCM_previewSet(\"Add-Ons/"@%file@"/colorSet.txt\");$RTB::MCCM::Selected = \"Add-Ons/"@%file@"/colorSet.txt\";";
+         
+         command = "CustomGameGui.previewColorset(\"Add-Ons/"@%file@"/colorSet.txt\");$RTB::MCCM::Selected = \"Add-Ons/"@%file@"/colorSet.txt\";";
       };
-      RTBCM_Sets.add(%ctrl);
+      CustomGameGui_ColorsetSwatch.add(%ctrl);
+      
+      %ctrl.setText(%name);
+      %ctrl.resize(10,%k * %this.fontSize,getWord(CustomGameGui_ColorsetSwatch.extent, 0),%this.fontSize);
       
       if("Add-Ons/"@%file@"/colorSet.txt" $= $RTB::MCCM::Selected)
       {
          %ctrl.setValue(1);
-         RTBCM_previewSet($RTB::MCCM::Selected);
+         CustomGameGui.previewColorset($RTB::MCCM::Selected);
       }
       
       %k++;
-      %lowestPoint = RTBCM_Sets.getLowestPoint();
-      if(%lowestPoint <= (getWord(RTBCM_Sets.getGroup().extent,1)-2))
-         RTBCM_Sets.resize(1,1,getWord(RTBCM_Sets.extent,0),(getWord(RTBCM_Sets.getGroup().extent,1)-2));
-      else
-         RTBCM_Sets.resize(1,1,getWord(RTBCM_Sets.extent,0),%lowestPoint);
    }
+   CustomGameGui_ColorsetSwatch.resize(0,0,getWord(CustomGameGui_ColorsetSwatch.extent,0),%k * %this.fontSize);
 }
 
-//*********************************************************
-//* Usage Functions
-//*********************************************************
-//- RTB_ColorManager::saveSet (saves the set for usage in the server)
-function RTB_ColorManager::saveSet(%this)
-{
-   %sel = $RTB::MCCM::Selected;
-   if(%sel $= "" || !isFile(%sel))
-   {
-      MessageBoxOK("Whoops","Please make a valid selection.");
-      return;
-   }
-   
-   if(%sel $= "config/server/colorSet.txt")
-   {
-      MessageBoxOK("Ooops","This color set is already loaded.");
-      return;
-   }
-   canvas.popDialog(%this);
-
-   %input = new FileObject();
-   %output = new FileObject();
-   if(%input.openForRead(%sel))
-   {
-      if(%output.openForWrite("config/server/colorSet.txt"))
-      {
-         while(!%input.isEOF())
-         {
-            %output.writeLine(%input.readLine());
-         }
-         %output.close();
-         
-         MessageBoxOK("Hooray","The selected color set was loaded successfully.");
-      }
-      else
-         MessageBoxOK("ERROR","Color set could not be saved because your colorSet.txt was invalid.");
-
-      %input.close();
-   }
-   else
-      MessageBoxOK("ERROR","Color set could not be saved because the selection was invalid.");
-      
-   %input.delete();
-   %output.delete();
-}
-
-//*********************************************************
-//* Support Functions
-//*********************************************************
-//- RTBCM_loadSets (loads and caches all available colorsets)
-function RTBCM_loadSets()
+//- CustomGameGui::loadColorsets (caches the list of available colorsets)
+function CustomGameGui::loadColorsets(%this)
 {
    $RTB::MCCM::Colorsets = 0;
 	%colorset = FindFirstFile("Add-Ons/Colorset_*/colorSet.txt");
@@ -263,12 +198,40 @@ function RTBCM_loadSets()
 	}
 }
 
-//- RTBCM_previewSet (generates a preview of a colorset)
-function RTBCM_previewSet(%filepath)
+//- CustomGameGui::previewColorset (generates a preview for the selected colorset)
+function CustomGameGui::previewColorset(%this, %filepath)
 {
-   RTBCM_ColorsetPreview.clear();
+   CustomGameGui_ColorsetPreview.clear();
    
    %file = new FileObject();
+   if(%file.openForRead(%filepath))
+   {
+      while(!%file.isEOF())
+      {
+         %line = %file.readLine();
+         if(%line !$= "" && strPos(%line,"DIV:") !$= 0)
+            %numRows++;
+         else if(strPos(%line,"DIV:") $= 0)
+         {
+            %numCols++;
+            if(%numRows > %maxRows)
+               %maxRows = %numRows;
+               
+            %numRows = 0;
+         }
+      }
+   }
+   %file.close();
+   
+   %numCols += 2;
+   %maxRows += 2;
+   
+   %dimension = mFloor(getWord(CustomGameGui_ColorsetPreview.getGroup().extent,0)/%numCols);
+   if((%maxRows * %dimension) > getWord(CustomGameGui_ColorsetPreview.getGroup().extent,1))
+      %dimension = mFloor(getWord(CustomGameGui_ColorsetPreview.getGroup().extent,1)/%maxRows);
+      
+   %extent = %dimension SPC %dimension;
+   
    if(%file.openForRead(%filepath))
    {
       while(!%file.isEOF())
@@ -290,8 +253,8 @@ function RTBCM_previewSet(%filepath)
             }
             %color = %r SPC %g SPC %b SPC %a;
 
-            %xPos = (%currCol*20);
-            %yPos = (%currRow*20);
+            %xPos = (%currCol*%dimension);
+            %yPos = (%currRow*%dimension);
             
             if(%a < 255)
             {
@@ -299,30 +262,30 @@ function RTBCM_previewSet(%filepath)
                {
                   profile = "GuiDefaultProfile";
                   position = %xPos SPC %yPos;
-                  extent = "20 20";
+                  extent = %extent;
                   bitmap = $RTB::Path @ "images/ui/checkedGrid";
                   wrap = true;
                };
-               RTBCM_ColorsetPreview.add(%b);
+               CustomGameGui_ColorsetPreview.add(%b);
             }
             
             %c = new GuiSwatchCtrl()
             {
                profile = "GuiDefaultProfile";
                position = %xPos SPC %yPos;
-               extent = "20 20";
+               extent = %extent;
                color = %color;
             };
-            RTBCM_ColorsetPreview.add(%c);
+            CustomGameGui_ColorsetPreview.add(%c);
             
             %d = new GuiBitmapCtrl()
             {
                profile = "GuiDefaultProfile";
                position = %xPos SPC %yPos;
-               extent = "20 20";
+               extent = %extent;
                bitmap = "base/client/ui/btnColor_n";
             };
-            RTBCM_ColorsetPreview.add(%d);
+            CustomGameGui_ColorsetPreview.add(%d);
             %currRow++;
             
             if(%currRow > %maxRow)
@@ -335,12 +298,72 @@ function RTBCM_previewSet(%filepath)
          }
       }
    }
-   RTBCM_ColorsetPreview.extent = (%currcol*20) SPC (%maxRow*20);
+   CustomGameGui_ColorsetPreview.extent = (%currcol*%dimension) SPC (%maxRow*%dimension);
    
    %file.close();
    %file.delete();
    
-   %xpos = (mFloor(getWord(RTBCM_ColorSetPreview.getGroup().extent,0)/2))-(mFloor(getWord(RTBCM_ColorSetPreview.extent,0)/2));
-   %ypos = (mFloor(getWord(RTBCM_ColorSetPreview.getGroup().extent,1)/2))-(mFloor(getWord(RTBCM_ColorSetPreview.extent,1)/2));
-   RTBCM_ColorSetPreview.position = %xpos SPC %ypos;
+   %xpos = (mFloor(getWord(CustomGameGui_ColorsetPreview.getGroup().extent,0)/2))-(mFloor(getWord(CustomGameGui_ColorsetPreview.extent,0)/2));
+   %ypos = (mFloor(getWord(CustomGameGui_ColorsetPreview.getGroup().extent,1)/2))-(mFloor(getWord(CustomGameGui_ColorsetPreview.extent,1)/2));
+   CustomGameGui_ColorsetPreview.position = %xpos SPC %ypos;
 }
+
+//- CustomGameGui::saveColorset (replaces colorset.txt with selected one)
+function CustomGameGui::saveColorset(%this)
+{
+   %sel = $RTB::MCCM::Selected;
+   
+   if(%sel $= "")
+      return;
+
+   %input = new FileObject();
+   %output = new FileObject();
+   if(%input.openForRead(%sel))
+   {
+      if(%output.openForWrite("config/server/colorSet.txt"))
+      {
+         while(!%input.isEOF())
+         {
+            %output.writeLine(%input.readLine());
+         }
+         %output.close();
+      }
+      else
+         MessageBoxOK("ERROR","Color set could not be saved because your colorSet.txt was invalid.");
+
+      %input.close();
+   }
+   else
+      MessageBoxOK("ERROR","Color set could not be saved because the selection was invalid.");
+      
+   %input.delete();
+   %output.delete();
+}
+
+//*********************************************************
+//* Color Set Menu Packaging
+//*********************************************************
+package RTB_Modules_Client_ColorManager
+{
+   function CustomGameGui::onRender(%this)
+   {
+      Parent::onRender(%this);
+      
+      %this.createColorsetGui();
+   }
+   
+   function CustomGameGui::hideAllTabs(%this)
+   {
+      Parent::hideAllTabs(%this);
+      
+      CustomGameGui_ColorsetHilight.setVisible(false);
+      CustomGameGui_ColorsetWindow.setVisible(false);
+   }
+   
+   function CustomGameGui::clickSelect(%this)
+   {
+      Parent::clickSelect(%this);
+      
+      %this.saveColorset();
+   }
+};

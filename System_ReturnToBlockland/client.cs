@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 275 $
-//#      $Date: 2012-07-15 15:18:58 +0000 (Sun, 15 Jul 2012) $
+//#      $Rev: 286 $
+//#      $Date: 2012-08-21 20:38:18 +0100 (Tue, 21 Aug 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/client.cs $
 //#
-//#      $Id: client.cs 275 2012-07-15 15:18:58Z Ephialtes $
+//#      $Id: client.cs 286 2012-08-21 19:38:18Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -32,7 +32,7 @@ $RTB::Debug = 0;
 //*********************************************************
 //* Variables
 //*********************************************************
-$RTB::Version = "4.02";
+$RTB::Version = "4.04";
 $RTB::Path = "Add-Ons/System_ReturnToBlockland/";
 
 //*********************************************************
@@ -102,7 +102,7 @@ exec("./interface/mods/addOns.cs");
 exec("./interface/mods/joinServer.cs");
 exec("./interface/mods/loading.cs");
 exec("./interface/mods/mainMenu.cs");
-exec("./interface/mods/startMission.cs");
+exec("./interface/mods/customGame.cs");
 exec("./interface/colorManager.gui");
 exec("./interface/connectClient.gui");
 exec("./interface/manual.gui");
@@ -131,8 +131,8 @@ exec("./modules/client/updater.cs");
 //*********************************************************
 //* Activate Packages
 //*********************************************************
-activatePackage(RTB_Support_Networking);
 activatePackage(RTB_Modules_Client_Authentication);
+activatePackage(RTB_Modules_Client_ColorManager);
 activatePackage(RTB_Modules_Client_ConnectClient);
 activatePackage(RTB_Modules_Client_InfoTips);
 activatePackage(RTB_Modules_Client_GuiTransfer);
@@ -170,9 +170,9 @@ package RTB_Client
 		export("$RTB::Options*","config/client/rtb/prefs.cs");
 	}
 	
-   function GameConnection::setConnectArgs(%a,%b,%c,%d,%e,%f)
+   function GameConnection::setConnectArgs(%a,%b,%c,%d,%e,%f,%g,%h,%i,%j,%k,%l,%m,%n,%o,%p)
    {
-      Parent::setConnectArgs(%a,%b,%c,%d,%e,%f,$RTB::Version);
+      Parent::setConnectArgs(%a,%b,%c,%d,%e,%f,$RTB::Version,%h,%i,%j,%k,%l,%m,%n,%o,%p);
    }
 };
 activatePackage(RTB_Client);

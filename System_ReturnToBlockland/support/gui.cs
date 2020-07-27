@@ -5,7 +5,7 @@
 //#   -------------------------------------------------------------------------
 //#
 //#      $Rev: 227 $
-//#      $Date: 2011-08-13 18:02:06 +0000 (Sat, 13 Aug 2011) $
+//#      $Date: 2011-08-13 19:02:06 +0100 (Sat, 13 Aug 2011) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/support/gui.cs $
 //#

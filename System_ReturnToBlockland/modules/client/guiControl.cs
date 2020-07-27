@@ -5,7 +5,7 @@
 //#   -------------------------------------------------------------------------
 //#
 //#      $Rev: 120 $
-//#      $Date: 2010-10-02 19:15:02 +0000 (Sat, 02 Oct 2010) $
+//#      $Date: 2010-10-02 20:15:02 +0100 (Sat, 02 Oct 2010) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/client/guiControl.cs $
 //#
