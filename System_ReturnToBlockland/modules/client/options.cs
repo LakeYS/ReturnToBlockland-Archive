@@ -103,7 +103,7 @@ function RTB_Options::onSleep(%this)
       RTBCO_OV_Remap.delete();
       RTBCO_OV_RemapSwatch.setVisible(false);
    }
-   RTB_Client_Authentication.sendPrefs();
+   //RTB_Client_Authentication.sendPrefs();
 }
 
 //- RTB_Options::toggleDependant (toggles dependant blocker)

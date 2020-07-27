@@ -104,40 +104,47 @@ exec("./interface/mods/loading.cs");
 exec("./interface/mods/mainMenu.cs");
 exec("./interface/mods/customGame.cs");
 exec("./interface/colorManager.gui");
-exec("./interface/connectClient.gui");
+//exec("./interface/connectClient.gui");
 exec("./interface/manual.gui");
-exec("./interface/modManager.gui");
-exec("./interface/modUpdates.gui");
+//exec("./interface/modManager.gui");
+//exec("./interface/modUpdates.gui");
 exec("./interface/options.gui");
 exec("./interface/serverControl.gui");
-exec("./interface/serverInformation.gui");
-exec("./interface/updater.gui");
+//exec("./interface/serverInformation.gui");
+//exec("./interface/updater.gui");
 
 //*********************************************************
 //* Load Modules
 //*********************************************************
-exec("./modules/client/authentication.cs");
+//exec("./modules/client/authentication.cs");
 exec("./modules/client/colorManager.cs");
-exec("./modules/client/connectClient.cs");
+//exec("./modules/client/connectClient.cs");
 exec("./modules/client/guiControl.cs");
 exec("./modules/client/guiTransfer.cs");
 exec("./modules/client/infoTips.cs");
 exec("./modules/client/manual.cs");
-exec("./modules/client/modManager.cs");
+//exec("./modules/client/modManager.cs");
 exec("./modules/client/serverControl.cs");
-exec("./modules/client/serverInformation.cs");
-exec("./modules/client/updater.cs");
+//exec("./modules/client/serverInformation.cs");
+//exec("./modules/client/updater.cs");
 
 //*********************************************************
 //* Activate Packages
 //*********************************************************
-activatePackage(RTB_Modules_Client_Authentication);
+//activatePackage(RTB_Modules_Client_Authentication);
 activatePackage(RTB_Modules_Client_ColorManager);
-activatePackage(RTB_Modules_Client_ConnectClient);
+//activatePackage(RTB_Modules_Client_ConnectClient);
 activatePackage(RTB_Modules_Client_InfoTips);
 activatePackage(RTB_Modules_Client_GuiTransfer);
 activatePackage(RTB_Modules_Client_ServerControl);
-activatePackage(RTB_Modules_Client_ServerInformation);
+//activatePackage(RTB_Modules_Client_ServerInformation);
+
+//*********************************************************
+//* Additions
+//*********************************************************
+exec("./additions/RTBC_Profiles.cs");
+exec("./additions/RTB_IRCClient.gui");
+exec("./additions/RTBC_IRCClient.cs");
 
 //*********************************************************
 //* Version Establishment
@@ -160,16 +167,16 @@ package RTB_Client
       Parent::disconnectedCleanup();
    }
    
-	function onExit()
-	{
-	   if(RTBCC_Socket.connected)
-	      RTBCC_Socket.hardDisconnect();
-	      
-		Parent::onExit();
-		echo("Exporting rtb prefs");
-		export("$RTB::Options*","config/client/rtb/prefs.cs");
-	}
-	
+   function onExit()
+   {
+      if(RTBCC_Socket.connected)
+         RTBCC_Socket.hardDisconnect();
+         
+      Parent::onExit();
+      echo("Exporting rtb prefs");
+      export("$RTB::Options*","config/client/rtb/prefs.cs");
+   }
+   
    function GameConnection::setConnectArgs(%a,%b,%c,%d,%e,%f,%g,%h,%i,%j,%k,%l,%m,%n,%o,%p)
    {
       Parent::setConnectArgs(%a,%b,%c,%d,%e,%f,$RTB::Version,%h,%i,%j,%k,%l,%m,%n,%o,%p);

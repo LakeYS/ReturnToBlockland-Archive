@@ -52,14 +52,12 @@ if($Server::Dedicated)
 //*********************************************************
 //* Load Modules
 //*********************************************************
-exec("./modules/server/authentication.cs");
 exec("./modules/server/guiTransfer.cs");
 exec("./modules/server/serverControl.cs");
 
 //*********************************************************
 //* Activate Packages
 //*********************************************************
-activatePackage(RTB_Modules_Server_Authentication);
 activatePackage(RTB_Modules_Server_GuiTransfer);
 activatePackage(RTB_Modules_Server_ServerControl);
 

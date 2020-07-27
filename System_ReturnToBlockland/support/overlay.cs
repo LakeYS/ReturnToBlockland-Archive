@@ -185,15 +185,15 @@ function RTB_Overlay::onSleep(%this)
          $RTB::Options::WindowPosition[%ctrl.getName()] = %ctrl.position;
          $RTB::Options::WindowExtent[%ctrl.getName()] = %ctrl.extent;
       }
-      else if(%ctrl.session && %ctrl.session.class $= "RTBCC_RoomSession")
-      {
-         %store = RTBCC_RoomOptionsManager.getRoomStore(%ctrl.session.name);
-         %store.window_position = %ctrl.position;
-         %store.window_extent = %ctrl.extent;
-      }
+      // else if(%ctrl.session && %ctrl.session.class $= "RTBCC_RoomSession")
+      // {
+      //    %store = RTBCC_RoomOptionsManager.getRoomStore(%ctrl.session.name);
+      //    %store.window_position = %ctrl.position;
+      //    %store.window_extent = %ctrl.extent;
+      // }
    }
    RTBCO_Save();
-   RTBCC_RoomOptionsManager.store();
+   // RTBCC_RoomOptionsManager.store();
 }
 
 //*********************************************************
