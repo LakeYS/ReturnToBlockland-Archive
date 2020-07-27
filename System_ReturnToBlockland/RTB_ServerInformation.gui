@@ -1,0 +1,486 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(RTB_ServerInformation) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 2";
+   visible = "1";
+
+   new GuiWindowCtrl() {
+      profile = "GuiWindowProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "85 18";
+      extent = "469 443";
+      minExtent = "8 2";
+      visible = "1";
+      text = "Server Information";
+      maxLength = "255";
+      resizeWidth = "0";
+      resizeHeight = "0";
+      canMove = "1";
+      canClose = "1";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+      closeCommand = "canvas.popDialog(RTB_ServerInformation);";
+
+      new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "14 47";
+         extent = "195 146";
+         minExtent = "8 2";
+         visible = "1";
+         color = "0 0 0 255";
+      };
+      new GuiSwatchCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "15 48";
+         extent = "193 144";
+         minExtent = "8 2";
+         visible = "1";
+         color = "230 230 230 255";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "BlockButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "38 395";
+         extent = "91 38";
+         minExtent = "8 2";
+         visible = "1";
+         command = "canvas.popDialog(RTB_ServerInformation);";
+         accelerator = "escape";
+         text = "Cancel";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "base/client/ui/button2";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "BlockButtonProfile";
+         horizSizing = "left";
+         vertSizing = "top";
+         position = "189 403";
+         extent = "91 22";
+         minExtent = "8 2";
+         visible = "1";
+         command = "JoinServerGui.queryWebServer();JoinServerGui.info();";
+         text = "Refresh";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "base/client/ui/button1";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "BlockButtonProfile";
+         horizSizing = "left";
+         vertSizing = "top";
+         position = "336 395";
+         extent = "91 38";
+         minExtent = "8 2";
+         visible = "1";
+         command = "JoinServerGui.specialJoin();";
+         text = "Join";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "base/client/ui/button2";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiScrollCtrl() {
+         profile = "GuiScrollProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "231 47";
+         extent = "224 146";
+         minExtent = "8 2";
+         visible = "1";
+         willFirstRespond = "1";
+         hScrollBar = "alwaysOff";
+         vScrollBar = "alwaysOn";
+         constantThumbHeight = "0";
+         childMargin = "0 0";
+         rowHeight = "40";
+         columnWidth = "30";
+
+         new GuiTextListCtrl(RTBSI_PlayerList) {
+            profile = "GuiTextListProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "1 1";
+            extent = "207 16";
+            minExtent = "8 2";
+            visible = "1";
+            enumerate = "0";
+            resizeCell = "1";
+            columns = "0 12 130 172";
+            fitParentWidth = "1";
+            clipColumnText = "0";
+         };
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "247 31";
+         extent = "27 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Name";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "366 31";
+         extent = "28 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "BL_ID";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "407 31";
+         extent = "29 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Score";
+         maxLength = "255";
+      };
+      new GuiScrollCtrl(RTBSI_ModScroll) {
+         profile = "GuiScrollProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "14 218";
+         extent = "441 168";
+         minExtent = "8 2";
+         visible = "1";
+         willFirstRespond = "1";
+         hScrollBar = "alwaysOff";
+         vScrollBar = "alwaysOn";
+         constantThumbHeight = "0";
+         childMargin = "0 0";
+         rowHeight = "40";
+         columnWidth = "30";
+
+         new GuiSwatchCtrl() {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "1 1";
+            extent = "430 2";
+            minExtent = "8 2";
+            visible = "1";
+            color = "255 255 255 255";
+         };
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "48 202";
+         extent = "77 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Custom Add-On";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "346 191";
+         extent = "49 18";
+         minExtent = "8 2";
+         visible = "0";
+         text = "Download";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "343 202";
+         extent = "37 18";
+         minExtent = "8 2";
+         visible = "0";
+         text = "Shapes";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "384 202";
+         extent = "16 18";
+         minExtent = "8 2";
+         visible = "0";
+         text = "Full";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "411 202";
+         extent = "39 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Installed";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Password) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 128";
+         extent = "13 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "No";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "36 48";
+         extent = "39 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Players:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "52 64";
+         extent = "23 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Map:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "42 80";
+         extent = "33 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Bricks:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "38 96";
+         extent = "37 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Owner:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "24 112";
+         extent = "51 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Dedicated:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "22 128";
+         extent = "53 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Password:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "46 152";
+         extent = "29 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Mods:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Mods) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 152";
+         extent = "73 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "RTB (4), BL (9)";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Players) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 48";
+         extent = "21 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "1/32";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Map) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 64";
+         extent = "43 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Bedroom";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Bricks) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 80";
+         extent = "8 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "0";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Owner) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 96";
+         extent = "46 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Unknown";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Dedicated) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 112";
+         extent = "20 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Yes";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "17 31";
+         extent = "68 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Server Details";
+         maxLength = "255";
+      };
+      new GuiTextCtrl() {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "52 168";
+         extent = "23 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Ping:";
+         maxLength = "255";
+      };
+      new GuiTextCtrl(RTBSI_Ping) {
+         profile = "GuiTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "81 168";
+         extent = "26 18";
+         minExtent = "8 2";
+         visible = "1";
+         text = "32ms";
+         maxLength = "255";
+      };
+      new GuiSwatchCtrl(RTBSI_Loading) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "14 34";
+         extent = "441 353";
+         minExtent = "8 2";
+         visible = "0";
+         color = "180 180 180 255";
+
+         new GuiSwatchCtrl() {
+            profile = "GuiDefaultProfile";
+            horizSizing = "right";
+            vertSizing = "bottom";
+            position = "1 1";
+            extent = "439 351";
+            minExtent = "8 2";
+            visible = "1";
+            color = "235 235 235 255";
+         };
+      };
+      new GuiSwatchCtrl(RTBSI_PlayerCover) {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "232 48";
+         extent = "222 144";
+         minExtent = "8 2";
+         visible = "0";
+         color = "230 230 230 255";
+
+         new GuiTextCtrl() {
+            profile = "RTB_Verdana12PtAuto";
+            horizSizing = "center";
+            vertSizing = "center";
+            position = "57 64";
+            extent = "107 16";
+            minExtent = "8 2";
+            visible = "1";
+            text = "Player List not Public";
+            maxLength = "255";
+         };
+      };
+   };
+};
+//--- OBJECT WRITE END ---

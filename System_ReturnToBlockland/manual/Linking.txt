@@ -1,0 +1,10 @@
+<font:Palatino Linotype:24>Linking<font:Palatino Linotype:18>
+With RTB you are now able to link your RTB Profile with your Blockland ID. At the moment this provides you with the ability to comment and rate on files in the Mod Manager, your BL ID will also be displayed on your RTB profile. However there are more plans involving account linking for the future.
+
+<font:Palatino Linotype Bold:20>How to Link<font:Palatino Linotype:18>
+To link, you'll first need an RTB account on our forums at <a:www.returntoblockland.com/forums>http://returntoblockland.com/forums</a>. Next, you'll need to go to the "Profile" button at the top of the RTB forums to edit your profile.
+
+Scroll to the bottom of the edit profile window and you will see the authentication section. Simply enter your Blockland ID and your Blockland Name (shown at the bottom of the blockland window) and press authenticate. You'll then be able to comment and rate on add-ons, provided the authentication was successful!
+
+<font:Palatino Linotype Bold:20>How to Unlink<font:Palatino Linotype:18>
+On the RTB forums, go back to edit your profile and at the bottom press Un-authenticate.

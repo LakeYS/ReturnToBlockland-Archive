@@ -1,0 +1,107 @@
+//--- OBJECT WRITE BEGIN ---
+new GuiControl(RTB_BarredScreen) {
+   profile = "GuiDefaultProfile";
+   horizSizing = "right";
+   vertSizing = "bottom";
+   position = "0 0";
+   extent = "640 480";
+   minExtent = "8 2";
+   visible = "1";
+
+   new GuiWindowCtrl() {
+      profile = "BlockWindowProfile";
+      horizSizing = "center";
+      vertSizing = "center";
+      position = "137 141";
+      extent = "366 197";
+      minExtent = "8 2";
+      visible = "1";
+      text = "Ooops!";
+      maxLength = "255";
+      resizeWidth = "0";
+      resizeHeight = "0";
+      canMove = "1";
+      canClose = "1";
+      canMinimize = "0";
+      canMaximize = "0";
+      minSize = "50 50";
+      closeCommand = "canvas.popDialog(RTB_BarredScreen);";
+
+      new GuiBitmapCtrl() {
+         profile = "GuiDefaultProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "8 33";
+         extent = "100 159";
+         minExtent = "8 2";
+         visible = "1";
+         bitmap = "./images/prisonerMan";
+         wrap = "0";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         keepCached = "0";
+      };
+      new GuiTextCtrl() {
+         profile = "BlockButtonProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "111 29";
+         extent = "108 37";
+         minExtent = "8 2";
+         visible = "1";
+         text = "Sorry about all this!";
+         maxLength = "255";
+      };
+      new GuiMLTextCtrl() {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "111 57";
+         extent = "243 14";
+         minExtent = "8 2";
+         visible = "1";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+         text = "You have been barred from the RTB Service.";
+         maxBitmapHeight = "-1";
+         selectable = "1";
+      };
+      new GuiBitmapButtonCtrl() {
+         profile = "BlockButtonProfile";
+         horizSizing = "right";
+         vertSizing = "top";
+         position = "266 150";
+         extent = "91 38";
+         minExtent = "8 2";
+         visible = "1";
+         command = "canvas.popDialog(RTB_BarredScreen);";
+         text = "Oh.";
+         groupNum = "-1";
+         buttonType = "PushButton";
+         bitmap = "base/client/ui/button2";
+         lockAspectRatio = "0";
+         alignLeft = "0";
+         overflowImage = "0";
+         mKeepCached = "0";
+         mColor = "255 255 255 255";
+      };
+      new GuiMLTextCtrl(RTBB_Text) {
+         profile = "GuiMLTextProfile";
+         horizSizing = "right";
+         vertSizing = "bottom";
+         position = "111 77";
+         extent = "243 14";
+         minExtent = "8 2";
+         visible = "1";
+         lineSpacing = "2";
+         allowColorChars = "0";
+         maxChars = "-1";
+         text = "No reason has been specified.";
+         maxBitmapHeight = "-1";
+         selectable = "1";
+      };
+   };
+};
+//--- OBJECT WRITE END ---

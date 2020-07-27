@@ -1,0 +1,19 @@
+<font:Palatino Linotype:24>Mod Manager<font:Palatino Linotype:18>
+The Mod Manager is a direct connection to the online mod system. You'll need to be connected to the internet to do any browsing or searching of mods.
+
+<font:Palatino Linotype Bold:20>News Feed<font:Palatino Linotype:18>
+The news feed is similar to an RSS feed, activity regarding mods on the RTB system will be sent to you. There are 4 types of news; New Add-Ons, Add-On Updates (You will only get these if you have the add-on that got updated), Announcements and warnings about failed Add-Ons.
+
+<font:Palatino Linotype Bold:20>Browsing<font:Palatino Linotype:18>
+Browsing mods couldn't be easier with the new system. All you need to do is click a link, and the page will load directly from our web server. There are numerous ways to browse using RTB. The first method is by category which can be done by clicking the "Browse" button, You can also browse by rating by clicking the toplist button. You'll get a listing of the top 10 rated mods. Finally you can use the search option to enter some search terms. You can search by username with * as the keywords to retreive all the mods from a specific user. You may also view all the mods at once by clicking view all.
+
+<font:Palatino Linotype Bold:20>Presets<font:Palatino Linotype:18>
+A preset is essentially a collection of similar mods. These are created by RTB Moderators and only consist of the best add-ons submitted by our users. When viewing a preset for download you can choose to untick certain add-ons, so you can customize the add-ons you download.
+
+<font:Palatino Linotype Bold:20>Comments and Ratings<font:Palatino Linotype:18>
+In order to submit comments or ratings for files, you need to have your RTB Profile linked to your BL Account. You can read about how to do this in the linking section of the manual.
+
+<font:Palatino Linotype Bold:20>Managing your Mods<font:Palatino Linotype:18>
+By clicking the Your Mods button, you'll be able to see all the RTB mods you have installed. They are sorted by their category. You can click the + and - buttons on the dividers to collapse or expand categories. The buttons at the top allow you to expand/collapse all the categories or enable/disable all your mods. You can also click the update button to search for any updates for the add-ons you have.
+
+When you first get RTB, you'll likely have downloaded lots of add-ons from the blockland forums. We've provided a useful button that will search for the RTB equivalent of that add-on, and download it. This means you'll now receive updates for that file like any other RTB file you've downloaded.

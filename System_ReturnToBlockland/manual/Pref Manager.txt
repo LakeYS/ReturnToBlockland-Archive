@@ -1,0 +1,23 @@
+<font:Palatino Linotype:24>Pref Manager<font:Palatino Linotype:18>
+RTB will be including a preference manager which will be accessible to Super Admins on the server. Any add-on can register prefs to be managed by this using the following function:
+
+<font:Palatino Linotype Bold:18>RTB_registerPref("Pref Name","Category","Pref","Var Type","Your Mod Name","Default Pref Value","Requires Server Restart");
+
+<font:Palatino Linotype:18>The first parameter is for a standard tip, and you can use <key:bindname> in your tip to display a bind. In the event that the key is unbound the no-bind tip will be displayed (and if you don't have one of those, it will move onto the next tip)
+
+Here is some example code you could put into your server.cs file of your Add-On:
+
+<font:Courier New:14>if(isFile("Add-Ons/System_ReturnToBlockland/server.cs"))
+{
+   if(!$RTB::RTBR_ServerControl_Hook)
+      exec("Add-Ons/System_ReturnToBlockland/RTBR_ServerControl_Hook.cs");
+   RTB_registerPref("Duplicator Timeout","Duplicator","Duplicator::Timeout","int 0 60","Tool_Duplicator",40,0);
+}
+else
+{
+   $Duplicator::Timeout = 40;
+}
+
+<font:Palatino Linotype:18>This would register a pref titled "Duplicator Timeout" under the Duplicator category, to edit the $Duplicator::Timeout variable, and allowing the user to enter an integer between 0 and 60. The mod name parameter is only for tracking what mods created what prefs, the default value is for setting a default value for the preference, and the last pref will show whether the server needs to be restarted or not for the pref to take effect.
+
+<font:Palatino Linotype Bold:18>This code must be put into the server.cs NOT the client.cs
