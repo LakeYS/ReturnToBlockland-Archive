@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 402 $
+//#      $Rev: 167 $
 //#      $Date: 2011-02-27 22:35:06 +0000 (Sun, 27 Feb 2011) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/interface/profiles/generic.cs $
 //#
-//#      $Id: generic.cs 402 2011-02-27 22:35:06Z Ephialtes $
+//#      $Id: generic.cs 167 2011-02-27 22:35:06Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#

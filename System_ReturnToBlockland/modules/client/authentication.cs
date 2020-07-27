@@ -67,6 +67,14 @@ function RTB_Client_Authentication::sendPrefs(%this)
    %this.tcp.post(%data);
 }
 
+//- RTB_Client_Authentication::sendAvatar (sends avatar to server)
+function RTB_Client_Authentication::sendAvatar(%this)
+{
+   %data = %this.tcp.getPostData("UPDATEAVATAR",%this.getAvatarString());
+   
+   %this.tcp.post(%data);
+}
+
 //*********************************************************
 //* Helper Methods
 //*********************************************************
@@ -76,6 +84,21 @@ function RTB_Client_Authentication::getPlaytime(%this)
    %timestring = getTimeString($Sim::Time);
    
    return %timestring;
+}
+
+//- RTB_Client_Authentication::getAvatarString (Returns a string representing the user's avatar)
+function RTB_Client_Authentication::getAvatarString(%this)
+{
+    %partList = "Accent\tAccentColor\tChest\tDecalName\tFaceName\tHat\tHatColor\tHeadColor\tHip\tHipColor\tLArm\tLArmColor\tLHand\tLHandColor\tLLeg\tLLegColor\tPack\tPackColor\tRArm\tRArmColor\tRHand\tRHandColor\tRLeg\tRLegColor\tSecondPack\tSecondPackColor\tTorsoColor";
+    %parts = getFieldCount(%partList);
+
+    %string = "";
+    for(%i=0;%i<%parts;%i++)
+    {
+        %part = "::" @ getField(%partList,%i);
+        %string = %string @ $Pref::Avatar[%part] @ ",";
+    }
+    return %string;
 }
 
 //- RTB_Client_Authentication::establishLocation (Decides where the player is currently)
@@ -127,6 +150,13 @@ package RTB_Modules_Client_Authentication
       Parent::blinkSuccess(%this);
       
       RTB_Client_Authentication.auth();
+      RTB_Client_Authentication.sendAvatar();
+   }
+   
+   function AvatarGui::onSleep(%this)
+   {
+      Parent::onSleep(%this);
+      RTB_Client_Authentication.sendAvatar();
    }
    
    function disconnectedCleanup()

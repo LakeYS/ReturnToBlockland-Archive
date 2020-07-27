@@ -275,6 +275,21 @@ function RTBRT_traverseGui(%ctrl,%top,%depth)
 }
 
 //*********************************************************
+//* Script_GUI support methods
+//*********************************************************
+//- Script_GUI::getClassName (returns class name of mock object)
+function Script_GUI::getClassName(%this)
+{
+   return %this.className;
+}
+
+//- Script_GUI::getValue (returns text value of mock object)
+function Script_GUI::getValue(%this)
+{
+   return %this.text;
+}
+
+//*********************************************************
 //* Transfer Definitions
 //*
 //* - Must match on client or it will halt + disable

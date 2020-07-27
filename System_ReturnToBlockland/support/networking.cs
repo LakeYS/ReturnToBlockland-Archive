@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 532 $
-//#      $Date: 2011-12-06 19:01:32 +0000 (Tue, 06 Dec 2011) $
+//#      $Rev: 274 $
+//#      $Date: 2012-07-15 09:55:52 +0000 (Sun, 15 Jul 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/support/networking.cs $
 //#
-//#      $Id: networking.cs 532 2011-12-06 19:01:32Z Ephialtes $
+//#      $Id: networking.cs 274 2012-07-15 09:55:52Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -136,7 +136,7 @@ function RTB_TCPFactory::post(%this,%data,%module,%successCallback,%failCallback
 //- RTB_TCPFactory::request (sets up a request using the data built in one of the request methods)
 function RTB_TCPFactory::request(%this,%request,%module,%lineCallback,%failCallback,%startCallback,%endCallback)
 {
-   %tcp = new TCPObject()
+   %tcp = new TCPObject(RTB_TCPObject)
    {
       connected = false;
       receiving = false;
@@ -187,165 +187,127 @@ function RTB_TCPFactory::killTCP(%this)
 }
 
 //*********************************************************
-//* RTB_Support_Networking Package
-//*
-//* Kind of relies on the following assumptions given that
-//* calling Parent::whatever kinda sucks in this case.
-//*
-//* 1) This package can't overwrite default BL TCP Objects.
-//* 2) RTB gets executed before any other add-on using
-//*    TCP objects.
+//* TCP Object Methods
 //*********************************************************
-package RTB_Support_Networking
-{
-   //- TCPObject::onConnected (onConnected callback)
-   function TCPObject::onConnected(%this)
-   {
-      if(!%this.rtb)
-         return Parent::onConnected(%this);
+//- RTB_TCPObject::onConnected (onConnected callback)
+function RTB_TCPObject::onConnected(%this)
+{      
+   if(%this.dead)
+      return;
       
-      if(%this.dead)
-         return;
-         
-      if($RTB::Debug)
-         echo("\c4>> TCP Connected");
+   if($RTB::Debug)
+      echo("\c4>> TCP Connected");
 
-      %this.connected = true;      
-      
-      %this.makeRequest();
-   }
+   %this.connected = true;      
    
-   //- TCPObject::onLine (onLine callback)
-   function TCPObject::onLine(%this,%line)
-   {
-      if(!%this.rtb)
-         return Parent::onLine(%this,%line);
-         
-      if(%this.dead)
-         return;
-         
-      if($RTB::Debug)
-         echo("\c2>> TCP Line Received ("@%line@")");
-         
-      if(%this.httpResponseCode $= "")
-      {
-         %this.httpResponseCode = getWord(%line,1);
-         
-         if(%this.httpResponseCode !$= "200")
-         {
-            if(%this.failCallback !$= "")
-               eval(%this.module.getName()@"::"@%this.failCallback@"("@%this.module.getID()@","@%this@","@%this.factory@",\"HTTP\",\""@%this.httpResponseCode@"\");");
-            %this.dead = true;
-            return;
-         }
-      }
+   %this.makeRequest();
+}
+
+//- RTB_TCPObject::onLine (onLine callback)
+function RTB_TCPObject::onLine(%this,%line)
+{
+   if(%this.dead)
+      return;
       
-      if(%line $= "END")
+   if($RTB::Debug)
+      echo("\c2>> TCP Line Received ("@%line@")");
+      
+   if(%this.httpResponseCode $= "")
+   {
+      %this.httpResponseCode = getWord(%line,1);
+      
+      if(%this.httpResponseCode !$= "200")
       {
-         if(%this.endCallback !$= "")
-            eval(%this.module.getName()@"::"@%this.endCallback@"("@%this.module.getID()@","@%this@","@%this.factory@");");
-            
-         %this.receiving = false;
+         if(%this.failCallback !$= "")
+            eval(%this.module.getName()@"::"@%this.failCallback@"("@%this.module.getID()@","@%this@","@%this.factory@",\"HTTP\",\""@%this.httpResponseCode@"\");");
          %this.dead = true;
          return;
       }
-      
-      if(getField(%line,0) $= "NOTIFY")
-      {
-         echo("\c2"@getFields(%line,1,getFieldCount(%line)));
-         return;
-      }
-      
-      %escapedLine = strReplace(%line,"\\","\\\\");
-      %escapedLine = strReplace(%escapedLine,"\"","\\\"");
+   }
+   
+   if(%line $= "END")
+   {
+      if(%this.endCallback !$= "")
+         eval(%this.module.getName()@"::"@%this.endCallback@"("@%this.module.getID()@","@%this@","@%this.factory@");");
          
-      if(%this.receiving)
-         if(%this.lineCallback !$= "")
-            eval(%this.module.getName()@"::"@%this.lineCallback@"("@%this.module.getID()@","@%this@","@%this.factory@",\""@%escapedLine@"\");");
+      %this.receiving = false;
+      %this.dead = true;
+      return;
+   }
+   
+   if(getField(%line,0) $= "NOTIFY")
+   {
+      echo("\c2"@getFields(%line,1,getFieldCount(%line)));
+      return;
+   }
+   
+   %escapedLine = strReplace(%line,"\\","\\\\");
+   %escapedLine = strReplace(%escapedLine,"\"","\\\"");
+      
+   if(%this.receiving)
+      if(%this.lineCallback !$= "")
+         eval(%this.module.getName()@"::"@%this.lineCallback@"("@%this.module.getID()@","@%this@","@%this.factory@",\""@%escapedLine@"\");");
 
-      if(!%this.receiving)
+   if(!%this.receiving)
+   {
+      if(%line $= "")
       {
-         if(%line $= "")
-         {
-            %this.receiving = true;
-            
-            if(%this.startCallback !$= "")
-               eval(%this.module.getName()@"::"@%this.startCallback@"("@%this.module.getID()@","@%this@","@%this.factory@");");
-         }
-         else
-         {
-            if(firstWord(%line) $= "Set-Cookie:")
-               RTB_Networking.cookie = restWords(%line);
-         }
+         %this.receiving = true;
+         
+         if(%this.startCallback !$= "")
+            eval(%this.module.getName()@"::"@%this.startCallback@"("@%this.module.getID()@","@%this@","@%this.factory@");");
+      }
+      else
+      {
+         if(firstWord(%line) $= "Set-Cookie:")
+            RTB_Networking.cookie = restWords(%line);
       }
    }
-   
-   //- TCPObject::onConnectFailed (onConnectFailed callback)
-   function TCPObject::onConnectFailed(%this)
-   {
-      if(!%this.rtb)
-         return Parent::onConnectFailed(%this);
-         
-      if(%this.dead)
-         return;
-         
-      if($RTB::Debug)
-         echo("\c2>> TCP Connect Failed");
+}
+
+//- RTB_TCPObject::onConnectFailed (onConnectFailed callback)
+function RTB_TCPObject::onConnectFailed(%this)
+{
+   if(%this.dead)
+      return;
       
-      if(%this.failCallback !$= "")
-         eval(%this.module.getName()@"::"@%this.failCallback@"("@%this.module@","@%this@","@%this.factory@",\"Fail\");");
-   }
+   if($RTB::Debug)
+      echo("\c2>> TCP Connect Failed");
    
-   //- TCPObject::onDNSFailed (onDNSFailed callback)
-   function TCPObject::onDNSFailed(%this)
-   {
-      if(!%this.rtb)
-         return Parent::onDNSFailed(%this);
-         
-      if(%this.dead)
-         return;
+   if(%this.failCallback !$= "")
+      eval(%this.module.getName()@"::"@%this.failCallback@"("@%this.module@","@%this@","@%this.factory@",\"Fail\");");
+}
+
+//- RTB_TCPObject::onDNSFailed (onDNSFailed callback)
+function RTB_TCPObject::onDNSFailed(%this)
+{
+   if(%this.dead)
+      return;
+   
+   if($RTB::Debug)
+      echo("\c2>> TCP DNS Failed");
+   
+   if(%this.failCallback !$= "")
+      eval(%this.module.getName()@"::"@%this.failCallback@"("@%this.module@","@%this@","@%this.factory@",\"DNS\");");
+}
+
+//- RTB_TCPObject::onDisconnect (onDisconnect callback)
+function RTB_TCPObject::onDisconnect(%this)
+{
+   %this.delete();
+}
+
+//- RTB_TCPObject::makeRequest (makes a pre-defined request)
+function RTB_TCPObject::makeRequest(%this)
+{
+   if(!%this.connected || %this.dead)
+      return;
       
-      if($RTB::Debug)
-         echo("\c2>> TCP DNS Failed");
+   if($RTB::Debug)
+      echo("\c5>> TCP Data Sent");
       
-      if(%this.failCallback !$= "")
-         eval(%this.module.getName()@"::"@%this.failCallback@"("@%this.module@","@%this@","@%this.factory@",\"DNS\");");
-   }
-   
-   //- TCPObject::onDisconnect (onDisconnect callback)
-   function TCPObject::onDisconnect(%this)
-   {
-      if(!%this.rtb)
-         return Parent::onDisconnect(%this);
-         
-      %this.delete();
+   if($RTB::Debug > 1)
+      echo("\c5"@strReplace(%this.request,"\r\n","\r\n\c5"));
       
-      if(%this.dead)
-         return;
-   }
-   
-   //- TCPObject::makeRequest (makes a pre-defined request)
-   function TCPObject::makeRequest(%this)
-   {
-      if(!%this.connected || %this.dead)
-         return;
-         
-      if($RTB::Debug)
-         echo("\c5>> TCP Data Sent");
-         
-      if($RTB::Debug > 1)
-         echo("\c5"@strReplace(%this.request,"\r\n","\r\n\c5"));
-         
-      %this.send(%this.request);
-   }
-   
-   function Script_GUI::getClassName(%this)
-   {
-      return %this.className;
-   }
-   
-   function Script_GUI::getValue(%this)
-   {
-      return %this.text;
-   }
-};
+   %this.send(%this.request);
+}

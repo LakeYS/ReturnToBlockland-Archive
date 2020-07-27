@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 522 $
-//#      $Date: 2011-10-30 11:13:52 +0000 (Sun, 30 Oct 2011) $
+//#      $Rev: 274 $
+//#      $Date: 2012-07-15 09:55:52 +0000 (Sun, 15 Jul 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/dedicated.cs $
 //#
-//#      $Id: dedicated.cs 522 2011-10-30 11:13:52Z Ephialtes $
+//#      $Id: dedicated.cs 274 2012-07-15 09:55:52Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -34,6 +34,11 @@ exec("./support/fileCache.cs");
 exec("./support/functions.cs");
 exec("./support/networking.cs");
 exec("./support/xmlParser.cs");
+
+//*********************************************************
+//* Dedicated Server Modules
+//*********************************************************
+// Coming soon? :)
 
 //*********************************************************
 //* Activate Packages

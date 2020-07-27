@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 296 $
-//#      $Date: 2010-09-04 13:38:06 +0100 (Sat, 04 Sep 2010) $
+//#      $Rev: 109 $
+//#      $Date: 2010-09-04 12:38:06 +0000 (Sat, 04 Sep 2010) $
 //#      $Author: Ephialtes $
-//#      $URL: http://svn.returntoblockland.com/code/branches/4000/interface/mods/mainmenu.cs $
+//#      $URL: http://svn.returntoblockland.com/code/trunk/interface/mods/mainmenu.cs $
 //#
-//#      $Id: mainmenu.cs 296 2010-09-04 12:38:06Z Ephialtes $
+//#      $Id: mainmenu.cs 109 2010-09-04 12:38:06Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#

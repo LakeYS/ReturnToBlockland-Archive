@@ -4,12 +4,12 @@
 //#
 //#   -------------------------------------------------------------------------
 //#
-//#      $Rev: 533 $
-//#      $Date: 2011-12-06 19:04:19 +0000 (Tue, 06 Dec 2011) $
+//#      $Rev: 274 $
+//#      $Date: 2012-07-15 09:55:52 +0000 (Sun, 15 Jul 2012) $
 //#      $Author: Ephialtes $
 //#      $URL: http://svn.returntoblockland.com/code/trunk/modules/client/connectClient.cs $
 //#
-//#      $Id: connectClient.cs 533 2011-12-06 19:04:19Z Ephialtes $
+//#      $Id: connectClient.cs 274 2012-07-15 09:55:52Z Ephialtes $
 //#
 //#      Copyright (c) 2008 - 2010 by Nick "Ephialtes" Matthews
 //#
@@ -223,7 +223,7 @@ function RTB_ConnectClient::setAvatar(%this)
    RTBCC_Avatar.forceFOV = 18;
    RTBCC_Avatar.setOrbitDist(6);
    RTBCC_Avatar.setCameraRot(0.22,0.5,2.8);
-   RTBCC_Avatar.lightDirection = "0 0.2 0.2";   
+   RTBCC_Avatar.lightDirection = "0 0.2 0.2";
       
    %face = $Pref::Avatar::FaceName;
    %skincolor = $Pref::Avatar::HeadColor;
@@ -1876,7 +1876,8 @@ function RTBCC_Socket::onServerInviteResponse(%this,%parser,%packet)
 function RTBCC_Socket::onRankChangeError(%this,%parser,%packet,%room)
 {
    %room = RTBCC_RoomSessionManager.getRoomByName(%room);
-   %room.writeError(%packet.cData);
+   if(%packet.tag $= "error")
+      %room.writeError(%packet.cData);
 }
 
 //- RTBCC_Socket::onRoomListResponse (list of rooms from server)
@@ -1918,7 +1919,10 @@ function RTBCC_Socket::onRoomJoinResponse(%this,%parser,%packet,%room)
    {
       if(%packet.attrib["type"] $= "banned")
       {
-         RTB_ConnectClient.messageBoxError(%room,"You are banned from this room.<br><br><font:Verdana Bold:12>Reason: <font:Verdana:12>"@%packet.attrib["reason"]@"<br><font:Verdana Bold:12>Remaining: <font:Verdana:12>"@timeDiffString(%packet.attrib["left"])@" left.");
+         if(%packet.attrib["length"] $= "permanent")
+            RTB_ConnectClient.messageBoxError(%room,"You are permanently banned from this room.<br><br><font:Verdana Bold:12>Reason: <font:Verdana:12>"@%packet.attrib["reason"]);
+         else
+            RTB_ConnectClient.messageBoxError(%room,"You are banned from this room.<br><br><font:Verdana Bold:12>Remaining: <font:Verdana:12>"@timeDiffString(%packet.attrib["left"])@" left.<br><font:Verdana Bold:12>Reason: <font:Verdana:12>"@%packet.attrib["reason"]);
       }
       else
          RTB_ConnectClient.messageBoxError(%room,%packet.cData);
@@ -5224,6 +5228,31 @@ function RTBCC_RoomSession::onNotice(%this,%parser,%packet)
             %this.messageBoxError("You were kicked!","You were kicked from the room by "@%kicker.name@".",%this@".destroy();");
       }
    }
+   else if(%packet.attrib["type"] $= "ban")
+   {
+      %id = %packet.child[0].attrib["id"];
+      %user = %this.manifest.getByID(%id);
+      %banner = %this.manifest.getByID(%packet.attrib["user"]);
+
+      if(%packet.attrib["reason"] !$= "")
+         %this.writeColor(%banner.name @ " has banned " @ %user.name @" from the room. ("@%packet.attrib["reason"]@")", "FF0000");
+      else
+         %this.writeColor(%banner.name @ " has banned " @ %user.name @" from the room.", "FF0000");
+         
+      if(%user.id $= RTB_ConnectClient.client_id)
+      {
+         RTBCC_NotificationManager.push(%this.room.name,"You have been banned.","delete");
+         if (%packet.attrib["length"] $= "permanent")
+            %message = "You were permanently banned from the room by "@%banner.name@".<br>";
+         else
+            %message = "You were banned from the room by "@%banner.name@".<br><br><font:Verdana Bold:12>Time: <font:Verdana:12>"@timeDiffString(0,%packet.attrib["time"]);
+            
+         if(%packet.attrib["reason"] !$= "")
+            %message = %message @ "<br><font:Verdana Bold:12>Reason: <font:Verdana:12>"@%packet.attrib["reason"];
+
+         %this.messageBoxError("You were banned!",%message,%this@".destroy();");
+      }
+   }
    else if(%packet.attrib["type"] $= "rank")
    {
       %id = %packet.child[0].attrib["id"];
@@ -7598,7 +7627,7 @@ function RTBCC_RoomSessionManifestUser::ban(%this,%flag)
    }
    %this.session.closeModalWindow();
    
-   %reason = %modal.txt_reason;
+   %reason = %modal.txt_reason.getValue();
    %length = (%modal.chk_forever.getValue() $= 1) ? -1 : %modal.pop_length.getSelected();
    
    RTBCC_Socket.banUser(%this.session.name,%this.id,%reason,%length);

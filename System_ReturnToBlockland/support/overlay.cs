@@ -147,6 +147,10 @@ function RTB_Overlay::onWake(%this)
       %xBound = %xCurr + %xExt;
       %yBound = %yCurr + %yExt;
       
+      if(%xExt > %xDim)
+         %xExt = %xDim;
+      if(%yExt > %yDim)
+         %yExt = %yDim;
       if(%xBound > %xDim)
          %xCurr = %xDim - %xExt;
       if(%yBound > %yDim)
