@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_InfoTips.cs $
+//#
+//#      $Id: RTBC_InfoTips.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -27,9 +36,6 @@ $RTB::InfoTip[$RTB::InfoTips++] = "Server administrators, did you know that you 
 $RTB::InfoTip[$RTB::InfoTips++] = "Server administrators, did you know that you can use the <color:FF0000>/fetch <name><color:000000> and <color:FF0000>/find <name><color:000000> commands to bring or go to players instantly?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Save often! Don't let your build get lost!";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can load saves from other maps? Click the map name on the load menu to pick another map.";
-$RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can make bricks invisible? Select a brick with the wrench, and uncheck the rendering box.";
-$RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can allow bullets to travel through certain bricks? Select a brick with the wrench, and uncheck the raycasting box.";
-$RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can allow players to walk through your bricks? Select a brick with the wrench, and uncheck the colliding box.";
 $RTB::InfoTip[$RTB::InfoTips++] = "Press <key:doDofScreenShot> to take a screenshot with depth of field!" TAB "Did you know that you can take depth of field screenshots? Set the key on the options menu.";
 $RTB::InfoTip[$RTB::InfoTips++] = "Press <key:showPlayerList> to bring up the player trust box." TAB "It looks like you can't open the player menu! Open the options menu and assign a key to it!";
 $RTB::InfoTip[$RTB::InfoTips++] = "Transparent bricks are weaker than normal bricks in a mini-game.";
@@ -64,7 +70,7 @@ $RTB::InfoTip[$RTB::InfoTips++] = "You will need your friends' <color:FF0000>Ful
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that certain weapons can destroy bricks in Mini-games?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that the clocks in the Bedroom and Kitchen show how long the server has been running in hours and minutes?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can place water bricks from the Baseplates category which simulate being in water?";
-$RTB::InfoTip[$RTB::InfoTips++] = "Server administrators, did you know you can type <color:FF0000>/timescale number<color:000000> (with a number between 0.5 and 2) to put the game into slow-motion or high-speed?";
+$RTB::InfoTip[$RTB::InfoTips++] = "Server administrators, did you know you can type <color:FF0000>/timescale number<color:000000> (with a number between 0.2 and 2) to put the game into slow-motion or high-speed?";
 $RTB::InfoTip[$RTB::InfoTips++] = "You can switch between 1st and 3rd person by pressing the <key:toggleFirstPerson> key." TAB "You can switch between 1st and 3rd person by setting the Toggle First Person control!";
 $RTB::InfoTip[$RTB::InfoTips++] = "You can find out how many bricks are on the server by typing <color:FF0000>/brickcount<color:000000>";
 $RTB::InfoTip[$RTB::InfoTips++] = "You can take a screenshot by pressing <key:doScreenShot>" TAB "You'll be able to take screenshots if you set the Screenshot key in your controls!";
@@ -86,6 +92,10 @@ $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that the delay time of an event 
 $RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can change between WASD steering and mouse steering for vehicles on the Advanced Configuration section of the options menu?";
 $RTB::InfoTip[$RTB::InfoTips++] = "Bricks that have been fake killed or disappear effectively have raycasting turned off. Bricks without raycasting won't play sounds, so if you want a window to make a breaking sound when shot, you need to put a 33 millisecond delay between the sound and the destruction of the brick.";
 $RTB::InfoTip[$RTB::InfoTips++] = "When mixing a Mojito Cocktail, Did you know that avoiding damage to the the tissue of the mint leaves during mashing, and instead letting the crushed ice cut up the leaves naturally while stirring will give a much more balanced taste?";
+$RTB::InfoTip[$RTB::InfoTips++] = "Pepper! You have to deliver these pizzas to people so you can build your house! ...oops wrong game!";
+$RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can double-click a person's name in the IRC to have a private chat with them?";
+$RTB::InfoTip[$RTB::InfoTips++] = "Did you know you can type /me to perform an action in the IRC? For example /me gives a tip would be *Infomaniac gives a tip.";
+$RTB::InfoTip[$RTB::InfoTips++] = "Did you know that you can open the RTB Server Control using <key:RTBSC_ToggleSC>?" TAB "Did you know that you can bind the Server Control window to a key in your Controls?";
 
 //*********************************************************
 //* Main Package
@@ -95,8 +105,9 @@ package RTBC_InfoTips
    function LoadingGui::onWake(%this)
    {
       Parent::onWake(%this);
-
-      schedule(100,0,"RTBIT_CreateInfoTip");
+      
+      if($RTB::Options::EnableInfoTips)
+         schedule(100,0,"RTBIT_CreateInfoTip");
    }
    
    function LoadingGui::onSleep(%this)

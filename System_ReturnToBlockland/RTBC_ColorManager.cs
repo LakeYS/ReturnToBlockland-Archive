@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_ColorManager.cs $
+//#
+//#      $Id: RTBC_ColorManager.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -64,11 +73,34 @@ if(!isFile("Add-Ons/Colorset_Default/colorSet.txt"))
    %foB.delete();
 }
 
+if(!isFile("config/server/colorSet.txt"))
+{
+   %foA = new FileObject();
+   %foB = new FileObject();
+   %foA.openForWrite("config/server/colorSet.txt");
+   %foB.openForRead($RTB::Path@"Colorset_Default.txt");
+   while(!%foB.isEOF())
+   {
+      %foA.writeLine(%foB.readLine());
+   }
+   %foA.close();
+   %foA.delete();
+   %foB.close();
+   %foB.delete();
+}
+
 //*********************************************************
 //* The Meat
 //*********************************************************
 function RTB_ColorManager::onWake(%this)
 {
+   if(isReadonly("config/server/colorSet.txt"))
+   {
+      Canvas.popDialog(RTB_ColorManager);
+      MessageBoxOK("ERROR","Your colorSet.txt file is not writeable so you cannot use the Colorset Manager.");
+      return;
+   }
+   
    for(%i=RTBCM_Sets.getCount()-1;%i>0;%i--)
    {
       %obj = RTBCM_Sets.getObject(%i);
@@ -231,14 +263,26 @@ function RTB_ColorManager::saveSet()
    
    %input = new FileObject();
    %output = new FileObject();
-   %input.openForRead(%sel);
-   %output.openForWrite("config/server/colorSet.txt");
-   while(!%input.isEOF())
+   if(%input.openForRead(%sel))
    {
-      %output.writeLine(%input.readLine());
+      if(%output.openForWrite("config/server/colorSet.txt"))
+      {
+         while(!%input.isEOF())
+         {
+            %output.writeLine(%input.readLine());
+         }
+         %output.close();
+      }
+      else
+      {
+         MessageBoxOK("ERROR","Color set could not be saved because your colorSet.txt was invalid.");
+      }
+      %input.close();
    }
-   %input.close();
-   %output.close();
+   else
+   {
+      MessageBoxOK("ERROR","Color set could not be saved because the selection was invalid.");
+   }
    %input.delete();
    %output.delete();
 }

@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_BugTracker.cs $
+//#
+//#      $Id: RTBC_BugTracker.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -19,7 +28,7 @@ if(!isObject(RTB_BugTracker))
 //*********************************************************
 //* Variable Declarations
 //*********************************************************
-$RTB::CBugTracker::HostSite= "returntoblockland.com";
+$RTB::CBugTracker::HostSite = "returntoblockland.com";
 $RTB::CBugTracker::FilePath = "/blockland/rtbBugReport.php";
 
 //*********************************************************
@@ -77,6 +86,7 @@ function RTBBT_pushBugReporter(%feature,%summary,%priority,%description)
    RTBBT_Priority.add("Minor",0);
    RTBBT_Priority.add("Major",1);
    RTBBT_Priority.add("Critical",2);
+   RTBBT_Priority.add("Suggestion",3);
    
    RTBBT_Priority.setSelected(%priority);
    RTBBT_Description.setValue(%description);

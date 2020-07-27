@@ -1,11 +1,21 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_IRCClient.cs $
+//#
+//#      $Id: RTBC_IRCClient.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
 //#   IRC Client (RTBIC/CIRCClient)
 //#
+//#############################################################################
 //#############################################################################
 //Register that this module has been loaded
 $RTB::RTBC_IRCClient = 1;
@@ -35,7 +45,8 @@ if(!isObject(MM_RTBIRCClientButton))
 }
 function MM_RTBIRCClientButton::onMouseEnter(%this)
 {
-	alxPlay(Note8Sound);
+   if($Pref::Audio::MenuSounds)
+	   alxPlay(Note9Sound);
 }
 
 //*********************************************************
@@ -94,6 +105,16 @@ function RTB_IRCClient::onWake(%this)
    
    if($RTB::Options::CustomUsername)
       RTBIC_CustomUserBlock.setVisible(0);
+      
+   schedule(10,0,"RTBIC_makeFirstResponder");
+}
+
+function RTBIC_makeFirstResponder()
+{
+      if(isObject($RTB::CIRCClient::CurrPane.window.messageBox))
+         $RTB::CIRCClient::CurrPane.window.messageBox.makeFirstResponder(1);
+      else
+         RTBIC_MessageBox.makeFirstResponder(1);
 }
 
 function RTBIC_toggleIRC(%val)
@@ -105,6 +126,8 @@ function RTBIC_toggleIRC(%val)
       canvas.popDialog(RTB_IRCClient);
    else
       canvas.pushDialog(RTB_IRCClient);
+      
+   schedule(10,0,"RTBIC_makeFirstResponder");
 }
 
 function RTBIC_SendMessage()
@@ -112,6 +135,13 @@ function RTBIC_SendMessage()
    %message = RTBIC_MessageBox.getValue();
    if(%message $= "")
       return;
+      
+   if(filterKey(%message))
+   {
+      RTBIC_MessageBox.setValue("");
+      RTBIC_addLine("\c2** DO NOT SAY YOUR BLOCKLAND KEY INTO THE CHAT! **");
+      return;
+   }
       
    if(!RTBIC_SC.connected)
    {
@@ -129,10 +159,49 @@ function RTBIC_SendMessage()
 			RTBIC_SC.sendLine(%message);
 			RTBIC_addLine("\c4* "@$RTB::CIRCClient::Cache::NickName SPC %vars);
 		}
+      else if(getWord(%message,0) $= "/ignore")
+      {
+         %user = getWord(%message,1);
+         if($Ignore::User[%user])
+         {
+            $Ignore::User[%user] = "";
+            RTBIC_addLine("\c6* You are no longer ignoring "@%user@".");
+         }
+         else
+         {
+            $Ignore::User[%user] = 1;
+            RTBIC_addLine("\c6* You are now ignoring "@%user@".");
+         }
+      }
+      else if(getWord(%message,0) $= "/unignore")
+      {
+         %user = getWord(%message,1);
+         if($Ignore::User[%user])
+         {
+            $Ignore::User[%user] = "";
+            RTBIC_addLine("\c6* You are no longer ignoring "@%user@".");
+         }
+      }
 		else if(getWord(%message,0) $= "/msg")
 		{
          %vars = getWords(%message,1,getWordCount(%message)-1);
 			RTBIC_SC.sendLine("PRIVMSG "@%vars);
+
+         %username = getWord(%message,1);
+         if(RTBIC_hasSession(%username))
+         {
+            %sess = RTBIC_getSession(%username);
+            RTBIC_SetPane(%sess);
+            RTBIC_ScrollToTab(%username);
+         }
+         else
+         {
+            %sess = RTBIC_createSession(%username);
+            RTBIC_SetPane(%sess);
+            %sess.window.messageVector.pushBackLine("\c6* Now talking to "@%username@"...",0);
+            RTBIC_ScrollToTab(%username);
+         }
+         %sess.window.messageVector.pushBackLine("\c0<"@$RTB::CIRCClient::Cache::NickName@"> "@getWords(%message,2,getWordCount(%message)-1),0);
 		}
 		else if(getWord(%message,0) $= "/slap")
 		{
@@ -179,6 +248,12 @@ function RTBIC_SendMessage()
 }
 function RTBIC_UserList::onSelect(%this, %id, %text)
 {
+   if($RTB::CIRCClient::Cache::WasSort)
+   {
+      $RTB::CIRCClient::Cache::WasSort = 0;
+      return;
+   }
+   
 	%user = getWord(%text,1);
 	if(%user $= $RTB::CIRCClient::Cache::LastULClickP && %user !$= "" && vectorDist($Sim::Time,$RTB::CIRCClient::Cache::LastULClick) < 2 && $RTB::Options::IRCAllowPM)
 	{
@@ -293,20 +368,21 @@ function RTBIC_SC::onConnected(%this)
    RTBIC_addLine("\c0Connected.");
 
    %this.connected = 1;
-	%guestName = "Blockhead"@getRandom(1000,9999);
+	%guestName = "Blockhead"@getNumKeyID();
 	%this.sendLine("NICK "@%guestName);
 	
 	if($Pref::Player::NetName !$= "" && isUnlocked())
-	   %userName = $Pref::Player::NetName;
+	   %userName = filterString(strReplace($Pref::Player::NetName," ","_"),"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789[]-");
    else if($Pref::Player::LANName !$= "")
-      %userName = $Pref::Player::LANName;
+      %userName = filterString(strReplace($Pref::Player::LANName," ","_"),"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789[]-");
    
-	%this.sendLine("USER "@%guestName@" 0 * :"@%userName);
-	
-	%userName = %userName@"_RTB";
+	%this.sendLine("USER "@%guestName@" 0 * :"@%userName@"-"@getNumKeyID());
 	
 	$RTB::CIRCClient::Cache::NickName = %guestName;
 	$RTB::CIRCClient::Cache::DesNickName = %userName;
+	
+	$RTB::Options::CustomUser = filterString(strReplace($RTB::Options::CustomUser," ","_"),"abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_0123456789");
+	RTBIC_CustomUser.setValue($RTB::Options::CustomUser);
 }
 
 function RTBIC_SC::onLine(%this,%line)
@@ -365,7 +441,9 @@ function RTBIC_SC::dispatchCommand(%this,%command,%prefix,%params)
 {
    %prefix = strReplace(%prefix,"\"","\\\"");
    %params = strReplace(%params,"\"","\\\"");
-   
+   if(getsubstr(%params,strlen(%params)-1,1) $= "\\")
+      %params = %params @ "\\";
+      
    if(%this.dispatch[%command] !$= "")
       eval("RTBIC_SC::"@%this.dispatch[%command]@"("@%this@",\""@%prefix@"\",\""@%params@"\");");
    else
@@ -386,10 +464,43 @@ function RTBIC_SC::onNotice(%this,%prefix,%params)
       
    nextToken(%prefix,sender,"!");
    %params = stripMLControlChars(nextToken(%params,params,":"));
-   if(RTBIC_hasUser(%sender))
-      RTBIC_addLine("\c2-"@%sender@"- "@%params);
+   
+   if(%sender $= "ChanServ" || %sender $= "NickServ")
+   {
+      %username = %sender;
+      %message = %params;
+      if(RTBIC_hasSession(%username))
+         %sess = RTBIC_getSession(%username);
+      else
+         return;
+         
+      %sess.window.messageVector.pushBackLine("\c4"@%params,0);
+      
+      if(!%sess.window.visible)
+         RTBIC_startFlashTab(%sess.tab);
+         
+      RTBIC_makeFirstResponder();
+         
+      if(!RTB_IRCClient.isAwake())
+      {
+         if($RTB::Options::PMVisualNotify)
+         {
+            if(strLen(%message) > 40)
+               %message = getSubStr(%message,0,40)@"...";
+            RTBIC_pushNotification(%username,%message);
+         }
+         
+         if($RTB::Options::PMAudioNotify)
+            alxPlay(RTBIC_PMSound);
+      }
+   }
    else
-      RTBIC_addLine("\c4"@%params);
+   {
+      if(RTBIC_hasUser(%sender))
+         RTBIC_addLine("\c2-"@%sender@"- "@%params);
+      else
+         RTBIC_addLine("\c4"@%params);
+   }
 }
 
 RTBIC_SC.addHandle("JOIN","onJoin");
@@ -407,12 +518,12 @@ function RTBIC_SC::onJoin(%this,%prefix,%params)
    {
       if($RTB::Options::HideNonRTBUsers)
       {
-         if(strPos(%nick,"Guest") $= 0 || strPos(%nick,"_rtb") $= strLen(%nick)-4)
+         if(strPos(%nick,"Guest") $= 0 || (strPos(%nick,"_rtb") $= strLen(%nick)-4 && strPos(%nick,"_rtb") >= 0))
             return;
       }
-      RTBIC_addLine("\c1* "@%nick@" has joined "@%params@".");
+      if($RTB::Options::ShowIRCConnects)
+         RTBIC_addLine("\c1* "@%nick@" has joined "@%params@".");
       RTBIC_addUser(%nick);
-      RTBIC_drawUserList();
    }
 }
 
@@ -432,12 +543,12 @@ function RTBIC_SC::onPart(%this,%prefix,%params)
    {
       if($RTB::Options::HideNonRTBUsers)
       {
-         if(strPos(%nick,"Guest") $= 0 || strPos(%nick,"_rtb") $= strLen(%nick)-4)
+         if(strPos(%nick,"Guest") $= 0 || (strPos(%nick,"_rtb") $= strLen(%nick)-4 && strPos(%nick,"_rtb") >= 0))
             return;
       }
-      RTBIC_addLine("\c1* "@%nick@" has left "@%params@".");
+      if($RTB::Options::ShowIRCDisconnects)
+         RTBIC_addLine("\c1* "@%nick@" has left "@%params@".");
       RTBIC_removeUser(%nick);
-      RTBIC_drawUserList();
    }
 }
 
@@ -448,12 +559,17 @@ function RTBIC_SC::onQuit(%this,%prefix,%params)
 	
    if($RTB::Options::HideNonRTBUsers)
    {
-      if(strPos(%nick,"Guest") $= 0 || strPos(%nick,"_rtb") $= strLen(%nick)-4)
+      if(strPos(%nick,"Guest") $= 0 || (strPos(%nick,"_rtb") $= strLen(%nick)-4 && strPos(%nick,"_rtb") >= 0))
          return;
    }
-   RTBIC_addLine("\c1* "@%nick@" has quit. ("@%params@").");
+   if(RTBIC_hasSession(%nick))
+   {
+      %session = RTBIC_getSession(%nick);
+      %session.window.messageVector.pushBackLine("\c6* "@%nick@" has quit.",0);
+   }
+   if($RTB::Options::ShowIRCDisconnects)
+      RTBIC_addLine("\c1* "@%nick@" has quit. ("@%params@").");
    RTBIC_removeUser(%nick);
-   RTBIC_drawUserList();
 }
 
 RTBIC_SC.addHandle("332","onTopic");
@@ -486,10 +602,40 @@ function RTBIC_SC::onMOTDEnd(%this,%prefix,%params)
 RTBIC_SC.addHandle("438","onError");
 RTBIC_SC.addHandle("431","onError");
 RTBIC_SC.addHandle("401","onError");
+RTBIC_SC.addHandle("ERROR","onError");
 function RTBIC_SC::onError(%this,%prefix,%params)
 {
 	%message = nextToken(%params,prefix,":");
-	RTBIC_addLine("\c2ERROR: "@%message);
+	if(getWordcount(%prefix) > 1)
+   {
+      %username = getWord(%prefix,1);
+      if(RTBIC_hasSession(%username))
+         %sess = RTBIC_getSession(%username);
+      else
+         %sess = RTBIC_createSession(%username);
+         
+      %sess.window.messageVector.pushBackLine("\c2ERROR: "@%message,0);
+      
+      if(!%sess.window.visible)
+         RTBIC_startFlashTab(%sess.tab);
+         
+      RTBIC_makeFirstResponder();
+         
+      if(!RTB_IRCClient.isAwake())
+      {
+         if($RTB::Options::PMVisualNotify)
+         {
+            if(strLen(%message) > 40)
+               %message = getSubStr(%message,0,40)@"...";
+            RTBIC_pushNotification(%username,%message);
+         }
+         
+         if($RTB::Options::PMAudioNotify)
+            alxPlay(RTBIC_PMSound);
+      }
+   }
+   else
+	   RTBIC_addLine("\c2ERROR: "@%message);
 }
 
 RTBIC_SC.addHandle("432","onErroneousNick");
@@ -533,11 +679,17 @@ function RTBIC_SC::onNick(%this,%prefix,%params)
 	   $RTB::CIRCClient::Cache::NickName = %params;
 	}
 	else
+	{
 	   RTBIC_addLine("\c4"@%oldName@" is now known as "@%params@".");
+	   if($Ignore::User[%oldName])
+	   {
+	      $Ignore::User[%params] = 1;
+	      $Ignore::User[%oldName] = "";
+	   }
+	}
 	   
    RTBIC_removeUser(%oldName);
    RTBIC_addUser(%params);
-   RTBIC_drawUserList();
    
    if(RTBIC_hasSession(%oldName))
    {
@@ -577,9 +729,14 @@ function RTBIC_SC::onMessage(%this,%prefix,%params)
    %message = getSubStr(%params,strPos(%params,":")+1,strLen(%params));
    %message = stripMLControlChars(%message);
    
+   if($Ignore::User[%username])
+   {
+      return;
+   }
+   
    if($RTB::Options::HideNonRTBUsers)
    {
-      if(strPos(%username,"Guest") $= 0 || strPos(%username,"_rtb") $= strLen(%username)-4)
+      if(strPos(%username,"Guest") $= 0 || (strPos(%username,"_rtb") $= strLen(%username)-4 && strPos(%username,"_rtb") >= 0))
          return;
    }
    
@@ -587,8 +744,11 @@ function RTBIC_SC::onMessage(%this,%prefix,%params)
    {
       if(strPos(%message,"ACTION") $= 0)
 		{
-			%message = "\c4* "@%username SPC getWords(%message,1,getWordCount(%message));
-			RTBIC_addLine(%message);
+		   if($RTB::Options::ShowIRCActions)
+		   {
+            %message = "\c4* "@%username SPC getWords(%message,1,getWordCount(%message));
+            RTBIC_addLine(%message);
+		   }
 			return;
 		}
       RTBIC_addLine("\c0<"@%username@"> "@%message);
@@ -598,7 +758,7 @@ function RTBIC_SC::onMessage(%this,%prefix,%params)
    }
    else if(%destination $= $RTB::CIRCClient::Cache::NickName && $RTB::Options::IRCAllowPM)
    {
-      if(%username $= "StatServ" && %message $= "VERSION")
+      if(%username $= "StatServ" || %message $= "VERSION")
          return;
          
       if(RTBIC_hasSession(%username))
@@ -610,6 +770,8 @@ function RTBIC_SC::onMessage(%this,%prefix,%params)
       
       if(!%sess.window.visible)
          RTBIC_startFlashTab(%sess.tab);
+         
+      RTBIC_makeFirstResponder();
          
       if(!RTB_IRCClient.isAwake())
       {
@@ -667,10 +829,10 @@ function RTBIC_SC::onNameList(%this,%prefix,%params)
       %name = getWord(%nameList,%i);
       if($RTB::Options::HideNonRTBUsers)
       {
-         if(strPos(%name,"Guest") $= 0 || strPos(%name,"_rtb") $= strLen(%name)-4)
+         if(strPos(%nick,"Guest") $= 0 || (strPos(%nick,"_rtb") $= strLen(%nick)-4 && strPos(%nick,"_rtb") >= 0))
             continue;
       }
-      RTBIC_addUser(%name);
+      RTBIC_addUser(%name,1);
    }
 }
 
@@ -724,12 +886,18 @@ function RTBIC_SC::onKick(%this,%prefix,%params)
       if(%message $= %kicker)
       {
          RTBIC_addLine("\c2* You have been kicked by "@%kicker@". (No Reason)");
-         RTBIC_forcePart();
+         RTBIC_popTab(RTBIC_SC.channelTab);
+         RTBIC_UserManifest.clear();
+         RTBIC_drawUserList();
+         return;
       }
       else
       {
          RTBIC_addLine("\c2* You have been kicked by "@%kicker@". ("@%message@")");
-         RTBIC_forcePart();
+         RTBIC_popTab(RTBIC_SC.channelTab);
+         RTBIC_UserManifest.clear();
+         RTBIC_drawUserList();
+         return;
       }
 	}
 	else
@@ -740,7 +908,6 @@ function RTBIC_SC::onKick(%this,%prefix,%params)
 		   RTBIC_addLine("\c2* "@%kickee@" has been kicked by "@%kicker@". ("@%message@")",0);	
 
       RTBIC_removeUser(%kickee);
-      RTBIC_drawUserList();
 	}
 }
 
@@ -781,8 +948,23 @@ function RTBIC_ColorTest()
 //*********************************************************
 //* User Manifest
 //*********************************************************
+function RTBIC_lightRefresh()
+{
+   %value = $RTB::CIRCClient::Cache::SortSel;
+   RTBIC_UserList.sort(0,1);
+   RTBIC_drawBadges();
+   
+   if(%value !$= "" && %value > -1)
+   {
+      $RTB::CIRCClient::Cache::WasSort = 1;
+      RTBIC_UserList.setSelectedById(%value);
+   }
+}
+
 function RTBIC_drawUserList()
 {
+   %value = RTBIC_UserList.getSelectedId();
+   
    RTBIC_UserList.clear();
    if(RTBIC_SC.currentChannel $= "")
    {
@@ -795,8 +977,11 @@ function RTBIC_drawUserList()
       %user = RTBIC_UserManifest.getObject(%i);
       RTBIC_UserList.addRow(%user,%user.status TAB %user.username,0);
    }
+   
    RTBIC_UserList.sort(0,1);
    RTBIC_drawBadges();
+   
+   RTBIC_UserList.setSelectedById(%value);
 }
 
 function RTBIC_drawBadges()
@@ -836,13 +1021,15 @@ function RTBIC_drawBadges()
    RTBIC_UserSwatch.extent = "18" SPC %extentY;
 }
 
-function RTBIC_addUser(%username)
+function RTBIC_addUser(%username,%mass)
 {
    %this = RTBIC_UserManifest;
       
    if(getSubStr(%username,0,1) $= "~")
       %status = "0";
    else if(getSubStr(%username,0,1) $= "@")
+      %status = "0";
+   else if(getSubStr(%username,0,1) $= "&")
       %status = "0";
    else if(getSubStr(%username,0,1) $= "+")
       %status = "1";
@@ -870,6 +1057,13 @@ function RTBIC_addUser(%username)
          rawusername = %username;
       };
       %this.add(%userSO);
+      
+      if(!%mass)
+      {
+         $RTB::CIRCClient::Cache::SortSel = RTBIC_UserList.getSelectedId();
+         RTBIC_UserList.addRow(%userSO,%status TAB %fusername,0);
+         RTBIC_lightRefresh();
+      }
    }
 }
 function RTBIC_removeUser(%username)
@@ -883,6 +1077,9 @@ function RTBIC_removeUser(%username)
       %so = %this.getObject(%i);
       if(%so.username $= %username)
       {
+         $RTB::CIRCClient::Cache::SortSel = RTBIC_UserList.getSelectedId();
+         RTBIC_UserList.removeRowById(%so);
+         RTBIC_lightRefresh();
          %so.delete();
          return 1;
       }
@@ -971,7 +1168,7 @@ function RTBIC_SetPane(%pane)
       %tab.setBitmap("base/client/ui/tab1");
    }
    
-   if(%pane !$= "")
+   if(%pane !$= "" && %pane !$= "main")
    {
       if(RTBIC_SessionManifest.isMember(%pane))
       {
@@ -1342,6 +1539,7 @@ function RTBIC_createSession(%username)
    %sess.tab = RTBIC_pushTab(RTBIC_subTabName(%username),%sess,"RTBIC_endSession(\""@%username@"\");");
    %sess.window = RTBIC_generateWindow(%sess);
    %sess.tab.session = %sess;
+   RTBIC_makeFirstResponder();
    
    return %sess;
 }
@@ -1375,12 +1573,108 @@ function RTBIC_sendSessionMessage(%username)
    if(%message $= "")
       return;
       
-   if(getWord(%message, 0) $= "/me" || getWord(%message, 0) $= "/action")
+   if(filterKey(%message))
    {
-      %vars = getWords(%message,1,getWordCount(%message)-1);
-      %message = "PRIVMSG "@%sess.username@" :\c0ACTION "@%vars@"\c0";
-      RTBIC_SC.sendLine(%message);
-      %sess.window.messageVector.pushBackLine("\c4* "@$RTB::CIRCClient::Cache::NickName SPC %vars,0);
+      %sess.window.messageBox.setValue("");
+      %sess.window.messageVector.pushBackLine("\c2** DO NOT TELL PEOPLE YOUR BLOCKLAND KEY! **");
+      return;
+   }
+   
+   if(!RTBIC_SC.connected)
+   {
+      %sess.window.messageVector.pushBackLine("\c2ERROR: You are not connected.",0);
+      %sess.window.messageBox.setValue("");
+      return;
+   }
+      
+   if(getSubStr(%message,0,1) $= "/")
+   {
+      if(getWord(%message, 0) $= "/me" || getWord(%message, 0) $= "/action")
+      {
+         %vars = getWords(%message,1,getWordCount(%message)-1);
+         %message = "PRIVMSG "@%sess.username@" :\c0ACTION "@%vars@"\c0";
+         RTBIC_SC.sendLine(%message);
+         %sess.window.messageVector.pushBackLine("\c4* "@$RTB::CIRCClient::Cache::NickName SPC %vars,0);
+      }
+      else if(getWord(%message,0) $= "/ignore")
+      {
+         %user = getWord(%message,1);
+         if($Ignore::User[%user])
+         {
+            $Ignore::User[%user] = "";
+            %sess.window.messageVector.pushBackLine("\c6* You are no longer ignoring "@%user@".",0);
+         }
+         else
+         {
+            $Ignore::User[%user] = 1;
+            %sess.window.messageVector.pushBackLine("\c6* You are now ignoring "@%user@".",0);
+         }
+      }
+      else if(getWord(%message,0) $= "/unignore")
+      {
+         %user = getWord(%message,1);
+         if($Ignore::User[%user])
+         {
+            $Ignore::User[%user] = "";
+            %sess.window.messageVector.pushBackLine("\c6* You are no longer ignoring "@%user@".",0);
+         }
+      }
+		else if(getWord(%message,0) $= "/msg")
+		{
+         %vars = getWords(%message,1,getWordCount(%message)-1);
+			RTBIC_SC.sendLine("PRIVMSG "@%vars);
+			
+         %username = getWord(%message,1);
+         if(RTBIC_hasSession(%username))
+         {
+            %sess = RTBIC_getSession(%username);
+            RTBIC_SetPane(%sess);
+            RTBIC_ScrollToTab(%username);
+         }
+         else
+         {
+            %sess = RTBIC_createSession(%username);
+            RTBIC_SetPane(%sess);
+            %sess.window.messageVector.pushBackLine("\c6* Now talking to "@%username@"...",0);
+            RTBIC_ScrollToTab(%username);
+         }
+         %sess.window.messageVector.pushBackLine("\c0<"@$RTB::CIRCClient::Cache::NickName@"> "@getWords(%message,2,getWordCount(%message)-1),0);
+		}
+		else if(getWord(%message,0) $= "/slap")
+		{
+         %name = getField(RTBIC_UserList.getValue(),1);
+         %num = getRandom(1,2);
+         if(%num $= 1)
+         {
+            if(%name !$= "")
+               %vars = "slaps "@%name@" around with a moose at large!";
+            else
+               %vars = "gets slapped around with a moose at large!";
+         }
+         else if(%num $= 2)
+         {
+            if(%name !$= "")
+               %vars = "slaps "@%name@" around with a whale bone!";
+            else
+               %vars = "gets slapped around with a whale bone!";
+         }
+			%message = "PRIVMSG "@RTBIC_SC.currentchannel@" :\c0ACTION "@%vars@"\c0";
+			
+			RTBIC_SC.sendLine(%message);
+			RTBIC_addLine("\c4* "@$RTB::CIRCClient::Cache::NickName SPC %vars);
+		}
+      else if(getWord(%message,0) $= "/kick")
+      {
+         RTBIC_SC.sendLine("KICK "@RTBIC_SC.currentchannel@" "@getWord(%message,1));
+      }
+      else if(getWord(%message,0) $= "/join")
+      {
+         if(RTBIC_SC.currentChannel !$= "")
+            RTBIC_SC.sendLine("PART "@RTBIC_SC.currentChannel);
+         RTBIC_SC.sendLine(getSubStr(%message,1,strLen(%message)));
+      }
+		else
+         RTBIC_SC.sendLine(getSubStr(%message,1,strLen(%message)));
    }
    else
    {
@@ -1547,6 +1841,7 @@ function RTBIC_generateWindow(%sess)
 		position = "55 362";
 		extent = "422 16";
 		accelerator = "enter";
+		historySize = 10;
 	};
 	%swatch.add(%messageBox);
 	%messageBox.altCommand = "RTBIC_sendSessionMessage(\""@%sess.username@"\");";
@@ -1603,6 +1898,18 @@ function RTBIC_getNameList()
    if(RTBIC_SC.connected && RTBIC_SC.currentChannel !$= "")
    {
       RTBIC_SC.sendLine("NAMES "@RTBIC_SC.currentChannel);
+   }
+}
+
+function RTBIC_parseMessageText(%text)
+{
+   for(%i=0;%i<strLen(%text);%i++)
+   {
+      if(getSubStr(%text,%i,7) $= "http://")
+      {
+         %beforeText = getSubStr(%text,0,%i);
+         %middleText = "<a:";
+      }
    }
 }
 

@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Manual.cs $
+//#
+//#      $Id: RTBC_Manual.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -35,7 +44,8 @@ if(!isObject(MM_RTBHelpButton))
 }
 function MM_RTBHelpButton::onMouseEnter(%this)
 {
-	alxPlay(Note11Sound);
+   if($Pref::Audio::MenuSounds)
+	   alxPlay(Note12Sound);
 }
 
 //*********************************************************

@@ -1381,6 +1381,7 @@ new GuiControl(RTB_ServerControl) {
             extent = "140 30";
             minExtent = "8 2";
             visible = "1";
+            variable = "$RTB::Options::NotifyOfSettings";
             text = "Notify Users";
             groupNum = "-1";
             buttonType = "ToggleButton";
@@ -1885,7 +1886,7 @@ new GuiControl(RTB_ServerControl) {
                horizSizing = "width";
                vertSizing = "height";
                position = "0 1";
-               extent = "316 484";
+               extent = "316 280";
                minExtent = "8 2";
                visible = "1";
                color = "255 255 255 128";
@@ -1931,7 +1932,7 @@ new GuiControl(RTB_ServerControl) {
             lineSpacing = "2";
             allowColorChars = "1";
             maxChars = "-1";
-            text = "Click a setting name to read about what it does.<br><br>A * means the server will need to be restarted for the pref to take effect.";
+            text = "A * means the server will need to be restarted for the pref to take effect.";
             maxBitmapHeight = "-1";
             selectable = "1";
          };

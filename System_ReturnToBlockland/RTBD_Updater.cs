@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBD_Updater.cs $
+//#
+//#      $Id: RTBD_Updater.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -75,7 +84,7 @@ function RTBDU_onCommFail()
 
 function checkRTBUpdates()
 {
-   RTBDU_SendRequest("GETVERSION",1,$RTB::Version);
+   RTBDU_SendRequest("GETVERSION",1,$RTB::Version,$Version);
 }
 
 function RTBDU_onVersion(%this,%line)
@@ -138,6 +147,22 @@ function doRTBUpdate()
       RTBDU_drawDOSRow("No Version Selected!");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("Please do checkRTBUpdates(); first!");
+      RTBDU_drawDOSRow("");
+      RTBDU_drawDOSRow("");
+      RTBDU_drawSpacer();
+      echo("");
+      return;
+   }
+   
+   if(isReadonly("Add-Ons/System_ReturnToBlockland.zip"))
+   {
+      echo("");
+      RTBDU_drawSpacer();
+      RTBDU_drawDOSRow("");
+      RTBDU_drawDOSRow("");
+      RTBDU_drawDOSRow("ERROR");
+      RTBDU_drawDOSRow("System_ReturnToBlockland.zip is inaccessible and could be read-only.");
+      RTBDU_drawDOSRow("You will need to download the latest RTB manually from our website.");
       RTBDU_drawDOSRow("");
       RTBDU_drawDOSRow("");
       RTBDU_drawSpacer();

@@ -1,12 +1,31 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Profiles.cs $
+//#
+//#      $Id: RTBC_Profiles.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
 //#   Profiles
 //#
 //#############################################################################
+
+new AudioProfile(Note12Sound: Note11Sound)
+{
+	filename = "./sounds/Synth4_12.wav";
+};
+
+new GuiControlProfile(GuiCheckBoxBoldProfile : GuiCheckBoxProfile)
+{
+ fontType = "Arial Bold";
+};
 
 if(!isObject(RTBIT_TipProfile)) new GuiControlProfile (RTBIT_TipProfile)
 {

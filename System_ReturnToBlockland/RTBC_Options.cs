@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Options.cs $
+//#
+//#      $Id: RTBC_Options.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -50,7 +59,8 @@ if(!isObject(MM_RTBOptionsButton))
 }
 function MM_RTBOptionsButton::onMouseEnter(%this)
 {
-	alxPlay(Note9Sound);
+   if($Pref::Audio::MenuSounds)
+	   alxPlay(Note10Sound);
 }
 
 //*********************************************************
@@ -69,13 +79,11 @@ function RTB_Options::onWake(%this)
 
 	applyRadioOption(RTBO_OptMan_Login);
 	applyRadioOption(RTBO_OptMan_CheckUpdate);
-	applyRadioOption(RTBO_OptMan_DownloadUpdate);
 	applyRadioOption(RTBO_OptMan_DownloadScreenshot);
 
-	applyRadioOption(RTBO_OptBud_AutoSignIn);
-	applyRadioOption(RTBO_OptBud_AnyAdd);
-	applyRadioOption(RTBO_OptBud_FullAdd);
-	applyRadioOption(RTBO_OptBud_BuildAdd);
+	applyRadioOption(RTBO_OptDis_EnableInfoTips);
+	applyRadioOption(RTBO_OptDis_EnableServerInfo);
+	applyRadioOption(RTBO_OptDis_EnableAutoUpdate);
 
 	applyRadioOption(RTBO_OptIrc_AutoConnect);
 	applyRadioOption(RTBO_OptIrc_AllowPM);
@@ -92,6 +100,8 @@ function RTB_Options::onWake(%this)
 
 function RTB_Options::onSleep(%this)
 {
+   echo("Exporting rtb prefs");
+   export("$RTB::Options*","config/client/RTB/prefs.cs");
 	RTBCA_SendPrefs();
 	RTBCA_Post();
 }

@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBS_ServerControl.cs $
+//#
+//#      $Id: RTBS_ServerControl.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -15,7 +24,7 @@ $RTB::RTBS_ServerControl = 1;
 //*********************************************************
 if(!$RTB::RTBR_ServerControl_Hook)
    exec("./RTBR_ServerControl_Hook.cs");
-
+   
 //*********************************************************
 //* Server Options
 //*********************************************************
@@ -71,9 +80,9 @@ function serverCmdRTB_setServerOptions(%client,%msString,%csString,%gsString,%vl
    
    if(%output)
    {
-      if($Pref::Server::Name !$= %serverName)
+      if(strcmp($Pref::Server::Name,%serverName))
          messageAll('','\c3+\c0 The Server Name is now \c5%1',%serverName);
-      if($Pref::Server::WelcomeMessage !$= %welcomeMessage)
+      if(strcmp($Pref::Server::WelcomeMessage,%welcomeMessage))
       {
          if(%welcomeMessage $= "")
             messageAll('','\c3+\c0 The Welcome Message has been removed.');
@@ -86,9 +95,9 @@ function serverCmdRTB_setServerOptions(%client,%msString,%csString,%gsString,%vl
          messageAll('','\c3+\c0 The Server is now Passworded');
       if($Pref::Server::Password !$= "" && %serverPass $= "")
          messageAll('','\c3+\c0 The Server is no longer Passworded');
-      if($Pref::Server::Password !$= "" && %serverPass !$= "" && %serverPass !$= $Pref::Server::Password)
+      if($Pref::Server::Password !$= "" && %serverPass !$= "" && strcmp(%serverPass,$Pref::Server::Password))
          messageAll('','\c3+\c0 The Server Password has been changed');
-      if($Pref::Server::AdminPassword !$= %adminPass)
+      if(strcmp($Pref::Server::AdminPassword,%adminPass))
       {
          for(%i=0;%i<ClientGroup.getCount();%i++)
          {
@@ -97,7 +106,7 @@ function serverCmdRTB_setServerOptions(%client,%msString,%csString,%gsString,%vl
                messageClient(%cl,'','\c3+\c0 The Admin Password has been changed');
          }
       }
-      if($Pref::Server::SuperAdminPassword !$= %superAdminPass)
+      if(strcmp($Pref::Server::SuperAdminPassword,%superAdminPass))
       {
          for(%i=0;%i<ClientGroup.getCount();%i++)
          {
@@ -167,6 +176,8 @@ function serverCmdRTB_setServerOptions(%client,%msString,%csString,%gsString,%vl
    commandtoclient(%client,'RTB_closeGui',"RTB_ServerControl");
    if(!$Server::LAN)
       WebCom_PostServer();
+      
+   export("$Pref::Server::*","config/server/prefs.cs");
 }
 
 function serverCmdRTB_getServerOptions(%client)
@@ -282,7 +293,7 @@ function servercmdRTB_DeAdminPlayer(%client,%victim)
    if(!%client.isSuperAdmin)
       return;
    
-   if(findLocalClient() $= %victim)
+   if(findLocalClient() $= %victim || %victim.bl_id $= getNumKeyID())
    {
       messageClient(%client,'','\c2You cannot de-admin the host.');
       return;
@@ -303,7 +314,7 @@ function servercmdRTB_AdminPlayer(%client,%victim)
    if(!%client.isSuperAdmin)
       return;
       
-   if(findLocalClient() $= %victim && %victim.isSuperAdmin)
+   if((findLocalClient() $= %victim || %victim.bl_id $= getNumKeyID()) && %victim.isSuperAdmin)
    {
       messageClient(%client,'','\c2You cannot de-admin the host.');
       return;
@@ -354,12 +365,14 @@ function RTBSC_SendPrefList(%client)
          {
             eval("%prefValue = $"@getField($RTB::ServerPref[%i,%j],1)@";");
             %prefArray = %prefArray@%i@","@%j@","@%prefValue@"\t";
-            commandtoclient(%client,'RTB_addPref',%i,%j,getField($RTB::ServerPref[%i,%j],0) TAB getField($RTB::ServerPref[%i,%j],2) TAB getField($RTB::ServerPref[%i,%j],4));
+            if(((getField($RTB::ServerPref[%i,%j],5) $= 1 && %client.bl_id $= getNumKeyID()) || findLocalClient() $= %client) || getField($RTB::ServerPref[%i,%j],5) $= 0)
+               commandtoclient(%client,'RTB_addPref',%i,%j,getField($RTB::ServerPref[%i,%j],0) TAB getField($RTB::ServerPref[%i,%j],2) TAB getField($RTB::ServerPref[%i,%j],4));
+            else
+               commandtoclient(%client,'RTB_addPref',%i,%j,"0");
          }
       }
-      %prefArray = getSubStr(%prefArray,0,strLen(%prefArray)-1);
-      commandtoclient(%client,'RTB_updatePrefs',%prefArray);
    }
+   RTBSC_SendPrefValues(%client);
 }
 
 function RTBSC_SendPrefValues(%client)
@@ -370,8 +383,11 @@ function RTBSC_SendPrefValues(%client)
       {
          for(%j=1;%j<$RTB::ServerPrefCount[%i];%j++)
          {
-            eval("%prefValue = $"@getField($RTB::ServerPref[%i,%j],1)@";");
-            %prefArray = %prefArray@%i@","@%j@","@%prefValue@"\t";
+            if(((getField($RTB::ServerPref[%i,%j],5) $= 1 && %client.bl_id $= getNumKeyID()) || findLocalClient() $= %client) || getField($RTB::ServerPref[%i,%j],5) $= 0)
+            {
+               eval("%prefValue = $"@getField($RTB::ServerPref[%i,%j],1)@";");
+               %prefArray = %prefArray@%i@","@%j@","@%prefValue@"\t";
+            }
          }
       }
       %prefArray = getSubStr(%prefArray,0,strLen(%prefArray)-1);
@@ -392,6 +408,10 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
       %value = getField(%pref,2);
       
       %entry = $RTB::ServerPref[%idA,%idB];
+      
+      if(getField(%entry,5) $= 1 && (%client.bl_id !$= getNumKeyID() && findLocalClient() !$= %client))
+         continue;
+         
       %pref = getField(%entry,1);
       %type = getWord(getField(%entry,2),0);
       eval("%currVal = $"@%pref@";");
@@ -423,10 +443,10 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
       else if(%type $= "list")
       {
          %list = restWords(getField(%entry,2));
-         for(%i=0;%i<getWordCount(%list);%i++)
+         for(%j=0;%j<getWordCount(%list);%j++)
          {
-            %word = getWord(%list,%i);
-            if(%word $= %value && %i%2 $= 0)
+            %word = getWord(%list,%j);
+            if(%word $= %value && %j%2 $= 1)
             {
                %foundInList = 1;
                break;
@@ -450,13 +470,13 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
    if(%numChanged <= 0)
       return;
       
-   %newPrefArray = getSubStr(%newPrefArray,0,strLen(%newPrefArray)-1);
+   %newPrefArray = getFields(%newPrefArray,0,getFieldCount(%newPrefArray)-1);
    
    for(%i=0;%i<ClientGroup.getCount();%i++)
    {
       %cl = ClientGroup.getObject(%i);
       if(%cl.isSuperAdmin)
-         commandtoclient(%client,'RTB_updatePrefs',%newPrefArray);
+         commandtoclient(%cl,'RTB_updatePrefs',%newPrefArray);
    }
    
    messageAll('MsgAdminForce','\c3%1 \c0updated the server preferences.',%client.name);
@@ -472,6 +492,8 @@ function serverCmdRTB_updatePrefs(%client,%prefArray)
       }
    }
    %file.delete();
+   
+   export("$Pref::Server::*","config/server/prefs.cs");
 }
 
 //*********************************************************
@@ -534,19 +556,25 @@ package RTBS_ServerControl
    
    function serverCmdSAD(%client,%pass)
    {
-      RTBSC_SendPrefList(%client);
       Parent::serverCmdSAD(%client,%pass);
+      RTBSC_SendPrefList(%client);
    }
    
    function GameConnection::autoAdminCheck(%this)
    {
-      Parent::autoAdminCheck(%this);
+      %auto = Parent::autoAdminCheck(%this);
       
       if(%this.hasRTB)
       {
          commandtoclient(%this,'sendRTBVersion',$RTB::Version);
          RTBSC_SendPrefList(%this);
       }
+      
+      if(%this.bl_id $= getNumKeyID() && $Server::Dedicated)
+      {
+         setupRTBDedicated(%this.name,1);
+      }
+      return %auto;
    }
 };
 activatePackage(RTBS_ServerControl);

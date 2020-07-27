@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Updater.cs $
+//#
+//#      $Id: RTBC_Updater.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -77,7 +86,11 @@ function RTBCU_onCommFail()
 
 function RTBCU_Update()
 {
-   RTBCU_SendRequest("GETVERSION",1,$RTB::Version);
+   if($RTB::Options::EnableAutoUpdate && !$RTB::CUpdater::Cache::HasBeenPrompted)
+   {
+      $RTB::CUpdater::Cache::HasBeenPrompted = 1;
+      RTBCU_SendRequest("GETVERSION",1,$RTB::Version,$Version);
+   }
 }
 
 function RTBCU_GetChangeLog(%version)
@@ -144,6 +157,12 @@ function RTBCU_InitFC()
 
 function RTBCU_DownloadUpdate(%vers)
 {
+   if(isReadonly("Add-Ons/System_ReturnToBlockland.zip"))
+   {
+      messageBoxOK("ERROR", "It looks like Blockland cannot overwrite the System_ReturnToBlockland.zip folder so the auto-updater cannot work. Please either resolve this or download the latest RTB version manually from our website.");
+      return;
+   }
+   
    RTBCU_InitFC();
    
    RTBCU_FC.setBinary(0);
@@ -189,7 +208,7 @@ function RTBCU_FC::onBinChunk(%this,%chunk)
    {
       %this.saveBufferToFile("Add-Ons/System_ReturnToBlockland.zip");
       %this.disconnect();
-      
+         
       RTBCU_Progress.setValue(1);
       RTBCU_ProgressText.setText("Download Complete");
       RTBCU_Speed.setText("N/A");

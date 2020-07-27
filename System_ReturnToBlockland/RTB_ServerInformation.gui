@@ -75,7 +75,7 @@ new GuiControl(RTB_ServerInformation) {
          extent = "91 22";
          minExtent = "8 2";
          visible = "1";
-         command = "JoinServerGui.queryWebServer();JoinServerGui.info();";
+         command = "JoinServerGui.queryWebMaster();JoinServerGui.info();";
          text = "Refresh";
          groupNum = "-1";
          buttonType = "PushButton";

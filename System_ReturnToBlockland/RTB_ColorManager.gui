@@ -12,8 +12,8 @@ new GuiControl(RTB_ColorManager) {
       profile = "GuiWindowProfile";
       horizSizing = "center";
       vertSizing = "center";
-      position = "153 107";
-      extent = "334 266";
+      position = "119 76";
+      extent = "402 328";
       minExtent = "8 2";
       visible = "1";
       text = "Color Manager";
@@ -32,7 +32,7 @@ new GuiControl(RTB_ColorManager) {
          horizSizing = "right";
          vertSizing = "bottom";
          position = "180 38";
-         extent = "146 185";
+         extent = "208 276";
          minExtent = "8 2";
          visible = "1";
          wrap = "0";
@@ -45,8 +45,8 @@ new GuiControl(RTB_ColorManager) {
             profile = "GuiDefaultProfile";
             horizSizing = "center";
             vertSizing = "center";
-            position = "4 15";
-            extent = "137 154";
+            position = "35 69";
+            extent = "137 137";
             minExtent = "8 2";
             visible = "1";
             color = "0 0 0 0";
@@ -78,7 +78,7 @@ new GuiControl(RTB_ColorManager) {
          horizSizing = "right";
          vertSizing = "bottom";
          position = "13 38";
-         extent = "153 185";
+         extent = "153 240";
          minExtent = "8 2";
          visible = "1";
          willFirstRespond = "1";
@@ -94,7 +94,7 @@ new GuiControl(RTB_ColorManager) {
             horizSizing = "right";
             vertSizing = "bottom";
             position = "1 1";
-            extent = "153 183";
+            extent = "153 238";
             minExtent = "8 2";
             visible = "1";
             color = "220 220 220 255";
@@ -104,12 +104,12 @@ new GuiControl(RTB_ColorManager) {
          profile = "BlockButtonProfile";
          horizSizing = "right";
          vertSizing = "bottom";
-         position = "182 227";
+         position = "20 285";
          extent = "140 30";
          minExtent = "8 2";
          visible = "1";
          command = "RTB_ColorManager::saveSet();";
-         text = "Save";
+         text = "Load";
          groupNum = "-1";
          buttonType = "PushButton";
          bitmap = "base/client/ui/button1";
@@ -118,19 +118,6 @@ new GuiControl(RTB_ColorManager) {
          overflowImage = "0";
          mKeepCached = "0";
          mColor = "255 255 255 255";
-      };
-      new GuiCheckBoxCtrl() {
-         profile = "GuiCheckBoxProfile";
-         horizSizing = "right";
-         vertSizing = "bottom";
-         position = "15 228";
-         extent = "161 30";
-         minExtent = "8 2";
-         visible = "0";
-         variable = "$Pref::Server::AllowColorLoading";
-         text = "Allow Ingame Color Changing";
-         groupNum = "-1";
-         buttonType = "ToggleButton";
       };
    };
 };

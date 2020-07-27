@@ -18,7 +18,7 @@ Here is, as far as I can tell, the definitive RTB timeline. These are the most a
 <spush><font:Palatino Linotype Bold:18>June 15, 2006<spop>: RTB 1.045 Patch
 <spush><font:Palatino Linotype Bold:18>February 14, 2007<spop>: RTB 1051, test of an auto-updater, see excerpt below (6)
 <spush><font:Palatino Linotype Bold:18>August 25, 2008<spop>: RTB2 enters closed beta (7)
-<spush><font:Palatino Linotype Bold:18>July 4, 1967<spop>: RTB2 is released
+<spush><font:Palatino Linotype Bold:18>November 3, 2008<spop>: RTB2 is released
 
 <font:Palatino Linotype:24>Appendix<font:Palatino Linotype:18>
 <spush><font:Palatino Linotype Bold:18>(1)<spop>
@@ -95,4 +95,4 @@ New features include:
 Had development continued, the mod would have checked to see if the mod version number was the same as the RTB server’s. If it wasn’t, it would automatically install the latest version. This is basically the same system used in RTB2.
 
 <spush><font:Palatino Linotype Bold:18>(7)<spop>
-For the first time in nearly 2 years, RTB’s beta testers had something to test. Those that weren’t dead returned to test the latest version. It was released over SVN, and for the first time every, beta testers could get the latest version instantly and give feedback on changes made quickly. Now the SVN is down- RTB automatically updates.
+For the first time in nearly 2 years, RTB’s beta testers had something to test. Those that weren’t dead returned to test the latest version. It was released over SVN, and for the first time ever, beta testers could get the latest version instantly and give feedback on changes made quickly. Now the SVN is down- RTB automatically updates.

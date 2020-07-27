@@ -1,0 +1,19 @@
+<font:Palatino Linotype:24>Dedicated Servers<font:Palatino Linotype:18>
+In order to allow your server to use RTB you will need to enter a command to set it up.
+
+<font:Palatino Linotype Bold:20>Help<font:Palatino Linotype:18>
+You can get a list of commands by typing rtbHelp(); into your dedicated server.
+
+<font:Palatino Linotype Bold:20>Setting Up RTB<font:Palatino Linotype:18>
+You can setup RTB by typing setupRTBDedicated("YourUsername",1); into your dedicated server where YourUsername is the username tied to the BL Key you entered for the server. This will start posting your server to the RTB Webserver and allow your super admins to use Server Control.
+
+<font:Palatino Linotype Bold:20>Updating RTB<font:Palatino Linotype:18>
+You can update the RTB version for the dedicated server by typing checkRTBUpdates(); into your dedicated server.
+
+<font:Palatino Linotype Bold:20>Useful Dedicated Commands<font:Palatino Linotype:18>
+Here is a small list of handy commands that come by default in Blockland for servers:
+
+<lmargin:20>talk("message"); - This will send a message to all the players on the server.
+listClients(); - This will show a list of players and their BL IDs.
+kickID(bl_id); - This will kick the player on the server with the BL ID entered.
+banBLID(victimBL_ID, banTime in minutes (-1 for permanent ban), "reason"); - This will ban the player on the server with the BL ID entered.

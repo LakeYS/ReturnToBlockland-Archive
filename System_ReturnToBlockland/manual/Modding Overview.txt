@@ -10,4 +10,11 @@ You are able to register preferences to be managed by super admins on the server
 <font:Palatino Linotype Bold:20>Colorsets<font:Palatino Linotype:18>
 RTB establishes a new way to submit Colorsets by packing them into a zip.
 
+<font:Palatino Linotype Bold:20>Mod Manager<font:Palatino Linotype:18>
+You can insert direct links to RTB files by using the following custom TorqueML:
+
+<a<spop>:rtb-ID>File Title<<spop>/a>
+
+And when clicked, will open that file in the Mod Manager for anyone who has RTB.
+
 You can read more about each feature in the sections below.

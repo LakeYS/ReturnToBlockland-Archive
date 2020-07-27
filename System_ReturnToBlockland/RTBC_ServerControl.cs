@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_ServerControl.cs $
+//#
+//#      $Id: RTBC_ServerControl.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -15,6 +24,28 @@ $RTB::RTBC_ServerControl = 1;
 //*********************************************************
 if(!isObject(RTB_ServerControl))
 	exec("./RTB_ServerControl.gui");
+
+if(!$RTB::CServerControl::AppliedMaps)
+{
+   RTB_addControlMap("keyboard","ctrl s","Server Control","RTBSC_ToggleSC");
+   $RTB::CServerControl::AppliedMaps = 1;
+}
+
+function RTBSC_ToggleSC(%val)
+{
+   if(!%val)
+      return;
+      
+   if(RTB_ServerControl.isAwake())
+      canvas.popDialog(RTB_ServerControl);
+   else
+   {
+      if($IamAdmin !$= 2 || $RTB::CServerControl::Cache::ServerHasRTB !$= 1)
+         return;
+         
+      canvas.pushDialog(RTB_ServerControl);
+   }
+}
 
 //*********************************************************
 //* Main Control
@@ -227,7 +258,7 @@ function RTBSC_Pane1::saveOptions(%this)
       MessageBoxOK("Whoops","You made a mistake:\n\n"@%error);
       return;
    }
-   commandtoserver('RTB_setServerOptions',%msString,%csString,%gsString,%vlString,%eqString,RTBSC_SO_Notify.getValue());
+   commandtoserver('RTB_setServerOptions',%msString,%csString,%gsString,%vlString,%eqString,$RTB::Options::NotifyOfSettings);
 }
 
 //*********************************************************
@@ -375,11 +406,29 @@ function RTBSC_Pane3::onView(%this)
       %idB = 1;
       while($RTB::CServerControl::Server::Pref[%idA,%idB] !$= "")
       {
-         %odd = %idB%2;
-         $RTB::CServerControl::Server::PrefControl[%idA,%idB] = RTBSC_PF_createPref(getField($RTB::CServerControl::Server::Pref[%idA,%idB],0),getField($RTB::CServerControl::Server::Pref[%idA,%idB],1),%odd,$RTB::CServerControl::Server::PrefValue[%idA,%idB],getField($RTB::CServerControl::Server::Pref[%idA,%idB],2));
+         if($RTB::CServerControl::Server::Pref[%idA,%idB] !$= "0")
+         {
+            %odd = %numAdded%2;
+            $RTB::CServerControl::Server::PrefControl[%idA,%idB] = RTBSC_PF_createPref(getField($RTB::CServerControl::Server::Pref[%idA,%idB],0),getField($RTB::CServerControl::Server::Pref[%idA,%idB],1),%odd,$RTB::CServerControl::Server::PrefValue[%idA,%idB],getField($RTB::CServerControl::Server::Pref[%idA,%idB],2));
+            %numAdded++;
+         }
          %idB++;
       }
       %idA++;
+   }
+   
+   if(%numAdded <= 0)
+   {
+      RTBSC_PF_PrefList.resize(0,1,316,280);
+      %txt = new GuiTextCtrl()
+      {
+         profile = RTB_Verdana12PtAuto;
+         position = "48 132";
+         text = "This server has no preferences to manange.";
+         horizSizing = "center";
+         vertSizing = "center";
+      };
+      RTBSC_PF_PrefList.add(%txt);
    }
 }
 
@@ -399,6 +448,11 @@ function clientCmdRTB_updatePrefs(%prefArray)
       
       $RTB::CServerControl::Server::PrefValue[%idA,%idB] = %value;
    }
+   
+   if($RTB::CServerControl::Cache::currentTab $= "3" && RTB_ServerControl.isAwake())
+   {
+      MessageBoxYesNo("Ooops","Someone has changed some server preferences. Would you like to update your view?","RTBSC_Pane3::onView();","");
+   }
 }
 
 function RTBSC_Pane3::saveOptions()
@@ -409,6 +463,12 @@ function RTBSC_Pane3::saveOptions()
       %idB = 1;
       while($RTB::CServerControl::Server::Pref[%idA,%idB] !$= "")
       {
+         if($RTB::CServerControl::Server::Pref[%idA,%idB] $= "0")
+         {
+            %idB++;
+            continue;
+         }
+            
          %ctrl = $RTB::CServerControl::Server::PrefControl[%idA,%idB];
          if(%ctrl.getClassName() $= "GuiPopupMenuCtrl")
             %value = %ctrl.getSelected();

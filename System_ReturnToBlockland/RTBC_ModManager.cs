@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_ModManager.cs $
+//#
+//#      $Id: RTBC_ModManager.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -39,7 +48,8 @@ if(!isObject(MM_RTBModManagerButton))
 }
 function MM_RTBModManagerButton::onMouseEnter(%this)
 {
-	alxPlay(Note7Sound);
+   if($Pref::Audio::MenuSounds)
+	   alxPlay(Note8Sound);
 }
 
 //*********************************************************
@@ -63,60 +73,6 @@ $RTB::CModManager::Style::ColorINDIGO = "4B0082";
 $RTB::CModManager::Style::ColorVIOLET = "EE82EE";
 $RTB::CModManager::Style::ColorWHITE = "FFFFFF";
 $RTB::CModManager::Style::ColorBLACK = "000000";
-
-$RTB::CModManager::DefaultBLMods = -1;
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Sword";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Spear";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Rocket_Launcher";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Push_Broom";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Horse_Ray";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Guns_Akimbo";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Gun";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Bow";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Tank";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Magic_Carpet";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Jeep";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Horse";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Flying_Wheeled_Jeep";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Ball";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Synth4";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Phone";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Beeps";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Radio_Wave";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Pong";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Pinball";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_GravityRocket";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_Letters_Default";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_2x2r_Default";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_2x2f_Default";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_1x2f_Default";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Quake";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_No_Jet";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Leap_Jet";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Jump_Jet";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Fuel_Jet";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Player";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Grass";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_FX_Cans";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Basic";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Tutorial";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Slopes";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Slate";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_SeaBed";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_KitchenDark";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Kitchen";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Construct";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_BedroomDark";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Bedroom";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Light_Basic";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Light_Animated";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Item_Skis";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Love";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Hate";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Confusion";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Alarm";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Brick_Large_Cubes";
-$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "System_ReturnToBlockland";
 
 //*********************************************************
 //* Initialisation of Required Elements
@@ -194,7 +150,7 @@ function RTBMM_InitSC()
       RTBMM_SC.addResponseHandle("GETSEARCHDATA","RTBMM_SearchView_onTransmit");
       RTBMM_SC.addResponseHandle("ENDGETSEARCHDATA","RTBMM_SearchView_onTransmitEnd");
       RTBMM_SC.addResponseHandle("GETSEARCHRESULTS","RTBMM_SearchView_onResult");
-      RTBMM_SC.addResponseHandle("ENDGETSEARCHRESULTS","RTBMM_SearchView_onResultEnd");
+      RTBMM_SC.addResponseHandle("FINISHGETSEARCHRESULTS","RTBMM_SearchView_onResultEnd");
       
       //Commenting and Rating
       RTBMM_SC.addResponseHandle("GETCOMMENT","RTBMM_Comments_onRetrieve");
@@ -2041,7 +1997,7 @@ function RTBMM_FileView_createCommentLine(%oddEven,%name,%title,%blid,%posts,%re
    else
       %bgColor = "220 220 220 255";
       
-   %comment = RTBMM_parseComment(%comment);
+   %comment = RTBMM_parseComment(%comment,%oddEven);
 
 	%swatch = new GuiSwatchCtrl()
 	{
@@ -2768,7 +2724,7 @@ function RTBMM_PresetView_createRow(%fileid,%name,%description,%image,%author,%r
 		extent = "140 30";
 		text = " ";
 		profile = "GuiCheckBoxProfile";
-		variable = "$RTB::CModManager::PresetDL"@$RTB::CModManager::Cache::TotalPresets;
+		variable = "$RTB::CModManager::Cache::PresetDL"@$RTB::CModManager::Cache::TotalPresets;
 	};
 	%swatch.add(%cbox);
 	%cbox.setValue(1);
@@ -3348,6 +3304,9 @@ function RTBMM_SearchView_OnResult(%this,%line)
 }
 function RTBMM_SearchView_createNoResults()
 {
+	if(isObject(RTBMM_LoadingContentSwatch))
+		RTBMM_LoadingContentSwatch.delete();
+		
 	%swatch = new GuiSwatchCtrl()
 	{
 		offset = "1 0";
@@ -3369,7 +3328,10 @@ function RTBMM_SearchView_OnResultEnd(%line)
    if($RTB::CModManager::Cache::CurrentZone !$= "searchresultsview")
       return;
       
-   if($RTB::CModManager::Cache::TotalSearchResults $= 0)
+	if(isObject(RTBMM_LoadingContentSwatch))
+		RTBMM_LoadingContentSwatch.delete();
+      
+   if($RTB::CModManager::Cache::TotalSearchResults <= 0)
       RTBMM_SearchView_createNoResults();
    RTBMM_createGoBackButton();
 }
@@ -3385,7 +3347,7 @@ function RTBMM_getNewsFeedView(%nocheck)
    
    RTBMM_NewsFeedView_createStatusBar(%nocheck);
    
-   RTBMM_NewsFeedView_createExistingFeeds(1);
+   RTBMM_NewsFeedView_createExistingFeeds();
    
    RTBMM_btnNewsFeed.setBitmap($RTB::Path@"images/buttons/link_newsFeed");
    RTBMM_trackZone("newsfeedview","RTBMM_getNewsFeedView();");
@@ -3462,6 +3424,17 @@ function RTBMM_NewsFeedView_createStatusBar(%noload)
       %bitmap.add(%text);
       RTBMM_runLoadingDots(%text);
    }
+   
+   %button = new GuiBitmapButtonCtrl()
+   {
+      position = "321 3";
+      extent = "73 20";
+      profile = "BlockButtonProfile";
+      text = "Clear All";
+      bitmap = "base/client/ui/button1";
+      command = "RTBMM_NewsFeedView_clearFeeds();";
+   };
+   %bitmap.add(%button);
    
    RTBMM_PushWindowElement(%bitmap);
 	
@@ -4378,6 +4351,7 @@ function RTBMM_DownloadsView_ApplyFileData(%fileID)
    %file_url = %SO.file_url;
    %file_crc = %SO.file_crc;
    %file_size = %SO.file_size;
+   %file_zip = %SO.file_savename;
    
    if(%file_name $= "0")
    {
@@ -4392,6 +4366,16 @@ function RTBMM_DownloadsView_ApplyFileData(%fileID)
       %sizeCtrl.setText("Size: N/A");
       %statusCtrl.setText("File cannot be Located");
       %doneCtrl.setText("Done: N/A");
+   }
+   else if(isReadonly("Add-Ons/"@%file_zip))
+   {
+      %titleCtrl.setText(%file_name@" - ZIP is Readonly");
+      %sizeCtrl.setText("Size: N/A");
+      %statusCtrl.setText("Cannot overwrite existing "@%file_zip@"!");
+      %doneCtrl.setText("Done: N/A");
+      %SO.isArchive = 1;
+      %SO.liveData = 0;
+      %SO.file_name = 2;
    }
    else
    {
@@ -4936,7 +4920,7 @@ function RTBMM_ModsView_downloadUpdates()
    {
       if(%numAdded)
       {
-         MessageBoxYesNo("Huzzah","A total of "@%numAdded@" files have been added to your downloads queue.\n\nWould you like to view it now?","RTBMM_getDownloadsView();","");
+         MessageBoxYesNo("Huzzah","A total of "@%numAdded@" files have been added to your downloads queue.\n\nWould you like to view it now?","RTBMM_OpenDirect();RTBMM_getDownloadsView();","");
          canvas.popDialog(RTBMM_Updates);
       }
       else
@@ -5185,97 +5169,158 @@ function RTBMM_ModsView_syncNonRTB()
       
       RTBMM_SendRequest("SYNCMODS",2,%delimitedMods);
 	}
-	echo(%delimitedMods);
+	
+	if($RTB::Debug)
+	   echo("\c4Delimited Mods for Sync: "@%delimitedMods);
 }
 function RTBMM_ModsView_syncResults(%this,%line)
 {
-   %id = getField(%line,0);
-   %title = getField(%line,1);
-   %version = getField(%line,2);
-   %icon = getField(%line,3);
-   %zipname = getField(%line,4);
-   RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname);
+   if(getField(%line,0) $= 1)
+   {
+      %id = getField(%line,1);
+      %title = getField(%line,2);
+      %version = getField(%line,3);
+      %icon = getField(%line,4);
+      %zipname = getField(%line,5);
+      RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname,1);
+   }
+   else
+   {
+      %zipname = getField(%line,1);
+      RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname,0);
+   }
 }
-function RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname)
+function RTBMM_ModsView_PushSync(%id,%title,%version,%icon,%zipname,%found)
 {
    if(isObject(RTBMM_SyncLoading))
       RTBMM_SyncLoading.delete();
       
-   %s = new GuiSwatchCtrl()
+   if(%found)
    {
-      position = "1" SPC 30*RTBMM_SyncScroll.getObject(0).getCount()+(RTBMM_SyncScroll.getObject(0).getCount()+1);
-      extent = "384 30";
-      color = "0 0 0 0";
-      
-      new GuiSwatchCtrl()
+      %s = new GuiSwatchCtrl()
       {
-         position = "0 0";
-         extent = "30 30";
-         color = "230 230 230 255";
+         position = "1" SPC 30*RTBMM_SyncScroll.getObject(0).getCount()+(RTBMM_SyncScroll.getObject(0).getCount()+1);
+         extent = "384 30";
+         color = "0 0 0 0";
          
-         new GuiBitmapCtrl()
+         new GuiSwatchCtrl()
          {
-            position = "7 7";
-            extent = "16 16";
-            bitmap = "./images/icons/"@%icon;
-         };
-      };
-      
-      new GuiSwatchCtrl()
-      {
-         position = "31 0";
-         extent = "291 30";
-         color = "200 200 200 255";
-         
-         new GuiTextCtrl()
-         {
-            profile = RTBMM_MainText;
-            position = "5 0";
-            extent = "284 18";
-            text = "\c1"@%title;
+            position = "0 0";
+            extent = "30 30";
+            color = "230 230 230 255";
+            
+            new GuiBitmapCtrl()
+            {
+               position = "7 7";
+               extent = "16 16";
+               bitmap = "./images/icons/"@%icon;
+            };
          };
          
-         new GuiTextCtrl()
+         new GuiSwatchCtrl()
          {
-            profile = RTB_Verdana12Pt;
-            position = "5 13";
-            extent = "284 18";
-            text = "\c1Add-Ons/"@%zipname;
+            position = "31 0";
+            extent = "291 30";
+            color = "200 200 200 255";
+            
+            new GuiTextCtrl()
+            {
+               profile = RTBMM_MainText;
+               position = "5 0";
+               extent = "284 18";
+               text = "\c1"@%title;
+            };
+            
+            new GuiTextCtrl()
+            {
+               profile = RTB_Verdana12Pt;
+               position = "5 13";
+               extent = "284 18";
+               text = "\c1Add-Ons/"@%zipname;
+            };
          };
-      };
 
-      new GuiSwatchCtrl()
-      {
-         position = "313 0";
-         extent = "40 30";
-         color = "220 220 220 255";
-         
-         new GuiTextCtrl()
+         new GuiSwatchCtrl()
          {
-            profile = RTB_Verdana12PtCenter;
-            position = "0 6";
-            vertSizing = "center";
-            extent = "40 18";
-            text = "\c1v"@%version;
+            position = "313 0";
+            extent = "40 30";
+            color = "220 220 220 255";
+            
+            new GuiTextCtrl()
+            {
+               profile = RTB_Verdana12PtCenter;
+               position = "0 6";
+               vertSizing = "center";
+               extent = "40 18";
+               text = "\c1v"@%version;
+            };
+         };
+         
+         new GuiSwatchCtrl()
+         {
+            position = "354 0";
+            extent = "30 30";
+            color = "200 200 200 255";
+            
+            new GuiCheckBoxCtrl()
+            {
+               position = "8 1";
+               text = " ";
+               file_id = %id;
+            };
          };
       };
-      
-      new GuiSwatchCtrl()
+      RTBMM_SyncScroll.getObject(0).add(%s);
+      %s.getObject(3).getObject(0).setValue(1);
+   }
+   else
+   {
+      %s = new GuiSwatchCtrl()
       {
-         position = "354 0";
-         extent = "30 30";
-         color = "200 200 200 255";
+         position = "1" SPC 30*RTBMM_SyncScroll.getObject(0).getCount()+(RTBMM_SyncScroll.getObject(0).getCount()+1);
+         extent = "384 30";
+         color = "0 0 0 0";
          
-         new GuiCheckBoxCtrl()
+         new GuiSwatchCtrl()
          {
-            position = "8 1";
-            text = " ";
-            file_id = %id;
+            position = "0 0";
+            extent = "30 30";
+            color = "230 230 230 255";
+            
+            new GuiBitmapCtrl()
+            {
+               position = "7 7";
+               extent = "16 16";
+               bitmap = "./images/smallbllogo";
+            };
+         };
+         
+         new GuiSwatchCtrl()
+         {
+            position = "31 0";
+            extent = "363 30";
+            color = "200 200 200 255";
+            
+            new GuiTextCtrl()
+            {
+               profile = RTBMM_MainText;
+               position = "5 0";
+               extent = "284 18";
+               text = "\c1"@%zipname;
+            };
+            
+            new GuiTextCtrl()
+            {
+               profile = RTB_Verdana12Pt;
+               position = "5 13";
+               extent = "284 18";
+               text = "Could not locate this file on RTB.";
+            };
          };
       };
-   };
-   RTBMM_SyncScroll.getObject(0).add(%s);
-   %s.getObject(3).getObject(0).setValue(1);
+      RTBMM_SyncScroll.getObject(0).add(%s);
+      %s.getObject(3).getObject(0).setValue(1);
+   }
    
    %bottom = getWord(%s.position,1)+31;
    RTBMM_SyncScroll.getObject(0).resize(getWord(RTBMM_SyncScroll.getObject(0).position,0),getWord(RTBMM_SyncScroll.getObject(0).position,1),384,%bottom);
@@ -5317,7 +5362,6 @@ function RTBMM_ModsView_endSyncResults(%this,%line)
    %total = getField(%line,1);
    if(%numSynced $= 0)
    {
-      canvas.popDialog(RTBMM_SyncMods);
       MessageBoxOK("Oh Dear","RTB was unable to sync any of your "@%total@" non-rtb mod(s).");
    }
    else
@@ -5396,10 +5440,11 @@ function RTBMM_FileConnection::onConnected(%this)
    {
       RTBMM_DownloadQueue_ButtonA1.setBitmap($RTB::Path@"images/buttons/btnStop");
       RTBMM_DownloadQueue_ButtonA1.command = "RTBMM_FileConnection.stopDownload();";
+      RTBMM_DownloadQueue_Status1.setText("Locating Download...");
    }
    
    %this.inTransfer = 1;
-   %this.send("GET http://returntoblockland.com/blockland/rtbModServer.php?c=GETFILEDL&n="@urlEnc($Pref::Player::NetName)@"&arg1="@%this.SO.file_id@" HTTP/1.1\nHost: "@$RTB::CModManager::HostSite@"\nUser-Agent: Torque/1.0 \n\r\n");
+   %this.send("GET /blockland/rtbModServer.php?c=GETFILEDL&n="@urlEnc($Pref::Player::NetName)@"&arg1="@%this.SO.file_id@" HTTP/1.1\r\nHost: returntoblockland.com\r\nUser-Agent: Torque/1.0\r\n\r\n");
 }
 function RTBMM_FileConnection::onConnectFailed(%this)
 {
@@ -5428,6 +5473,10 @@ function RTBMM_FileConnection::onBinChunk(%this,%bin)
       %this.SO.isArchive = 1;
       %filename = %this.fileName;
 
+      %fo = new FileObject();
+      %fo.openForWrite("Add-Ons/"@%filename);
+      %fo.delete();
+
       if(%this.fileType $= "zip")
          %this.saveBufferToFile("Add-Ons/"@%filename);
       else
@@ -5444,6 +5493,7 @@ function RTBMM_FileConnection::onBinChunk(%this,%bin)
             exec("Add-Ons/"@getSubStr(%filename,0,strLen(%filename)-4)@"/client.cs");
          }
       }
+      buildIFLs();
    }
    else
    {
@@ -5540,9 +5590,9 @@ function RTBMM_ScreenshotGrabber::getScreenshot(%this,%sspath)
 function RTBMM_ScreenshotGrabber::onConnected(%this)
 {
    if(%this.grabMode $= "collage")
-      %this.send("GET "@$RTB::CModManager::Cache::FileCollage@" HTTP/1.1\nHost: "@$RTB::CModManager::HostSite@"\nUser-Agent: Torque/1.0 \n\r\n");
+      %this.send("GET "@$RTB::CModManager::Cache::FileCollage@" HTTP/1.1\r\nHost: "@$RTB::CModManager::HostSite@"\r\n\r\n");
    else if(%this.grabMode $= "screenshot")
-      %this.send("GET "@%this.screenshotPath@" HTTP/1.1\nHost: "@$RTB::CModManager::HostSite@"\nUser-Agent: Torque/1.0 \n\r\n");
+      %this.send("GET "@%this.screenshotPath@" HTTP/1.1\r\nHost: "@$RTB::CModManager::HostSite@"\r\n\r\n");
 }
 function RTBMM_ScreenshotGrabber::onLine(%this,%line)
 {
@@ -5656,6 +5706,244 @@ function RTBMM_ViewScreenshot::onSleep(%this)
 }
 
 //*********************************************************
+//* New Add-On Window
+//*********************************************************
+function addonsGui::onWake()
+{
+   clientUpdateAddOnsList();
+   
+   %prefix["Brick"] = "Bricks";
+   %prefix["Emote"] = "Emotes";
+   %prefix["Event"] = "Events";
+   %prefix["Gamemode"] = "Gamemodes";
+   %prefix["Item"] = "Items";
+   %prefix["Light"] = "Lights";
+   %prefix["Particle"] = "Particles";
+   %prefix["Player"] = "Players";
+   %prefix["Print"] = "Prints";
+   %prefix["Projectile"] = "Projectiles";
+   %prefix["Script"] = "Scripts";
+   %prefix["Server"] = "Server Mods";
+   %prefix["Tool"] = "Tools";
+   %prefix["Vehicle"] = "Vehicles";
+   %prefix["Weapon"] = "Weapons";
+   
+   %AOG_CategoryCount = 0;
+   AOG_Scroll.clear();
+   %file = findFirstFile("Add-Ons/*_*/server.cs");
+   while(strLen(%file) > 0)
+   {
+      %filename = getSubStr(%file,8,strLen(%file));
+      %filename = getSubStr(%filename,0,strPos(%filename,"/"));
+      //if(%filename $= "System_ReturnToBlockland" || !isFile("Add-Ons/"@%filename@"/description.txt"))
+      if(!isFile("Add-Ons/"@%filename@"/description.txt"))
+      {
+         %file = findNextFile("Add-Ons/*_*/server.cs");
+         continue;
+      }
+      %file_prefix = getSubStr(%filename,0,strPos(%filename,"_"));
+      %new_prefix = %file_prefix;
+      if(%prefix[%new_prefix] !$= "")
+            %new_prefix = %prefix[%new_prefix];
+      if(%AOG_hasCategory[%new_prefix])
+      {
+         %iC = %AOG_ItemCount[%AOG_CategoryCount-1];
+         %AOG_Category[%AOG_CategoryCount-1,%iC] = %filename;
+         %AOG_ItemCount[%AOG_CategoryCount-1]++;
+      }
+      else
+      {
+         %AOG_Category[%AOG_CategoryCount,0] = %new_prefix;
+         %AOG_Category[%AOG_CategoryCount,1] = %filename;
+         %AOG_ItemCount[%AOG_CategoryCount] = 2;
+         %AOG_CategoryCount++;
+         %AOG_hasCategory[%new_prefix] = 1;
+      }
+      %file = findNextFile("Add-Ons/*_*/server.cs");
+   }
+   
+   %swatch = new GuiSwatchCtrl()
+   {
+      position = "0 0";
+      extent = "261 1000";
+      color = "0 0 0 0";
+   };
+   AOG_Scroll.add(%swatch);
+   
+   %AOG_nextPos = 1;
+   for(%i=%AOG_CategoryCount-1;%i>-1;%i--)
+   {
+      %bg = new GuiSwatchCtrl()
+      {
+         position = "5" SPC %AOG_nextPos+2;
+         extent = "13 13";
+         color = "0 0 0 255";
+      };
+      %swatch.add(%bg);
+      %AOG_CatCheck[%i] = new GuiCheckboxCtrl()
+      {
+         profile = GuiCheckBoxBoldProfile;
+         position = "5" SPC %AOG_nextPos;
+         extent = "256 18";
+         text = " "@%AOG_Category[%i,0];
+         category = %AOG_Category[%i,0];
+      };
+      %AOG_CatCheck[%i].command = "AOG_tickCategory("@%AOG_CatCheck[%i]@");";
+      %swatch.add(%AOG_CatCheck[%i]);
+      %AOG_nextPos += 18;
+      %hr = new GuiSwatchCtrl()
+      {
+         position = "5" SPC %AOG_nextPos;
+         extent = "256 2";
+         color = "0 0 0 255";
+      };
+      %swatch.add(%hr);
+      %AOG_nextPos += 5;
+      for(%j=%AOG_ItemCount[%i]-1;%j>0;%j--)
+      {
+         %checkbox = new GuiCheckboxCtrl()
+         {
+            position = "5" SPC %AOG_nextPos;
+            extent = "256 18";
+            text = %AOG_Category[%i,%j];
+            varName = getSafeVariableName(%AOG_Category[%i,%j]);
+            parent = %AOG_CatCheck[%i];
+         };
+         %checkbox.command = "AOG_tickAddon("@%checkbox@");";
+         %swatch.add(%checkbox);
+         %AOG_CatCheck[%i].numChildren++;
+         if($AddOn__[%checkbox.varName] $= 1)
+         {
+            %AOG_CatCheck[%i].numEnabled++;
+            %checkbox.setValue(1);
+         }
+         %AOG_nextPos += 18;
+         
+         %childID = %AOG_CatCheck[%i].numChildren-1;
+         %AOG_CatCheck[%i].child[%childID] = %checkbox;
+      }
+      
+      if(%AOG_CatCheck[%i].numEnabled $= %AOG_CatCheck[%i].numChildren)
+         %AOG_CatCheck[%i].setValue(1);
+   }
+   %swatch.resize(0,0,261,%AOG_nextPos);
+}
+
+function AOG_tickCategory(%checkbox)
+{
+   for(%i=0;%i<%checkbox.numChildren;%i++)
+   {
+      %child = %checkbox.child[%i];
+      %child.setValue(%checkbox.getValue());
+   }
+   
+   if(%checkbox.getValue() $= 1)
+      %checkbox.numEnabled = %checkbox.numChildren;
+   else
+      %checkbox.numEnabled = 0;
+}
+
+function AOG_selectNone()
+{
+   for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
+   {
+      %obj = AOG_Scroll.getObject(0).getObject(%i);
+      if(%obj.getClassName() $= "GuiCheckboxCtrl" && %obj.varName !$= "System_ReturnToBlockland")
+      {
+         %obj.setValue(0);
+         if(%obj.numChildren >= 1)
+            %obj.numEnabled = 0;
+      }
+   }
+}
+
+function AOG_selectAll()
+{
+   for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
+   {
+      %obj = AOG_Scroll.getObject(0).getObject(%i);
+      if(%obj.getClassName() $= "GuiCheckboxCtrl")
+      {
+         %obj.setValue(1);
+         if(%obj.numChildren >= 1)
+            %obj.numEnabled = %obj.numChildren;
+      }
+   }
+}
+
+function AOG_selectDefault()
+{
+   AOG_selectNone();
+   for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
+   {
+      %obj = AOG_Scroll.getObject(0).getObject(%i);
+      if(%obj.varName !$= "")
+      {
+         %isDefault = 0;
+         for(%j=0;%j<$RTB::CModManager::DefaultBLMods;%j++)
+         {
+            if(%obj.varName $= $RTB::CModManager::DefaultBLMod[%j])
+            {
+               %isDefault = 1;
+               break;
+            }
+         }
+         
+         if(%isDefault)
+         {
+            %obj.setValue(1);
+            AOG_tickAddon(%obj);
+         }
+      }
+   }
+}
+
+function AOG_selectMinimal()
+{
+   %minimalList = " Brick_Large_Cubes Light_Animated Light_Basic Particle_Basic Particle_FX_Cans Particle_Player Print_1x2f_Default Print_2x2f_Default Print_2x2r_Default Print_Letters_Default Sound_Synth4 Sound_Beeps Sound_Phone ";
+   
+   AOG_selectNone();
+   for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
+   {
+      %obj = AOG_Scroll.getObject(0).getObject(%i);
+      if(%obj.varName !$= "")
+      {
+         if(strPos(%minimalList," "@%obj.varName@" ") >= 0)
+         {
+            %obj.setValue(1);
+            AOG_tickAddon(%obj);
+         }
+      }
+   }
+}
+
+function AOG_tickAddon(%checkbox)
+{
+   if(%checkbox.getValue() $= 1)
+      %checkbox.parent.numEnabled++;
+   else
+      %checkbox.parent.numEnabled--;
+      
+   if(%checkbox.parent.numEnabled $= %checkbox.parent.numChildren)
+      %checkbox.parent.setValue(1);
+   else
+      %checkbox.parent.setValue(0);
+}
+
+function addonsGui::onSleep()
+{
+   for(%i=0;%i<AOG_Scroll.getObject(0).getCount();%i++)
+   {
+      %obj = AOG_Scroll.getObject(0).getObject(%i);
+      if(%obj.varName !$= "")
+      {
+         $AddOn__[%obj.varName] = %obj.getValue();
+      }
+   }
+   export("$AddOn__*","config/server/ADD_ON_LIST.cs");
+}
+
+//*********************************************************
 //* Server-Client MOD Support
 //*********************************************************
 function RTBMM_loadExistingRTBMods()
@@ -5676,14 +5964,20 @@ function RTBMM_loadExistingRTBMods()
 	   {
 	      %descriptionData = getFileContents("Add-Ons/"@%modName@"/description.txt");
 	      %rtbData = getFileContents(%mod);
+	      %title = RTBMM_getFieldFromContents(%descriptionData,"Title");
+	      if(%title $= "0")
+            %title = %modName;
+         %author = RTBMM_getFieldFromContents(%descriptionData,"Author");
+         if(%author $= "0")
+            %author = "Unknown";
          %so = new ScriptObject()
          {
             class = "ModSO";
             variableName = %modVarName;
             zipName = %modName;
             name = RTBMM_getFieldFromContents(%rtbData,"Name");
-            title = RTBMM_getFieldFromContents(%descriptionData,"Title");
-            author = RTBMM_getFieldFromContents(%descriptionData,"Author");
+            title = %title;
+            author = %author;
             description = RTBMM_getFieldFromContents(%descriptionData);
             version = RTBMM_getFieldFromContents(%rtbData,"Version");
             id = RTBMM_getFieldFromContents(%rtbData,"ID");
@@ -5710,14 +6004,20 @@ function RTBMM_loadExistingRTBMods()
 	   {
 	      %descriptionData = getFileContents("Add-Ons/"@%modName@"/"@%misName@".txt");
 	      %rtbData = getFileContents("Add-Ons/"@%modName@"/rtbInfo.txt");
+	      %title = RTBMM_getFieldFromContents(%descriptionData,"Title");
+	      if(%title $= "0")
+            %title = %modName;
+         %author = RTBMM_getFieldFromContents(%descriptionData,"Author");
+         if(%author $= "0")
+            %author = "Unknown";
          %so = new ScriptObject()
          {
             class = "ModSO";
             variableName = %modVarName;
             zipName = %modName;
             name = RTBMM_getFieldFromContents(%rtbData,"Name");
-            title = RTBMM_getFieldFromContents(%descriptionData,"Title");
-            author = RTBMM_getFieldFromContents(%descriptionData,"Author");
+            title = %title;
+            author = %author;
             description = RTBMM_getFieldFromContents(%descriptionData);
             version = RTBMM_getFieldFromContents(%rtbData,"Version");
             id = RTBMM_getFieldFromContents(%rtbData,"ID");
@@ -5764,10 +6064,12 @@ function RTBMM_hasFile(%id)
    }
    return 0;
 }
-function RTBMM_parseComment(%comment)
+function RTBMM_parseComment(%comment,%commentOdd)
 {
    %comment = strReplace(%comment,"&quot;","\"");
    %comment = strReplace(%comment,"&amp;","&");
+   %comment = strReplace(%comment,"&lt;","<<spush><spop>");
+   %comment = strReplace(%comment,"&gt;","<spush><spop>>");
    %comment = strReplace(%comment,"[/color]","<spop>");
    
    %size = 14;
@@ -5887,6 +6189,11 @@ function RTBMM_parseComment(%comment)
          $RTB::CModManager::Cache::QuoteStart[$RTB::CModManager::Cache::NumCommentQuotes] = %extent;
          $RTB::CModManager::Cache::NumCommentQuotes++;
          
+         if(%commentOdd)
+            %color = "F0F0F0";
+         else
+            %color = "DCDCDC";
+         
          %ml = new GuiMLTextCtrl()
          {
             extent = "339 0";
@@ -5914,12 +6221,12 @@ function RTBMM_parseComment(%comment)
 //*********************************************************
 package RTBC_ModManager
 {
-   function mainMenuGui::onWake(%this)
+   function verTCPObj::connect(%this,%address)
    {
+      Parent::connect(%this,%address);
+      
       if($RTB::Options::CheckForUpdates)
          RTBMM_ModsView_checkForUpdates(1);
-      
-      Parent::onWake(%this);
    }
 
    function SM_StartMission()

@@ -20,4 +20,4 @@ One of the first features in RTB was the ability to see what players were on RTB
 You may have noticed the Infomaniac has appeared on your loading screen. He will provide you with tips on how to use Blockland to its full potential, and he will even give you tips on other add-ons you've installed.
 
 <font:Palatino Linotype Bold:20>Bug Tracking<font:Palatino Linotype:18>
-Its always helpful to get as many bug reports from people as possible so we can make sure RTB works perfectly, however it hasn't always been easy to do this. Now all you need to do is click on the Report Bug button (currently on the Mod Manager page), fill it in and press send! It'll even log how many reports you've sent for potential rewards in the future!
+It's always helpful to get as many bug reports from people as possible so we can make sure RTB works perfectly, however it hasn't always been easy to do this. Now all you need to do is click on the Report Bug button (currently on the Mod Manager page), fill it in and press send! It'll even log how many reports you've sent for potential rewards in the future!

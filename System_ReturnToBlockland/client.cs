@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/client.cs $
+//#
+//#      $Id: client.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -17,42 +26,48 @@ if(!isUnlocked())
 //*********************************************************
 //* RTB Variables
 //*********************************************************
-$RTB::Version = "2b8";
+$RTB::Version = "2.03";
 $RTB::Path = "Add-Ons/System_ReturnToBlockland/";
 
 //*********************************************************
 //* Load Preferences
 //*********************************************************
+$RTB::Options::AllowAnyAdd = 0;
+$RTB::Options::AllowBuildAdd = 2;
+$RTB::Options::AllowFullAdd = 1;
+$RTB::Options::AuthWithRTB = 1;
+$RTB::Options::AutoSignIn = 1;
+$RTB::Options::CheckForUpdates = 1;
+$RTB::Options::DownloadScreenshots = 1;
+$RTB::Options::IRCAllowPM = 1;
+$RTB::Options::IRCAutoConnect = 1;
+$RTB::Options::IRCChannel = "#rtb";
+$RTB::Options::LoginWithProfile = 1;
+$RTB::Options::PMAudioNotify = 0;
+$RTB::Options::PMVisualNotify = 1;
+$RTB::Options::PostServer = 1;
+$RTB::Options::PrivacyShowOnline = 1;
+$RTB::Options::PrivacyShowOwnership = 1;
+$RTB::Options::PrivacyShowPassworded = 0;
+$RTB::Options::PrivacyShowPlayers = 1;
+$RTB::Options::PrivacyShowServer = 1;
+$RTB::Options::HideNonRTBUsers = 1;
+$RTB::Options::EnableInfoTips = 1;
+$RTB::Options::EnableServerInfo = 1;
+$RTB::Options::EnableAutoUpdate = 1;
+$RTB::Options::ShowIRCActions = 1;
+$RTB::Options::ShowIRCConnects = 1;
+$RTB::Options::ShowIRCDisconnects = 1;
+
 if(isFile("config/client/RTB/prefs.cs"))
 	exec("config/client/RTB/prefs.cs");
 else
 {
    //Cheeky!
+   //But idiots forget to tick it so it makes sense
    exec("config/server/ADD_ON_LIST.cs");
    $AddOn__System_ReturnToBlockland = 1;
-   export("$AddOn__","config/server/ADD_ON_LIST.cs");
-   
-   $RTB::Options::AllowAnyAdd = 0;
-   $RTB::Options::AllowBuildAdd = 2;
-   $RTB::Options::AllowFullAdd = 1;
-   $RTB::Options::AuthWithRTB = 1;
-   $RTB::Options::AutoSignIn = 1;
-   $RTB::Options::CheckForUpdates = 1;
-   $RTB::Options::DownloadScreenshots = 1;
-   $RTB::Options::DownloadUpdates = 1;
-   $RTB::Options::IRCAllowPM = 1;
-   $RTB::Options::IRCAutoConnect = 1;
-   $RTB::Options::IRCChannel = "#rtb";
-   $RTB::Options::LoginWithProfile = 1;
-   $RTB::Options::PMAudioNotify = 0;
-   $RTB::Options::PMVisualNotify = 1;
-   $RTB::Options::PostServer = 1;
-   $RTB::Options::PrivacyShowOnline = 1;
-   $RTB::Options::PrivacyShowOwnership = 1;
-   $RTB::Options::PrivacyShowPassworded = 0;
-   $RTB::Options::PrivacyShowPlayers = 1;
-   $RTB::Options::PrivacyShowServer = 1;
-   $RTB::Options::HideNonRTBUsers = 1;
+   export("$AddOn__*","config/server/ADD_ON_LIST.cs");
    echo("Exporting rtb prefs");
    export("$RTB::Options*","config/client/RTB/prefs.cs");
 }
@@ -84,6 +99,23 @@ exec("./RTBC_Updater.cs");
 exec("./RTB_BarredScreen.gui");
 exec("./RTB_WelcomeScreen.gui");
 
+//*********************************************************
+//* Load Replacement GUI
+//*********************************************************
+if(isObject(AddOnsGui))
+{
+   AddOnsGui.delete();
+   exec("./BL_AddOnsGui.gui");
+}
+
+if(isObject(JoinServerGui))
+{
+   JoinServerGui.clear();
+   exec("./BL_JoinServerGui.gui");
+   JoinServerGui.add(RTBJS_window);
+   RTBJS_window.setName("JS_window");
+}
+
 if(!isObject(MM_RTBForumsButton))
 {
    %btn = new GuiBitmapButtonCtrl(MM_RTBForumsButton)
@@ -110,7 +142,8 @@ if(!isObject(MM_RTBForumsButton))
 }
 function MM_RTBForumsButton::onMouseEnter(%this)
 {
-	alxPlay(Note10Sound);
+   if($Pref::Audio::MenuSounds)
+	   alxPlay(Note11Sound);
 }
 if(!isObject(MM_RTBLogo))
 {
@@ -204,10 +237,24 @@ if(!isObject(MM_RTBLogo))
 }
 
 //*********************************************************
+//* Compatability with Add-Ons (Lol)
+//*********************************************************
+function RTB_checkClientCompatability()
+{
+   if(isPackage(AddOnsSelectAll))
+   {
+      echo("\c2WARNING: RTB has disabled the Add-On: Script_AddOnSelectAll to allow RTB to work correctly.");
+      deactivatePackage(AddOnsSelectAll);
+   }
+}
+schedule(100,0,"RTB_checkClientCompatability");
+
+//*********************************************************
 //* RTB Support Functions
 //*********************************************************
 function RTB_LoadDefaultPrefs()
 {
+   deleteVariables("$RTB::Options*");
    $RTB::Options::AllowAnyAdd = 0;
    $RTB::Options::AllowBuildAdd = 2;
    $RTB::Options::AllowFullAdd = 1;
@@ -215,7 +262,6 @@ function RTB_LoadDefaultPrefs()
    $RTB::Options::AutoSignIn = 1;
    $RTB::Options::CheckForUpdates = 1;
    $RTB::Options::DownloadScreenshots = 1;
-   $RTB::Options::DownloadUpdates = 1;
    $RTB::Options::IRCAllowPM = 1;
    $RTB::Options::IRCAutoConnect = 1;
    $RTB::Options::IRCChannel = "#rtb";
@@ -224,11 +270,17 @@ function RTB_LoadDefaultPrefs()
    $RTB::Options::PMVisualNotify = 1;
    $RTB::Options::PostServer = 1;
    $RTB::Options::PrivacyShowOnline = 1;
-   $RTB::Options::PrivacyShowOwnership = 0;
-   $RTB::Options::PrivacyShowPassworded = 1;
+   $RTB::Options::PrivacyShowOwnership = 1;
+   $RTB::Options::PrivacyShowPassworded = 0;
    $RTB::Options::PrivacyShowPlayers = 1;
    $RTB::Options::PrivacyShowServer = 1;
    $RTB::Options::HideNonRTBUsers = 1;
+   $RTB::Options::EnableInfoTips = 1;
+   $RTB::Options::EnableServerInfo = 1;
+   $RTB::Options::EnableAutoUpdate = 1;
+   $RTB::Options::ShowIRCActions = 1;
+   $RTB::Options::ShowIRCConnects = 1;
+   $RTB::Options::ShowIRCDisconnects = 1;
    echo("Exporting rtb prefs");
    export("$RTB::Options*","config/client/RTB/prefs.cs");
 }

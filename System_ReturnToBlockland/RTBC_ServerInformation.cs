@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_ServerInformation.cs $
+//#
+//#      $Id: RTBC_ServerInformation.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -47,6 +56,9 @@ function RTBSI_InitSC()
       
       RTBSI_SC.addResponseHandle("MASTERRTB","RTBSI_onMasterReply");
       RTBSI_SC.addResponseHandle("GETSERVERINFO","RTBSI_onServerInfo");
+      RTBSI_SC.addResponseHandle("GETSERVERPLAYERS","RTBSI_onServerPlayers");
+      RTBSI_SC.addResponseHandle("GETSERVERMODS","RTBSI_onServerMods");
+      RTBSI_SC.addResponseHandle("ENDGETSERVERINFO","RTBSI_onServerInfoEnd");
    }
 }
 
@@ -92,9 +104,11 @@ function RTBSI_onMasterReply(%this,%line)
    
    %soIndex = $ServerSOFromIP[%searchable];
    %so = $ServerSO[%soIndex];
-   
-   %so.hasRTB = 1;
-   %so.display();
+   if(isObject(%so))
+   {
+      %so.hasRTB = 1;
+      %so.display();
+   }
 }
 
 function joinServerGui::specialJoin(%this)
@@ -132,7 +146,10 @@ function RTBSI_getServerInfo(%ip,%port)
 {
    canvas.pushDialog(RTB_ServerInformation);
    RTBSI_Loading.setVisible(1);
-   RTBSI_Loading.getObject(0).clear();
+   while(RTBSI_Loading.getObject(0).getCount() > 0)
+   {
+      RTBSI_Loading.getObject(0).getObject(0).delete();
+   }
    
    %ring = new GuiBitmapCtrl()
    {
@@ -156,13 +173,18 @@ function RTBSI_getServerInfo(%ip,%port)
    RTBSI_PlayerList.clear();
    $RTB::CServerInformation::Cache::NumMods = 0;
    $RTB::CServerInformation::Cache::NumPlayers = 0;
+   $RTB::CServerInformation::Cache::ShowPlayers = 0;
+   $RTB::CServerInformation::Cache::IncomingData = 0;
    RTBSI_ModScroll.getObject(0).clear();
    RTBSI_SendRequest("GETSERVERINFO",1,%ip,%port);
 }
 
 function RTB_ServerInformation::onSleep(%this)
 {
-   RTBSI_Loading.getObject(0).clear();
+   while(RTBSI_Loading.getObject(0).getCount() > 0)
+   {
+      RTBSI_Loading.getObject(0).getObject(0).delete();
+   }
    RTBSI_Loading.setVisible(0);
    
    if(isObject(RTBSI_SC))
@@ -174,64 +196,12 @@ function RTBSI_onServerInfo(%this,%line)
    %reply = getField(%line,0);
    if(%reply)
    {
-      if(RTBSI_Loading.visible)
-      {
-         RTBSI_Loading.getObject(0).clear();
-         RTBSI_Loading.setVisible(0);
-      }  
-      
       %owner = getField(%line,1);
       RTBSI_Owner.setText(%owner);
+      $RTB::CServerInformation::Cache::IncomingData = 1;
       
-      %players = getField(%line,2);
-      %mods = getField(%line,3);
-      if(%players !$= "")
-      {
-         %playerArray = strReplace(%players,"~","\t");
-         for(%i=0;%i<getFieldCount(%playerArray);%i++)
-         {
-            %playerLine = strReplace(getField(%playerArray,%i),";","\t");
-            $RTB::CServerInformation::Cache::Player[$RTB::CServerInformation::Cache::NumPlayers] = %playerLine;
-            $RTB::CServerInformation::Cache::NumPlayers++;
-         }
-      }
-      else
-      {
-         RTBSI_PlayerCover.setVisible(1);
-      }
-      
-      %modArray = strReplace(%mods,";","\t");
-      for(%i=0;%i<getFieldCount(%modArray);%i++)
-      {
-         %modLine = strReplace(getField(%modArray,%i),"~","\t");
-         %modType = getField(%modLine,0);
-         %modInfo = getField(%modLine,1);
-         
-         if(%modType $= "rtb")
-         {
-            %modId = getField(%modLine,2);
-            %zip = getField(%modLine,3);
-            %content = getField(%modLine,4);
-            $RTB::CServerInformation::Cache::Mod[$RTB::CServerInformation::Cache::NumMods] = %modType@"\t"@%modInfo@"\t"@%modId@"\t"@%zip@"\t"@%content;
-            if(isFile("Add-Ons/"@%zip))
-               $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 1;
-            else if(findFirstFile("Add-Ons/"@getSubStr(%zip,0,strLen(%zip)-4)@"/*") !$= "")
-               $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 1;
-            else
-               $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 0;
-            $RTB::CServerInformation::Cache::NumMods++;
-         }
-         else if(%modType $= "bl")
-         {
-            %zip = getField(%modLine,2);
-            $RTB::CServerInformation::Cache::Mod[$RTB::CServerInformation::Cache::NumMods] = %modType@"\t"@%modInfo@"\t"@%modId@"\t"@%zip@"\t"@%content;
-            if(isFile("Add-Ons/"@%zip))
-               $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 1;
-            else
-               $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 0;
-            $RTB::CServerInformation::Cache::NumMods++;
-         }
-      }
+      %showPlayers = getField(%line,2);
+      $RTB::CServerInformation::Cache::ShowPlayers = %showPlayers;
    }
    else
    {
@@ -243,144 +213,208 @@ function RTBSI_onServerInfo(%this,%line)
       }    
       return;  
    }
-   
-   for(%i=3;%i>-1;%i--)
-   {
-      for(%j=0;%j<$RTB::CServerInformation::Cache::NumPlayers;%j++)
-      {
-         %playerLine = $RTB::CServerInformation::Cache::Player[%j];
-         %playerName = getField(%playerLine,0);
-         %playerBLID = getField(%playerLine,1);
-         %playerScore = getField(%playerLine,2);
-         %playerStatus = getField(%playerLine,3);
-         
-         if(%playerStatus $= %i)
-         {
-            if(%playerStatus $= 0)
-               %playerStatus = "";
-            else if(%playerStatus $= 1)
-               %playerStatus = "A";               
-            else if(%playerStatus $= 2)
-               %playerStatus = "S";    
-            else if(%playerStatus $= 3)
-               %playerStatus = "H";  
-            RTBSI_PlayerList.addRow(0,%playerStatus TAB %playerName TAB %playerBLID TAB %playerScore);
-         }
-      }
-   }
+}
 
-   if($RTB::CServerInformation::Cache::NumMods >= 1)
+function RTBSI_onServerPlayers(%this,%players)
+{
+   %playerArray = strReplace(%players,"~","\t");
+   for(%i=0;%i<getFieldCount(%playerArray);%i++)
    {
-      //Sorted by RTB mods you dont have that need files
-      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
-      {
-         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-         
-         if(%hasMod !$= 1 && getField(%modLine,0) $= "rtb" && getField(%modLine,4) $= 1)
-         {
-            RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
-         }
-      }
+      %playerLine = strReplace(getField(%playerArray,%i),";","\t");
+      $RTB::CServerInformation::Cache::Player[$RTB::CServerInformation::Cache::NumPlayers] = %playerLine;
+      $RTB::CServerInformation::Cache::NumPlayers++;
+   }
+}
+
+function RTBSI_onServerMods(%this,%mods)
+{
+   %modArray = strReplace(%mods,";","\t");
+   for(%i=0;%i<getFieldCount(%modArray);%i++)
+   {
+      %modLine = strReplace(getField(%modArray,%i),"~","\t");
+      %modType = getField(%modLine,0);
+      %modInfo = getField(%modLine,1);
       
-      //then BL mods you dont have that need files
-      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+      if(%modType $= "rtb")
       {
-         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-         
-         if(%hasMod !$= 1 && getField(%modLine,0) $= "bl" && getField(%modLine,4) $= 1)
-         {
-            RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
-         }
+         %modId = getField(%modLine,2);
+         %zip = getField(%modLine,3);
+         %content = getField(%modLine,4);
+         $RTB::CServerInformation::Cache::Mod[$RTB::CServerInformation::Cache::NumMods] = %modType@"\t"@%modInfo@"\t"@%modId@"\t"@%zip@"\t"@%content;
+         if(isFile("Add-Ons/"@%zip))
+            $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 1;
+         else if(findFirstFile("Add-Ons/"@getSubStr(%zip,0,strLen(%zip)-4)@"/*") !$= "")
+            $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 1;
+         else
+            $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 0;
+         $RTB::CServerInformation::Cache::NumMods++;
       }
-      
-      //then by RTB mods you dont have that dont need files
-      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+      else if(%modType $= "bl")
       {
-         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-         
-         if(%hasMod !$= 1 && getField(%modLine,0) $= "rtb" && getField(%modLine,4) !$= 1)
-         {
-            RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
-         }
-      }
-      
-      //then BL mods you dont have that dont need files
-      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
-      {
-         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-         
-         if(%hasMod !$= 1 && getField(%modLine,0) $= "bl" && getField(%modLine,4) !$= 1)
-         {
-            RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
-         }
-      }
-      
-      //then all the RTB ones you do have
-      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
-      {
-         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-         
-         if(%hasMod $= 1 && getField(%modLine,0) $= "rtb" && getField(%modLine,4) !$= 1)
-         {
-            RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),1,getField(%modLine,4));
-         }
-      }
-      
-      //and finally all the ones bl you have
-      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
-      {
-         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-         
-         if(%hasMod $= 1 && getField(%modLine,0) $= "bl" && getField(%modLine,4) !$= 1)
-         {
-            RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),1,getField(%modLine,4));
-         }
+         %zip = getField(%modLine,2);
+         $RTB::CServerInformation::Cache::Mod[$RTB::CServerInformation::Cache::NumMods] = %modType@"\t"@%modInfo@"\t"@%modId@"\t"@%zip@"\t"@%content;
+         if(isFile("Add-Ons/"@%zip))
+            $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 1;
+         else
+            $RTB::CServerInformation::Cache::HasMod[$RTB::CServerInformation::Cache::NumMods] = 0;
+         $RTB::CServerInformation::Cache::NumMods++;
       }
    }
-   else
-   {
-      //No custom mods
-   }
-   
-   %rtbMods = 0;
-   %blMods = 0;
-   for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
-   {
-      %modLine = $RTB::CServerInformation::Cache::Mod[%i];
-      %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
-      
-      if(getField(%modLine,0) $= "rtb")
-      {
-         %rtbMods++;
-      }
-      else if(getField(%modLine,0) $= "bl")
-      {
-         %blMods++;
-      }
-   }
-   RTBSI_Mods.setText("RTB ("@%rtbMods@"), BL ("@%blMods@")");
 }
 
 function RTBSI_onServerInfoEnd(%this)
 {
-   %ip = $RTB::CServerInformation::Cache::CurrentIP;
-   %port = $RTB::CServerInformation::Cache::CurrentPort;
-   %scriptObjectName = strReplace(%ip,".","_")@"X"@%port;
-   %so = $ServerSOFromIP[%scriptObjectName];
-   %so = $ServerSO[%so];
-   
-   RTBSI_Bricks.setText(%so.brickCount);
-   RTBSI_Dedicated.setText(%so.ded);
-   RTBSI_Password.setText(%so.pass);
-   RTBSI_Ping.setText(%so.ping);
-   RTBSI_Players.setText(%so.currPlayers@"/"@%so.maxPlayers);
-   RTBSI_Map.setText(%so.map);
+   if($RTB::CServerInformation::Cache::IncomingData)
+   {
+      if(RTBSI_Loading.visible)
+      {
+         while(RTBSI_Loading.getObject(0).getCount() > 0)
+         {
+            RTBSI_Loading.getObject(0).getObject(0).delete();
+         }
+         RTBSI_Loading.setVisible(0);
+      }
+      
+      if(!$RTB::CServerInformation::Cache::ShowPlayers)
+      {
+         RTBSI_PlayerCover.setVisible(1);
+      }
+      
+      %ip = $RTB::CServerInformation::Cache::CurrentIP;
+      %port = $RTB::CServerInformation::Cache::CurrentPort;
+      %scriptObjectName = strReplace(%ip,".","_")@"X"@%port;
+      %so = $ServerSOFromIP[%scriptObjectName];
+      %so = $ServerSO[%so];
+      
+      RTBSI_Bricks.setText(%so.brickCount);
+      RTBSI_Dedicated.setText(%so.ded);
+      RTBSI_Password.setText(%so.pass);
+      RTBSI_Ping.setText(%so.ping);
+      RTBSI_Players.setText(%so.currPlayers@"/"@%so.maxPlayers);
+      RTBSI_Map.setText(%so.map);
+      
+      for(%i=3;%i>-1;%i--)
+      {
+         for(%j=0;%j<$RTB::CServerInformation::Cache::NumPlayers;%j++)
+         {
+            %playerLine = $RTB::CServerInformation::Cache::Player[%j];
+            %playerName = getField(%playerLine,0);
+            %playerBLID = getField(%playerLine,1);
+            %playerScore = getField(%playerLine,2);
+            %playerStatus = getField(%playerLine,3);
+            
+            if(%playerStatus $= %i)
+            {
+               if(%playerStatus $= 0)
+                  %playerStatus = "";
+               else if(%playerStatus $= 1)
+                  %playerStatus = "A";               
+               else if(%playerStatus $= 2)
+                  %playerStatus = "S";    
+               else if(%playerStatus $= 3)
+                  %playerStatus = "H";  
+               RTBSI_PlayerList.addRow(0,%playerStatus TAB %playerName TAB %playerBLID TAB %playerScore);
+            }
+         }
+      }
+
+      if($RTB::CServerInformation::Cache::NumMods >= 1)
+      {
+         //Sorted by RTB mods you dont have that need files
+         for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+         {
+            %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+            %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+            
+            if(%hasMod !$= 1 && getField(%modLine,0) $= "rtb" && getField(%modLine,4) $= 1)
+            {
+               RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
+            }
+         }
+         
+         //then by RTB mods you dont have that dont need files
+         for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+         {
+            %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+            %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+            
+            if(%hasMod !$= 1 && getField(%modLine,0) $= "rtb" && getField(%modLine,4) !$= 1)
+            {
+               RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
+            }
+         }
+         
+         //then BL mods you dont have that need files
+         for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+         {
+            %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+            %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+            
+            if(%hasMod !$= 1 && getField(%modLine,0) $= "bl" && getField(%modLine,4) $= 1)
+            {
+               RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
+            }
+         }
+         
+         //then BL mods you dont have that dont need files
+         for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+         {
+            %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+            %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+            
+            if(%hasMod !$= 1 && getField(%modLine,0) $= "bl" && getField(%modLine,4) !$= 1)
+            {
+               RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),0,getField(%modLine,4));
+            }
+         }
+         
+         //then all the RTB ones you do have
+         for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+         {
+            %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+            %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+            
+            if(%hasMod $= 1 && getField(%modLine,0) $= "rtb")
+            {
+               RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),1,getField(%modLine,4));
+            }
+         }
+         
+         //and finally all the ones bl you have
+         for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+         {
+            %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+            %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+            
+            if(%hasMod $= 1 && getField(%modLine,0) $= "bl")
+            {
+               RTBSI_createAddonListing(getField(%modLine,0),getField(%modLine,1),getField(%modLine,2),1,getField(%modLine,4));
+            }
+         }
+      }
+      else
+      {
+         //No custom mods
+      }
+      
+      %rtbMods = 0;
+      %blMods = 0;
+      for(%i=0;%i<$RTB::CServerInformation::Cache::NumMods;%i++)
+      {
+         %modLine = $RTB::CServerInformation::Cache::Mod[%i];
+         %hasMod = $RTB::CServerInformation::Cache::HasMod[%i];
+         
+         if(getField(%modLine,0) $= "rtb")
+         {
+            %rtbMods++;
+         }
+         else if(getField(%modLine,0) $= "bl")
+         {
+            %blMods++;
+         }
+      }
+      RTBSI_Mods.setText("RTB ("@%rtbMods@"), BL ("@%blMods@")");
+   }
 }
 
 function RTBSI_createAddonListing(%type,%title,%id,%hasMod,%needsFiles)
@@ -476,8 +510,9 @@ function RTBSI_createAddonListing(%type,%title,%id,%hasMod,%needsFiles)
    %container.resize(1,1,getWord(%container.extent,0),%yPos+33);
    %listing.getObject(1).getObject(1).getObject(0).command = "RTBSI_queueDownload("@%id@","@%listing@",1);";
    %listing.getObject(1).getObject(2).getObject(0).command = "RTBSI_queueDownload("@%id@","@%listing@");";
-   //if(!%needsFiles)
    %listing.getObject(1).getObject(1).setVisible(0);
+   if(%type $= "bl" || %hasMod)
+      %listing.getObject(1).getObject(2).setVisible(0);
       
    if(%needsFiles)
    {
@@ -513,10 +548,7 @@ function RTBSI_createAddonListing(%type,%title,%id,%hasMod,%needsFiles)
    }
    
    if(%hasMod || %type $= "bl")
-   {
-      %listing.getObject(1).getObject(1).delete();
-      %listing.getObject(1).getObject(1).delete();
-      
+   {      
       if(%hasMod)
          %listing.getObject(2).getObject(0).setBitmap($RTB::Path@"images/accept");
    }
@@ -526,6 +558,9 @@ function RTBSI_queueDownload(%fileid,%container)
 {
    if(!isObject(RTBSI_DownloadQueue))
       RTBSI_InitDQ();
+      
+   if(isObject(%container.getObject(1).getObject(3)))
+      %container.getObject(1).getObject(3).delete();
       
    %swatch = new GuiSwatchCtrl()
    {
@@ -546,8 +581,6 @@ function RTBSI_queueDownload(%fileid,%container)
       %swatch.add(%bullet);
    }
    %container.getObject(1).getObject(2).setVisible(0);
-   if(isObject(%container.getObject(1).getObject(3)))
-      %container.getObject(1).getObject(3).setVisible(0);
    RTBSI_DownloadQueue.pushFile(%fileid,%container);
 }
 
@@ -689,7 +722,7 @@ function RTBSI_FC::onConnected(%this)
       return;
    }
 
-   %this.send("GET http://returntoblockland.com/blockland/rtbModServer.php?c=GETFILEDL&n="@urlEnc($Pref::Player::NetName)@"&arg1="@%this.queueItem.file_id@" HTTP/1.1\nHost: "@$RTB::CModManager::HostSite@"\nUser-Agent: Torque/1.0 \n\r\n");
+   %this.send("GET /blockland/rtbModServer.php?c=GETFILEDL&n="@urlEnc($Pref::Player::NetName)@"&arg1="@%this.queueItem.file_id@" HTTP/1.1\r\nHost: "@$RTB::CModManager::HostSite@"\r\nUser-Agent: Torque/1.0\r\n\r\n");
 }
 function RTBSI_FC::onDNSFailed(%this)
 {
@@ -740,7 +773,7 @@ function RTBSI_FC::onBinChunk(%this,%bin)
       %container = %this.queueItem.gui_container;
       
       %dots = %container.getObject(1).getObject(3);
-      for(%i=0;%i<%twohundredpercent+1;%i++)
+      for(%i=0;%i<%twohundredpercent;%i++)
       {
          %dots.getObject(%i).setBitmap($RTB::Path@"images/bullet_green");
       }
@@ -779,24 +812,9 @@ package RTBC_ServerInformation
    function queryMasterTCPObj::connect(%this,%host)
    {
       Parent::connect(%this,%host);
-      RTBSI_getRTBServers();
-   }
-   
-   function JS_serverList::onSelect(%this,%id,%text)
-   {
-      %hasRTB = getField(%text,10);
       
-      for(%i=0;%i<JS_window.getCount();%i++)
-      {
-         %obj = JS_window.getObject(%i);
-         if(%obj.text $= "Join Server")
-            break;
-      }
-      
-      if(%hasRTB)
-         %obj.command = "joinServerGui.info();";
-      else
-         %obj.command = "joinServerGui.join();";
+      if($RTB::Options::EnableServerInfo)
+         RTBSI_getRTBServers();
    }
    
    function ServerSO::serialize(%this)
@@ -804,9 +822,12 @@ package RTBC_ServerInformation
       %serialized =  Parent::serialize(%this);
       
       if(%this.hasRTB)
-         %hasRTB = 1;
+         %hasRTB = "Yes";
       else
-         %hasRTB = 0;
+         %hasRTB = "No";
+         
+      if(!$RTB::Options::EnableServerInfo)
+         %hasRTB = "???";
       
       return %serialized@"\t"@%hasRTB;
    }

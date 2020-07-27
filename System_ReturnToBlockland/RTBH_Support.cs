@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBH_Support.cs $
+//#
+//#      $Id: RTBH_Support.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -11,9 +20,66 @@
 $RTB::RTBH_Support = 1;
 
 //*********************************************************
+//* Global Variables
+//*********************************************************
+$RTB::CModManager::DefaultBLMods = -1;
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Sword";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Spear";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Rocket_Launcher";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Push_Broom";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Horse_Ray";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Guns_Akimbo";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Gun";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Weapon_Bow";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Tank";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Magic_Carpet";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Jeep";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Horse";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Flying_Wheeled_Jeep";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Vehicle_Ball";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Synth4";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Phone";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Sound_Beeps";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Radio_Wave";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Pong";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_Pinball";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Projectile_GravityRocket";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_Letters_Default";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_2x2r_Default";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_2x2f_Default";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Print_1x2f_Default";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Quake";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_No_Jet";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Leap_Jet";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Jump_Jet";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Player_Fuel_Jet";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Player";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Grass";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_FX_Cans";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Particle_Basic";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Tutorial";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Slopes";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Slate";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_KitchenDark";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Kitchen";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Construct";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_BedroomDark";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Map_Bedroom";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Light_Basic";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Light_Animated";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Item_Skis";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Love";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Hate";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Confusion";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Emote_Alarm";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Brick_Large_Cubes";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "Script_ClearSpam";
+$RTB::CModManager::DefaultBLMod[$RTB::CModManager::DefaultBLMods++] = "System_ReturnToBlockland";
+
+//*********************************************************
 //* Global Transmission Variables
 //*********************************************************
-$RTB::TransmissionTimeout = 30; //> 30 Second Timeout (Sometimes the server just "hangs")
+$RTB::TransmissionTimeout = 60; //> 30 Second Timeout (Sometimes the server just "hangs")
 $RTB::TransmissionRetries = 3; //> 3 Retries, then fail message
 
 //*********************************************************
@@ -140,8 +206,13 @@ package RTBH_Support
          if(getField(%line,0) $= "SQLERROR")
          {
             %this.transmitting = 0;
-            RTBBT_pushBugReporter("RTB","SQL Error",2,getFields(%line,1,getFieldCount(%line)));
-            MessageBoxOK("ERROR","There has been a critical error. We would appreciate it if you could send this Bug Report so it can be fixed ASAP.");
+            if(!$Server::Dedicated)
+            {
+               RTBBT_pushBugReporter("RTB","SQL Error",2,getFields(%line,1,getFieldCount(%line)));
+               MessageBoxOK("ERROR","There has been a critical error. We would appreciate it if you could send this Bug Report so it can be fixed ASAP.");
+            }
+            else
+               echo("ERROR: SQL ERROR OCCURRED!");
             return;
          }
          
@@ -149,7 +220,8 @@ package RTBH_Support
          {
             %this.transmitting = 0;
             echo("\c2TCP ERROR ("@getField(%line,1)@"): "@getField(%line,2));
-            MessageBoxOK(getfield(%line,1),getfield(%line,2));
+            if(!$Server::Dedicated)
+               MessageBoxOK(getfield(%line,1),getfield(%line,2));
             return;
          }
          
@@ -162,7 +234,10 @@ package RTBH_Support
          }
       }
       else
-         Parent::onLine(%this,%line);
+      {
+         if(isFunction(%this,"onLine"))
+            Parent::onLine(%this,%line);
+      }
    }
 
    function TCPObject::onConnected(%this)
@@ -175,7 +250,10 @@ package RTBH_Support
          %this.beginTransmit();
       }
       else
-         Parent::onConnected(%this);
+      {
+         if(isFunction(%this,"onConnected"))
+            Parent::onConnected(%this);
+      }
    }
 
    function TCPObject::onConnectFailed(%this)
@@ -214,7 +292,10 @@ package RTBH_Support
          }
       }
       else
-         Parent::onConnectFailed(%this);
+      {
+         if(isFunction(%this,"onConnectFailed"))
+            Parent::onConnectFailed(%this);
+      }
    }
 
    function TCPObject::onDNSFailed(%this)
@@ -239,7 +320,10 @@ package RTBH_Support
          }
       }
       else
-         Parent::onDNSFailed(%this);
+      {
+         if(isFunction(%this,"onDNSFailed"))
+            Parent::onDNSFailed(%this);
+      }
    }
 
    function TCPObject::onTimeout(%this)
@@ -276,7 +360,10 @@ package RTBH_Support
             }
             else
             {
-               MessageBoxOK("Whoops","For some reason the connection Timed Out. You may want to check your internet or seek support if this is ongoing.");
+               if($Server::Dedicated)
+                  echo("ERROR: RTB Connection timed out!");
+               else
+                  MessageBoxOK("Whoops","For some reason the connection Timed Out. You may want to check your internet or seek support if this is ongoing.");
             }
          }
       }
@@ -308,6 +395,44 @@ package RTBH_Support
    }
 };
 activatePackage(RTBH_Support);
+
+function filterKey(%string)
+{
+   %string = strReplace(%string,"-","\t");
+   %string = strReplace(%string," ","\t");
+   
+   %stageCheck = 0;
+   for(%i=0;%i<getFieldCount(%string);%i++)
+   {
+      if(stringMatch(getField(%string,%i),"ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"))
+      {
+         if(%stageCheck $= 0)
+         {
+            if(strlen(getField(%string,%i)) $= 5)
+            {
+               %stageCheck++;
+            }
+         }
+         else
+         {
+            if(strlen(getField(%string,%i)) $= 4)
+            {
+               %stageCheck++;
+               
+               if(%stageCheck > 3)
+                  return 1;
+            }
+            else
+            {
+               %stageCheck = 0;
+            }
+         }
+      }
+      else
+         %stageCheck = 0;
+   }
+   return 0;
+}
 
 function TCPObject::sendRequest(%this,%cmd,%string,%layer,%specialstring)
 {
@@ -371,6 +496,44 @@ function TCPObject::beginTransmit(%this)
 //*********************************************************
 //* Support Functions
 //*********************************************************
+function filterString(%string,%allowed)
+{
+   for(%i=0;%i<strLen(%string);%i++)
+   {
+      %char = getSubStr(%string,%i,1);
+      if(strPos(%allowed,%char) >= 0)
+         %return = %return@%char;
+   }
+   return %return;
+}
+
+function stringMatch(%string,%allowed)
+{
+   for(%i=0;%i<strLen(%string);%i++)
+   {
+      %char = getSubStr(%string,%i,1);
+      if(strPos(%allowed,%char) < 0)
+         return 0;
+   }
+   return 1;
+}
+
+function SimGroup::clear(%this)
+{
+   while(%this.getCount() > 0)
+   {
+      %this.getObject(0).delete();
+   }
+}
+
+function isReadonly(%file)
+{
+   if(isWriteableFilename(%file))
+      return 0;
+   else
+      return 1;
+}
+
 function RTB_addControlMap(%inputDevice,%keys,%name,%command)
 {
    if(!$RTB::addedCatSep)
@@ -381,6 +544,23 @@ function RTB_addControlMap(%inputDevice,%keys,%name,%command)
 	$remapName[$remapCount] = %name;
 	$remapCmd[$remapCount] = %command;
 	$remapCount++;
+}
+
+function RTBMM_getFieldFromContents(%contents,%field)
+{
+   for(%i=0;%i<getFieldCount(%contents);%i++)
+   {
+      %item = getField(%contents,%i);
+      if(strPos(%item,":") >= 0)
+      {
+         if(getSubStr(%item,0,strPos(%item,":")) $= %field)
+            return getSubStr(%item,strPos(%item,":")+2,strLen(%item));
+      }
+      else if(%field $= "" && %item !$= "")
+         return %item;
+      else
+         return 0;
+   }
 }
 
 function byteRound(%bytes)
@@ -399,7 +579,7 @@ function byteRound(%bytes)
 
 function isInt(%string)
 {
-	%numbers = "0123456789";
+	%numbers = "-0123456789";
 	for(%i=0;%i<strLen(%string);%i++)
 	{
 		%char = getSubStr(%string,%i,1);

@@ -1,6 +1,9 @@
 <font:Palatino Linotype:24>IRC Client<font:Palatino Linotype:18>
 The IRC Client allows you to connect to our irc channel (irc.centralchat.net, #rtb) where you'll be able to talk with other people playing RTB. By default, you will connect automatically to the irc channel with your net name and _RTB added to the end.
 
+<font:Palatino Linotype Bold:20>Private Messaging<font:Palatino Linotype:18>
+Just double-click a name in the users list to open a chat session with them.
+
 <font:Palatino Linotype Bold:20>Options<font:Palatino Linotype:18>
 There are various options for the IRC in the RTB Options window:
 - <spush><font:Palatino Linotype Bold:18>Automatically Connect<spop> - This will auto-connect you to the irc when you start up.
@@ -22,3 +25,5 @@ There are various commands that can be used in the irc. If you've used irc befor
 - <spush><font:Palatino Linotype Bold:18>/msg <name> <message><spop> - This will send a message to whoever you specified.
 - <spush><font:Palatino Linotype Bold:18>/me <message><spop> - This will perform an action in the irc like "* YourName <message>"
 - <spush><font:Palatino Linotype Bold:18>/action <message><spop> - The same as above.
+- <spush><font:Palatino Linotype Bold:18>/ignore <name><spop> - This will ignore all messages ans PMs from that person.
+- <spush><font:Palatino Linotype Bold:18>/unignore <name><spop> - This will stop ignoring messages from that person.

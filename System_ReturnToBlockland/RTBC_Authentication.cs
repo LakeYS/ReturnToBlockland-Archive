@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBC_Authentication.cs $
+//#
+//#      $Id: RTBC_Authentication.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -40,6 +49,7 @@ function RTBCA_InitASC()
       };
       RTBCA_ASC.addResponseHandle("AUTH","RTBCA_onAuthResponse");
       RTBCA_ASC.addResponseHandle("UPDATEPREFS","RTBCA_onUpdatePrefs");
+      RTBCA_ASC.addResponseHandle("PUSHUPDATE","RTBCA_onPushUpdate");
    }
 }
 
@@ -62,6 +72,11 @@ function RTBCA_SendRequest(%cmd,%layer,%arg1,%arg2,%arg3,%arg4,%arg5,%arg6,%arg7
    }
    
    RTBCA_ASC.sendRequest(%cmd,%argString,%layer);
+}
+
+function RTBCA_onPushUpdate()
+{
+   RTBCU_Update();
 }
 
 function RTBCA_onAuthResponse(%this,%line)

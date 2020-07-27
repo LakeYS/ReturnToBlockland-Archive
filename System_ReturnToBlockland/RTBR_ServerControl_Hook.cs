@@ -1,6 +1,15 @@
 //#############################################################################
 //#
-//#   Return to Blockland - Version 2.0
+//#   Return to Blockland - Version 2.03
+//#
+//#   -------------------------------------------------------------------------
+//#
+//#      $Rev: 48 $
+//#      $Date: 2009-03-14 13:47:40 +0000 (Sat, 14 Mar 2009) $
+//#      $Author: Ephialtes $
+//#      $URL: http://svn.ephialtes.co.uk/RTBSVN/branches/2030/RTBR_ServerControl_Hook.cs $
+//#
+//#      $Id: RTBR_ServerControl_Hook.cs 48 2009-03-14 13:47:40Z Ephialtes $
 //#
 //#   -------------------------------------------------------------------------
 //#
@@ -24,7 +33,7 @@ if(isFile("config/server/RTB/modPrefs.cs"))
 //*********************************************************
 //* The Meat
 //*********************************************************
-function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresRestart)
+function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresRestart,%hostOnly)
 {
    %pref = strReplace(%pref,"$","");
    
@@ -46,6 +55,9 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
       
    if(%requiresRestart !$= 1)
       %requiresRestart = 0;
+      
+   if(%hostOnly !$= 1)
+      %hostOnly = 0;
    
    if(%mod $= "")
       %mod = "Unknown";
@@ -119,7 +131,7 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
       if($RTB::ServerPref[%i,0] $= %cat)
       {
          %catcount = $RTB::ServerPrefCount[%i];
-         $RTB::ServerPref[%i,%catcount] = %name TAB %pref TAB %vartype TAB %mod TAB %requiresRestart;
+         $RTB::ServerPref[%i,%catcount] = %name TAB %pref TAB %vartype TAB %mod TAB %requiresRestart TAB %hostOnly;
          $RTB::ServerPrefCount[%i]++;
          return 1;
       }
@@ -127,7 +139,7 @@ function RTB_registerPref(%name,%cat,%pref,%vartype,%mod,%default,%requiresResta
 
    $RTB::ServerPrefCount[$RTB::ServerPrefs] = 1;
    $RTB::ServerPref[$RTB::ServerPrefs,0] = %cat;
-   $RTB::ServerPref[$RTB::ServerPrefs,1] = %name TAB %pref TAB %vartype TAB %mod TAB %requiresRestart;
+   $RTB::ServerPref[$RTB::ServerPrefs,1] = %name TAB %pref TAB %vartype TAB %mod TAB %requiresRestart TAB %hostOnly;
    $RTB::ServerPrefCount[$RTB::ServerPrefs]++;
    $RTB::ServerPrefs++;
    
